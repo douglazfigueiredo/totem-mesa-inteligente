@@ -1,9 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { computeRemainingSec } from '@app/schemas';
-import { useOrdersStore, selectActivePreparos } from '@/lib/orders-store';
+import { useOrdersStore } from '@/lib/orders-store';
 import { correctedNow, useSocketStore } from '@/lib/socket-client';
 import { formatTime } from '@/lib/format';
 import styles from './TimerWidget.module.css';
@@ -12,7 +12,11 @@ export const TimerWidget = () => {
   const router = useRouter();
   const pathname = usePathname();
   const drift = useSocketStore((s) => s.driftMs);
-  const preparos = useOrdersStore(selectActivePreparos);
+  const preparosMap = useOrdersStore((s) => s.preparos);
+  const preparos = useMemo(
+    () => [...preparosMap.values()].filter((p) => p.status === 'preparando'),
+    [preparosMap],
+  );
   const [now, setNow] = useState(() => correctedNow(drift));
 
   useEffect(() => {

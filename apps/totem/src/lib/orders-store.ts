@@ -100,15 +100,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
   },
 }));
 
-export const selectActiveOrders = (s: OrdersState): Order[] =>
-  [...s.orders.values()]
-    .filter((o) => ['criado', 'enviado', 'preparando', 'pronto'].includes(o.status))
-    .sort((a, b) => a.createdAt - b.createdAt);
-
 export const selectPreparoForOrder = (s: OrdersState, orderId: OrderId): Preparo | null => {
   const preparoId = s.preparoByOrder.get(orderId);
   return preparoId ? (s.preparos.get(preparoId) ?? null) : null;
 };
-
-export const selectActivePreparos = (s: OrdersState): Preparo[] =>
-  [...s.preparos.values()].filter((p) => p.status === 'preparando');

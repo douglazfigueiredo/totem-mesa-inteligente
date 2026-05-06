@@ -13,9 +13,12 @@ services:
     environment:
       NODE_ENV: development
       PORT: 4000
-      LOG_LEVEL: debug
-      TENANT_ID: dev-tenant
-      DEVICE_API_KEY: dev-key
+      LOG_LEVEL: info
+      ADMIN_SECRET: dev-admin-secret-min-20-chars-XX
+      TENANT_SLUG: pizzaria-dev
+      TENANT_NAME: Pizzaria Dev
+      TENANT_VERTICAL: pizzaria
+      TENANT_TABLES: 10
       CLOUD_BASE_URL: http://host.docker.internal:3000
       DATABASE_PATH: /data/hub.db
     volumes:

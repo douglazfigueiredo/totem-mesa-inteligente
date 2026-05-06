@@ -187,32 +187,108 @@ Volume `hub-dev-data` preserva `/data/hub.db` entre restarts.
 | Crash durante write | WAL + synchronous=NORMAL = consistencia transacional ate o ultimo commit |
 | Restart entre o `prep:start` e `prep:ready` | Hub recalcula `due` na inicializacao (recovery automatico) |
 
-## 8. O que NAO esta na Fase 2A (proximas etapas)
+## 8. REST API (Fase 2B) ✅
+
+### Auth
+
+Endpoints (exceto `/health`, `/devices/pair`, `/admin/*`) exigem header:
+
+```
+x-device-api-key: <chave gerada no pareamento>
+```
+
+Endpoints `/admin/*` exigem `x-admin-secret: <ADMIN_SECRET env>` (timing-safe compare).
+
+Erros padronizados via `DomainError`:
+- `401 unauthorized` — sem/invalida API key
+- `403 forbidden` — role do device nao permite
+- `404 not_found` — entidade nao existe
+- `409 conflict` — invariant violado (e.g. preparo iniciado 2x)
+- `422 validation` — body invalido (Zod) ou regra simples
+
+### Endpoints
+
+| Metodo + Path | Auth | Body / Query |
+|---|---|---|
+| `GET  /health` | publico | — |
+| `POST /admin/pairing-codes` | admin | `{ role, ttlMs? }` |
+| `POST /devices/pair` | publico | `{ code, nome, tableId? }` → `{ device, apiKey }` |
+| `POST /orders` | totem | `{ tableId, items[], taxaServicoBps?, obs? }` + `x-event-id?` |
+| `GET  /orders/:id` | qualquer | — |
+| `POST /orders/:id/cancel` | totem/admin | `{ reason }` |
+| `POST /prep/start` | kds | `{ orderId, employeeId, durationSec }` + `x-event-id?` |
+| `POST /prep/:id/ready` | kds/admin | — |
+| `POST /waiter/calls` | totem | `{ tableId, reason, obs? }` |
+| `POST /waiter/calls/:id/ack` | waiter/admin | `{ employeeId }` |
+| `POST /waiter/calls/:id/resolve` | waiter/admin | `{ employeeId }` |
+| `POST /state/sync` | totem/kds/waiter | `{ tableId, lastEventId? }` |
+| `POST /heartbeat` | qualquer | `{ clientTime? }` |
+
+### Idempotencia em mutacoes
+
+`POST /orders` e `POST /prep/start` aceitam `x-event-id` (UUID v7). Se ja processado, servidor retorna o resultado original (HTTP 200) sem re-processar. Mantido em `processed_events`.
+
+### Bootstrap automatico
+
+No primeiro boot, se nao existir tenant, hub cria a partir de envs:
+- `TENANT_ID`, `TENANT_SLUG`, `TENANT_NAME`, `TENANT_VERTICAL`, `TENANT_TABLES`
+
+Cria tenant + N mesas (default 10). Subsequente: no-op.
+
+### Smoke test end-to-end (validado em Docker)
+
+```bash
+SECRET="dev-admin-secret-min-20-chars-XX"
+
+CODE=$(curl -sX POST http://localhost:4000/admin/pairing-codes \
+  -H "x-admin-secret: $SECRET" -H "content-type: application/json" \
+  -d '{"role":"totem"}' | jq -r .code)
+
+APIKEY=$(curl -sX POST http://localhost:4000/devices/pair \
+  -H "content-type: application/json" \
+  -d "{\"code\":\"$CODE\",\"nome\":\"Totem 7\",\"tableId\":\"$TABLE_ID\"}" \
+  | jq -r .apiKey)
+
+curl -sX POST http://localhost:4000/orders \
+  -H "x-device-api-key: $APIKEY" -H "content-type: application/json" \
+  -d "{\"tableId\":\"$TABLE_ID\",\"items\":[...]}"
+# → 201 Order, outbox pending=1, event 'order:created' enqueued
+```
+
+## 9. O que NAO esta nas Fases 2A/2B
 
 | Reservado | Fase |
 |---|---|
-| Auth API key middleware (`x-device-api-key`) | 2B |
-| REST endpoints (`/orders`, `/prep`, `/waiter`, `/state/sync`) | 2B |
-| Socket.IO server + handlers | 2C |
-| BullMQ workers (timer due, outbox push) | 2C |
+| Socket.IO server + broadcast | 2C |
+| BullMQ workers (timer due → prep:ready automatico) | 2C |
 | Pull catalog do cloud | 2D |
-| Push outbox para cloud | 2D |
+| Push outbox para cloud (worker) | 2D |
 | GHCR image publishing (ativar `hub-image.yml`) | 2D |
+| Bcrypt PIN auth para funcionarios | 2D ou 5 |
 
-## 9. Tests
+## 10. Tests
 
 ```bash
 cd apps/hub
-pnpm test          # 29 tests, ~800ms
+pnpm test          # 59 tests, ~1.5s
 ```
 
 Cobertura atual:
 
-- `device.repo.test.ts` — 4 tests
-- `idempotency.repo.test.ts` — 3 tests
-- `order.repo.test.ts` — 6 tests
-- `outbox.repo.test.ts` — 5 tests (incluindo backoff exponencial)
-- `pairing.repo.test.ts` — 5 tests (TTL, double-consume, expiracao)
-- `preparo.repo.test.ts` — 6 tests (timer determinismo, conflicts)
+**Repos** (29 tests):
+- `device.repo.test.ts` — 4
+- `idempotency.repo.test.ts` — 3
+- `order.repo.test.ts` — 6
+- `outbox.repo.test.ts` — 5 (backoff exponencial)
+- `pairing.repo.test.ts` — 5 (TTL, double-consume)
+- `preparo.repo.test.ts` — 6 (timer determinismo, conflicts)
 
-In-memory SQLite por suite (`mkdtempSync`), aplicacao de migrations isolada.
+**Routes** (30 tests, via `fastify.inject()`):
+- `routes.health.test.ts` — 1
+- `routes.devices.test.ts` — 7
+- `routes.orders.test.ts` — 8 (auth/role, totals, idempotencia, outbox)
+- `routes.prep.test.ts` — 4 (start, race 409, ready)
+- `routes.waiter.test.ts` — 6
+- `routes.state.test.ts` — 4 (sync + heartbeat)
+
+In-memory SQLite isolado por suite, Fastify in-process via `buildApp()`.

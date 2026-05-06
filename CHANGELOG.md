@@ -7,6 +7,23 @@ Versionamento: `vX.Y-faseN` no fim de cada fase.
 
 ---
 
+## [Unreleased] — Fase 2B concluida
+
+### Adicionado (Fase 2B — Hub local: REST + auth)
+
+- `buildApp()` factory em `apps/hub/src/app.ts`. server.ts virou thin wrapper.
+- **Auth plugin** com `requireDevice` (x-device-api-key sha256), `requireRole(roles[])`, `requireAdmin` (x-admin-secret timing-safe).
+- **Error handler plugin** — DomainError → http status; ZodError → 422.
+- **WaiterCallRepo** — create, ack, resolve, escalate, listPending.
+- **Bootstrap automatico** — cria tenant + N mesas a partir de envs no primeiro boot.
+- **8 endpoints REST**: pair, orders (CRUD + cancel), prep (start + ready), waiter (call/ack/resolve), state/sync, heartbeat, admin/pairing-codes.
+- Idempotencia via `x-event-id` em `POST /orders` e `POST /prep/start`.
+- **30 testes de rotas** via `fastify.inject()`. Total 59 tests passando em ~1.5s.
+- End-to-end validado em Docker: pairing → order → outbox enqueue.
+- Doc `docs/03-hub-local.md` expandido com tabela completa de endpoints + smoke test.
+
+---
+
 ## [Unreleased] — Fase 2A concluida
 
 ### Adicionado (Fase 2A — Hub local: persistencia)

@@ -6,6 +6,7 @@ import { makeOrderRepo, type OrderRepo } from './order.repo.js';
 import { makeOutboxRepo, type OutboxRepo } from './outbox.repo.js';
 import { makePairingRepo, type PairingRepo } from './pairing.repo.js';
 import { makePreparoRepo, type PreparoRepo } from './preparo.repo.js';
+import { makeWaiterRepo, type WaiterRepo } from './waiter.repo.js';
 
 export type Repos = {
   devices: DeviceRepo;
@@ -14,6 +15,7 @@ export type Repos = {
   outbox: OutboxRepo;
   pairing: PairingRepo;
   preparos: PreparoRepo;
+  waiter: WaiterRepo;
 };
 
 export const makeRepos = (db: DBClient, clock: Clock): Repos => ({
@@ -23,6 +25,15 @@ export const makeRepos = (db: DBClient, clock: Clock): Repos => ({
   outbox: makeOutboxRepo(db, clock),
   pairing: makePairingRepo(db, clock),
   preparos: makePreparoRepo(db, clock),
+  waiter: makeWaiterRepo(db, clock),
 });
 
-export type { DeviceRepo, IdempotencyRepo, OrderRepo, OutboxRepo, PairingRepo, PreparoRepo };
+export type {
+  DeviceRepo,
+  IdempotencyRepo,
+  OrderRepo,
+  OutboxRepo,
+  PairingRepo,
+  PreparoRepo,
+  WaiterRepo,
+};

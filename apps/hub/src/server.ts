@@ -1,8 +1,7 @@
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
-import Fastify from 'fastify';
-import cors from '@fastify/cors';
-import helmet from '@fastify/helmet';
+import { buildApp } from './app.js';
+import { bootstrap } from './bootstrap.js';
 import { createDB } from './db/index.js';
 import { systemClock } from './lib/clock.js';
 import { makeRepos } from './repositories/index.js';
@@ -21,8 +20,12 @@ async function main() {
   });
 
   const repos = makeRepos(db, systemClock);
+  const { tenantId, created } = bootstrap(db, systemClock);
 
-  const app = Fastify({
+  const app = await buildApp({
+    repos,
+    tenantId,
+    adminSecret: process.env.ADMIN_SECRET,
     logger: {
       level: process.env.LOG_LEVEL ?? 'info',
       transport:
@@ -32,34 +35,13 @@ async function main() {
     },
   });
 
-  app.decorate('repos', repos);
-
-  await app.register(helmet);
-  await app.register(cors, { origin: true });
-
-  app.get('/health', async () => ({
-    status: 'ok',
-    service: 'hub',
-    version: process.env.APP_VERSION ?? 'dev',
-    timestamp: Date.now(),
-    db: { path: DATABASE_PATH, ordersCount: repos.orders.count() },
-    outbox: { pending: repos.outbox.pendingCount() },
-  }));
-
-  app.addHook('onClose', async () => {
-    close();
-  });
+  app.addHook('onClose', async () => close());
 
   await app.listen({ host: HOST, port: PORT });
+  app.log.info({ tenantId, dbPath: DATABASE_PATH, bootstrapped: created }, 'hub ready');
 }
 
 main().catch((err) => {
   console.error(err);
   process.exit(1);
 });
-
-declare module 'fastify' {
-  interface FastifyInstance {
-    repos: ReturnType<typeof makeRepos>;
-  }
-}

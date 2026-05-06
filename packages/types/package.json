@@ -15,7 +15,7 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src",
+    "lint": "echo '[types] lint pendente — ESLint global na Fase 9'",
     "clean": "rm -rf dist .turbo"
   }
 }

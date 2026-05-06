@@ -1,0 +1,214 @@
+/* Sketchy lo-fi wireframe styling */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&family=Patrick+Hand&family=Architects+Daughter&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --ink: #1a1714;
+  --ink-2: #4a443d;
+  --ink-3: #8a8278;
+  --paper: #fafaf6;
+  --paper-2: #f3f1ea;
+  --line: #2a2520;
+  --accent: oklch(0.68 0.16 45);     /* warm orange */
+  --accent-soft: oklch(0.92 0.06 45);
+  --ready: oklch(0.68 0.14 145);     /* ready green */
+  --ready-soft: oklch(0.92 0.07 145);
+  --alert: oklch(0.65 0.18 25);
+  --hand: 'Patrick Hand', 'Caveat', cursive;
+  --display: 'Architects Daughter', 'Caveat', cursive;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
+/* Sketchy borders using SVG filter for hand-drawn feel */
+.wf {
+  font-family: var(--hand);
+  color: var(--ink);
+  background: var(--paper);
+  width: 100%;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+/* Wireframe primitives */
+.wf-box {
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  background: var(--paper);
+  position: relative;
+}
+.wf-box.dashed { border-style: dashed; }
+.wf-box.thick { border-width: 2.5px; }
+.wf-box.fill { background: var(--paper-2); }
+.wf-box.fill-ink { background: var(--line); color: var(--paper); }
+.wf-box.fill-accent { background: var(--accent-soft); }
+.wf-box.fill-ready { background: var(--ready-soft); }
+
+.wf-h1 { font-family: var(--display); font-size: 32px; line-height: 1; letter-spacing: 0.5px; }
+.wf-h2 { font-family: var(--display); font-size: 22px; line-height: 1.1; }
+.wf-h3 { font-family: var(--display); font-size: 16px; }
+.wf-mono { font-family: var(--mono); font-size: 11px; letter-spacing: -0.01em; }
+.wf-tiny { font-size: 11px; color: var(--ink-2); }
+.wf-muted { color: var(--ink-3); }
+
+/* Photo placeholder — striped */
+.wf-photo {
+  background:
+    repeating-linear-gradient(135deg,
+      transparent 0 8px,
+      rgba(0,0,0,0.06) 8px 9px);
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Rough underline annotation */
+.wf-anno {
+  font-family: var(--display);
+  color: var(--accent);
+  font-size: 13px;
+  position: absolute;
+  pointer-events: none;
+}
+.wf-anno-arrow::before {
+  content: '↘';
+  margin-right: 4px;
+}
+
+/* Stroke fills */
+.wf-strike {
+  background: repeating-linear-gradient(45deg,
+    var(--line) 0 1px,
+    transparent 1px 5px);
+}
+
+/* Pill */
+.wf-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1.5px solid var(--line);
+  border-radius: 999px;
+  font-family: var(--hand);
+  font-size: 13px;
+  background: var(--paper);
+  white-space: nowrap;
+}
+.wf-pill.active { background: var(--line); color: var(--paper); }
+.wf-pill.accent { background: var(--accent-soft); border-color: var(--accent); }
+.wf-pill.ready { background: var(--ready-soft); border-color: var(--ready); color: var(--ink); }
+
+/* Button */
+.wf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+  font-family: var(--hand);
+  font-size: 16px;
+  cursor: pointer;
+}
+.wf-btn.primary { background: var(--line); color: var(--paper); }
+.wf-btn.accent { background: var(--accent); border-color: var(--line); color: var(--paper); }
+.wf-btn.ready { background: var(--ready); border-color: var(--line); color: var(--paper); }
+.wf-btn.ghost { background: transparent; }
+
+/* Hand-drawn-ish wobble for borders */
+.wobble {
+  border-radius: 14px 10px 16px 8px / 10px 16px 8px 14px;
+}
+
+/* Bell icon */
+.wf-bell { font-size: 18px; }
+
+/* Layout helpers */
+.row { display: flex; align-items: center; gap: 12px; }
+.col { display: flex; flex-direction: column; gap: 12px; }
+.between { justify-content: space-between; }
+.grow { flex: 1; }
+
+/* Frame: outer chrome of tablet */
+.tablet-frame {
+  position: absolute; inset: 0;
+  padding: 12px;
+  background: #1a1714;
+  border-radius: 12px;
+}
+.tablet-screen {
+  width: 100%; height: 100%;
+  background: var(--paper);
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Mini timer floating widget */
+.mini-timer {
+  position: absolute;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  padding: 6px 12px 6px 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 3px 3px 0 var(--line);
+  font-family: var(--hand);
+  font-size: 14px;
+}
+.mini-timer .ring {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2.5px solid var(--ink-3);
+  border-top-color: var(--accent);
+  border-right-color: var(--accent);
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px;
+  font-family: var(--mono);
+}
+
+/* Annotation labels above artboards */
+.note {
+  font-family: var(--hand);
+  color: var(--ink-2);
+  font-size: 13px;
+}
+
+/* SVG sketchy stroke filter (apply to inline SVG for wobble) */
+.sketch-stroke {
+  filter: url(#roughen);
+}
+
+/* Status dot */
+.dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+}
+.dot.preparing { background: var(--accent); }
+.dot.ready { background: var(--ready); }
+.dot.waiting { background: var(--ink-3); }
+
+/* Crosshatch fill for "image" placeholders */
+.hatch {
+  background:
+    repeating-linear-gradient(45deg,
+      var(--line) 0 1px,
+      transparent 1px 6px),
+    repeating-linear-gradient(-45deg,
+      var(--line) 0 1px,
+      transparent 1px 6px);
+  opacity: 0.5;
+}

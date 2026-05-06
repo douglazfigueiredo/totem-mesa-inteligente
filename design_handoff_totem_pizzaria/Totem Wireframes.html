@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Totem · Wireframes</title>
+  <link rel="stylesheet" href="sketchy.css" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #f0eee9; font-family: ui-sans-serif, system-ui; }
+    /* The intro banner that sits above the canvas */
+    .intro {
+      max-width: 900px; margin: 32px auto 0; padding: 0 24px;
+      font-family: 'Patrick Hand', 'Caveat', cursive;
+      color: #1a1714;
+    }
+    .intro h1 {
+      font-family: 'Architects Daughter', cursive;
+      font-size: 40px; margin: 0 0 8px;
+    }
+    .intro p { font-size: 16px; line-height: 1.45; margin: 6px 0; max-width: 720px; }
+    .intro .tag { display: inline-block; padding: 2px 8px; border: 1.5px solid #2a2520;
+      border-radius: 999px; font-family: 'JetBrains Mono', monospace; font-size: 11px; margin-right: 6px; }
+    .legend { display: flex; gap: 20px; margin-top: 14px; flex-wrap: wrap; font-size: 13px; }
+    .legend .sw { display: inline-block; width: 14px; height: 14px; border: 1.5px solid #2a2520;
+      border-radius: 4px; vertical-align: middle; margin-right: 6px; }
+  </style>
+</head>
+<body>
+
+  <div class="intro">
+    <span class="tag">WIREFRAMES · LO-FI</span>
+    <span class="tag">TABLET LANDSCAPE</span>
+    <span class="tag">PT-BR</span>
+    <h1>totem inteligente — exploração</h1>
+    <p>3 superfícies (totem, KDS, app do garçom) · 16 telas · ~3 variações por tela. Misturando padrões consagrados e ideias arriscadas pra mapear o espaço de design antes de comprometer com uma direção.</p>
+    <p>Use o painel <strong>Tweaks</strong> (canto inferior direito) pra rodar o timer, alternar estados (ativo/minimizado/pronto) e focar em variações específicas.</p>
+    <div class="legend">
+      <span><span class="sw" style="background:#fafaf6"></span>papel</span>
+      <span><span class="sw" style="background:oklch(0.92 0.06 45);border-color:oklch(0.68 0.16 45)"></span>preparando</span>
+      <span><span class="sw" style="background:oklch(0.92 0.07 145);border-color:oklch(0.68 0.14 145)"></span>pronto</span>
+      <span><span class="sw" style="background:#1a1714"></span>tinta · contorno</span>
+    </div>
+  </div>
+
+  <div id="root"></div>
+
+  <!-- React + Babel -->
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="design-canvas.jsx"></script>
+  <script type="text/babel" src="tweaks-panel.jsx"></script>
+  <script type="text/babel" src="primitives.jsx"></script>
+  <script type="text/babel" src="totem-screens-1.jsx"></script>
+  <script type="text/babel" src="totem-screens-2.jsx"></script>
+  <script type="text/babel" src="other-screens.jsx"></script>
+  <script type="text/babel" src="selected.jsx"></script>
+
+  <script type="text/babel" data-presets="react">
+    const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+      "simulateTimer": false,
+      "timerSpeed": 1,
+      "timerState": "active_full",
+      "showAnnotations": true,
+      "highlight": "all"
+    }/*EDITMODE-END*/;
+
+    const W = 720, H = 500;
+
+    function App() {
+      const [t, setTweak] = useTweaks(TWEAK_DEFAULTS);
+
+      // Live timer simulation: 0..1 progress over 30 seconds (15 if 2x)
+      const [tick, setTick] = React.useState(0);
+      React.useEffect(() => {
+        if (!t.simulateTimer) return;
+        const start = Date.now();
+        const dur = 30000 / (t.timerSpeed || 1);
+        const id = setInterval(() => {
+          const elapsed = (Date.now() - start) % (dur + 4000);
+          setTick(elapsed / dur);
+        }, 100);
+        return () => clearInterval(id);
+      }, [t.simulateTimer, t.timerSpeed]);
+
+      // pct goes 0..1, then we let it overshoot a bit then "ready"
+      const pct = t.simulateTimer ? Math.min(tick, 1) : 0.55;
+      const totalSecs = t.simulateTimer ? Math.max(0, Math.floor((1 - tick) * (15 * 60))) : (8 * 60 + 24);
+      const mins = Math.floor(totalSecs / 60);
+      const secs = totalSecs % 60;
+      const time = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+      const isReady = t.simulateTimer && tick >= 1;
+
+      // hide annotations style toggle
+      React.useEffect(() => {
+        let s = document.getElementById('anno-toggle');
+        if (!s) { s = document.createElement('style'); s.id = 'anno-toggle'; document.head.appendChild(s); }
+        s.textContent = t.showAnnotations ? '' : '.wf-anno{display:none!important}';
+      }, [t.showAnnotations]);
+
+      // Pick the "live timer" component to feature in System section
+      const LiveTimer = isReady
+        ? Ready_A
+        : t.timerState === 'active_minimized'
+          ? Mini_A
+          : t.timerState === 'ready'
+            ? Ready_A
+            : Timer_A;
+
+      const liveTimerProps = { pct, time };
+
+      // Filter helper: when highlight is set, dim non-matching sections
+      const matches = (sectionId) => t.highlight === 'all' || t.highlight === sectionId;
+      const sectionStyle = (sectionId) => matches(sectionId) ? {} : { opacity: 0.35 };
+
+      return (
+        <>
+          <DesignCanvas>
+            <DCSection id="selected" title="★ Escolhas finais · com ajustes pedidos"
+              subtitle="Variações escolhidas + tweaks aplicados (sem contagem de pessoas, edit por item, multi-pizza, overlay com 'ok voltar', toggle 10%, etc)">
+              <DCArtboard id="sel-01-welcome" label="01 ★ Welcome B (sem pessoas)" width={W} height={H}><Sel_Welcome /></DCArtboard>
+              <DCArtboard id="sel-02-menu" label="02 ★ Menu B" width={W} height={H}><Sel_Menu /></DCArtboard>
+              <DCArtboard id="sel-03-detail" label="03 ★ Detail B + adicionais + remover" width={W} height={H}><Sel_Detail /></DCArtboard>
+              <DCArtboard id="sel-04-cart" label="04 ★ Cart A + editar item" width={W} height={H}><Sel_Cart /></DCArtboard>
+              <DCArtboard id="sel-05-confirm" label="05 ★ Confirm A" width={W} height={H}><Sel_Confirm /></DCArtboard>
+              <DCArtboard id="sel-06-timer" label="06 ★ Timer A · multi-pizza" width={W} height={H}>
+                <Sel_Timer pct={pct} time={time} />
+              </DCArtboard>
+              <DCArtboard id="sel-07-mini" label="07 ★ Mini A" width={W} height={H}><Sel_Mini /></DCArtboard>
+              <DCArtboard id="sel-08-ready" label="08 ★ Ready · overlay 'ok voltar'" width={W} height={H}><Sel_Ready /></DCArtboard>
+              <DCArtboard id="sel-09-waiter" label="09 ★ Swipe-to-call + ETA garçom" width={W} height={H}><Sel_Waiter /></DCArtboard>
+              <DCArtboard id="sel-10-history" label="10 ★ History A · taxa 10% toggle" width={W} height={H}><Sel_History /></DCArtboard>
+              <DCArtboard id="sel-kds" label="KDS ★ A" width={W} height={H}><Sel_KDS /></DCArtboard>
+              <DCArtboard id="sel-garcom" label="Garçom ★ A" width={W} height={H}><Sel_Garcom /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="system" title="Sistema · escolhas visuais"
+              subtitle="Antes de telas: vocabulário gráfico que vai amarrar tudo">
+              <DCArtboard id="palette" label="Paleta · tipografia" width={W} height={H}>
+                <div style={{ padding: 24, fontFamily: 'var(--hand)', height: '100%', boxSizing: 'border-box', background: 'var(--paper)' }}>
+                  <div className="wf-h1">paleta · tom · tipo</div>
+                  <Scribble w={140} />
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, marginTop: 18 }}>
+                    <div>
+                      <div className="wf-mono" style={{ marginBottom: 8 }}>CORES</div>
+                      <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+                        {[
+                          ['#fafaf6','papel'],['#f3f1ea','papel 2'],['#1a1714','tinta'],
+                          ['oklch(0.68 0.16 45)','accent · preparando'],
+                          ['oklch(0.68 0.14 145)','ready · pronto'],
+                          ['oklch(0.65 0.18 25)','alerta · atrasado'],
+                        ].map(([c,n]) => (
+                          <div key={n} className="col" style={{ alignItems: 'center', gap: 4, width: 80 }}>
+                            <div style={{ width: 60, height: 60, background: c, border: '1.5px solid var(--line)', borderRadius: 6 }} />
+                            <span className="wf-tiny" style={{ textAlign: 'center' }}>{n}</span>
+                          </div>
+                        ))}
+                      </div>
+                      <div className="wf-mono" style={{ marginTop: 18, marginBottom: 8 }}>PRINCÍPIOS</div>
+                      <ul style={{ margin: 0, paddingLeft: 18, fontSize: 13, lineHeight: 1.5 }}>
+                        <li>cor só carrega <strong>estado</strong> (preparando/pronto/atrasado)</li>
+                        <li>contornos sempre traçados — esboço, nunca polido</li>
+                        <li>foto é placeholder listrado · pra trocar depois</li>
+                        <li>timer é elemento mais hierárquico em todas as telas</li>
+                      </ul>
+                    </div>
+                    <div>
+                      <div className="wf-mono" style={{ marginBottom: 8 }}>TIPO</div>
+                      <div className="wf-h1">Architects Daughter</div>
+                      <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>display · headers, números do timer</div>
+                      <div className="wf-h2" style={{ marginTop: 12 }}>Patrick Hand — corpo</div>
+                      <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>texto, botões, conversa do totem</div>
+                      <div className="wf-mono" style={{ marginTop: 12, fontSize: 14 }}>JetBrains Mono · etiquetas</div>
+                      <div style={{ fontSize: 12, color: 'var(--ink-3)' }}>preços, ids, métricas</div>
+                      <div className="wf-mono" style={{ marginTop: 18, marginBottom: 8 }}>COMPONENTES</div>
+                      <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
+                        <div className="wf-pill">pill</div>
+                        <div className="wf-pill active">ativo</div>
+                        <div className="wf-pill accent">preparando</div>
+                        <div className="wf-pill ready">pronto ✓</div>
+                        <div className="wf-btn">botão</div>
+                        <div className="wf-btn primary">primário</div>
+                        <div className="wf-btn ready">ready</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </DCArtboard>
+
+              <DCArtboard id="live-timer" label="Timer · ao vivo (use Tweaks)" width={W} height={H}>
+                <LiveTimer {...liveTimerProps} />
+              </DCArtboard>
+            </DCSection>
+
+            <DCSection id="welcome" title="01 · Tela inicial / boas-vindas"
+              subtitle="Como o totem se apresenta quando chega na mesa">
+              <DCArtboard id="welcome-a" label="A · centrado, direto" width={W} height={H}><Welcome_A /></DCArtboard>
+              <DCArtboard id="welcome-b" label="B · split com destaques" width={W} height={H}><Welcome_B /></DCArtboard>
+              <DCArtboard id="welcome-c" label="C · ⚡ vibe-driven" width={W} height={H}><Welcome_C /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="menu" title="02 · Cardápio (browse)"
+              subtitle="Categorias em abas + scroll · variações de densidade e novidade">
+              <DCArtboard id="menu-a" label="A · abas + grid 4col" width={W} height={H}><Menu_A /></DCArtboard>
+              <DCArtboard id="menu-b" label="B · sidebar + lista" width={W} height={H}><Menu_B /></DCArtboard>
+              <DCArtboard id="menu-c" label="C · ⚡ stories horizontal" width={W} height={H}><Menu_C /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="detail" title="03 · Detalhe + customização"
+              subtitle="O cliente compõe o item — tamanho, borda, adicionais, multi-sabor">
+              <DCArtboard id="detail-a" label="A · split foto / opções" width={W} height={H}><Detail_A /></DCArtboard>
+              <DCArtboard id="detail-b" label="B · pizza partida em pedaços" width={W} height={H}><Detail_B /></DCArtboard>
+              <DCArtboard id="detail-c" label="C · ⚡ arrasta ingredientes" width={W} height={H}><Detail_C /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="cart" title="04 · Carrinho">
+              <DCArtboard id="cart-a" label="A · lista clássica" width={W} height={H}><Cart_A /></DCArtboard>
+              <DCArtboard id="cart-b" label="B · separado por destino" width={W} height={H}><Cart_B /></DCArtboard>
+              <DCArtboard id="cart-c" label="C · ⚡ ondas de chegada" width={W} height={H}><Cart_C /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="confirm" title="05 · Confirmação">
+              <DCArtboard id="confirm-a" label="A · centrado, ✓" width={W} height={H}><Confirm_A /></DCArtboard>
+              <DCArtboard id="confirm-b" label="B · status + resumo" width={W} height={H}><Confirm_B /></DCArtboard>
+              <DCArtboard id="confirm-c" label="C · ⚡ ticket carimbado" width={W} height={H}><Confirm_C /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="timer" title="06 · Timer ativo (full)"
+              subtitle="O coração do produto — diferentes personalidades pro mesmo dado">
+              <DCArtboard id="timer-a" label="A · anel de progresso clássico" width={W} height={H}>
+                <Timer_A pct={pct} time={time} />
+              </DCArtboard>
+              <DCArtboard id="timer-b" label="B · ilustração + etapas" width={W} height={H}>
+                <Timer_B pct={pct} time={time} />
+              </DCArtboard>
+              <DCArtboard id="timer-c" label="C · ⚡ vários timers paralelos" width={W} height={H}>
+                <Timer_C pct={pct} time={time} />
+              </DCArtboard>
+            </DCSection>
+
+            <DCSection id="mini" title="07 · Timer minimizado (widget)"
+              subtitle="UX continua — timer encolhe pra deixar o cliente continuar pedindo">
+              <DCArtboard id="mini-a" label="A · pill canto inf-dir" width={W} height={H}><Mini_A /></DCArtboard>
+              <DCArtboard id="mini-b" label="B · banner topo" width={W} height={H}><Mini_B /></DCArtboard>
+              <DCArtboard id="mini-c" label="C · ⚡ dock lateral · paralelos" width={W} height={H}><Mini_C /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="ready" title="08 · Estado 'pronto' (com sino)"
+              subtitle="Feedback de finalização — quão intrusivo?">
+              <DCArtboard id="ready-a" label="A · takeover sino animado" width={W} height={H}><Ready_A /></DCArtboard>
+              <DCArtboard id="ready-b" label="B · toast top, não interrompe" width={W} height={H}><Ready_B /></DCArtboard>
+              <DCArtboard id="ready-c" label="C · ⚡ confete + auto-dismiss" width={W} height={H}><Ready_C /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="waiter" title="09 · Chamar garçom"
+              subtitle="Sem chamado acidental, mas sem fricção desnecessária">
+              <DCArtboard id="waiter-a" label="A · modal com motivos" width={W} height={H}><Waiter_A /></DCArtboard>
+              <DCArtboard id="waiter-b" label="B · confirmação + ETA" width={W} height={H}><Waiter_B /></DCArtboard>
+              <DCArtboard id="waiter-c" label="C · ⚡ swipe-to-call" width={W} height={H}><Waiter_C /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="history" title="10 · Histórico / pedidos da mesa"
+              subtitle="Mesa aberta acumula pedidos — como mostrar?">
+              <DCArtboard id="history-a" label="A · lista de pedidos" width={W} height={H}><History_A /></DCArtboard>
+              <DCArtboard id="history-b" label="B · dividido por pessoa" width={W} height={H}><History_B /></DCArtboard>
+              <DCArtboard id="history-c" label="C · ⚡ feed de eventos ao vivo" width={W} height={H}><History_C /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="kds" title="KDS · Cozinha"
+              subtitle="Quem cozinha vê uma fila de pedidos com timer próprio">
+              <DCArtboard id="kds-a" label="A · 3 colunas (fila/preparo/pronto)" width={W} height={H}><KDS_A /></DCArtboard>
+              <DCArtboard id="kds-b" label="B · modo foco · 1 + sidebar" width={W} height={H}><KDS_B /></DCArtboard>
+              <DCArtboard id="kds-c" label="C · ⚡ timeline tipo Gantt" width={W} height={H}><KDS_C /></DCArtboard>
+            </DCSection>
+
+            <DCSection id="garcom" title="App do garçom"
+              subtitle="Recebe chamados e pedidos não-cozinha (bebidas, sobremesas)">
+              <DCArtboard id="garcom-a" label="A · feed de chamados" width={W} height={H}><Garcom_A /></DCArtboard>
+              <DCArtboard id="garcom-b" label="B · planta do salão" width={W} height={H}><Garcom_B /></DCArtboard>
+              <DCArtboard id="garcom-c" label="C · ⚡ próxima parada · 1 coisa" width={W} height={H}><Garcom_C /></DCArtboard>
+            </DCSection>
+
+            <DCPostIt top={120} left={40} rotate={-3}>
+              ⚡ = ideia mais arriscada · tudo lo-fi pra explorar antes de polir
+            </DCPostIt>
+          </DesignCanvas>
+
+          <TweaksPanel title="Tweaks">
+            <TweakSection label="Timer ao vivo" />
+            <TweakToggle label="Simular cronômetro"
+              value={t.simulateTimer}
+              onChange={(v) => setTweak('simulateTimer', v)} />
+            <TweakRadio label="Velocidade"
+              value={t.timerSpeed}
+              options={[1, 2, 5]}
+              onChange={(v) => setTweak('timerSpeed', v)} />
+            <TweakSelect label="Estado do timer (no system card)"
+              value={t.timerState}
+              options={['active_full', 'active_minimized', 'ready']}
+              onChange={(v) => setTweak('timerState', v)} />
+
+            <TweakSection label="Apresentação" />
+            <TweakToggle label="Mostrar anotações"
+              value={t.showAnnotations}
+              onChange={(v) => setTweak('showAnnotations', v)} />
+            <TweakSelect label="Foco em seção"
+              value={t.highlight}
+              options={['all', 'selected', 'system', 'welcome', 'menu', 'detail', 'cart', 'confirm', 'timer', 'mini', 'ready', 'waiter', 'history', 'kds', 'garcom']}
+              onChange={(v) => setTweak('highlight', v)} />
+          </TweaksPanel>
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+  </script>
+</body>
+</html>

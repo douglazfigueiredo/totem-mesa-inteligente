@@ -1,0 +1,196 @@
+/* Pizzaria Gigi · Hi-fi style system
+   Terracota + dourado + marrom · estilo pizzaria artesanal
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,900;1,9..144,500;1,9..144,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  /* Palette */
+  --cream:        #f7f1e6;   /* paper */
+  --cream-2:      #efe5d2;   /* paper-2 */
+  --cream-3:      #e3d4b8;   /* divider/soft */
+  --terracotta:   #c14a26;   /* primary accent */
+  --terracotta-d: #9c3819;
+  --gold:         #d4a13b;   /* secondary accent */
+  --gold-d:       #a87b22;
+  --olive:        #6b7b3a;   /* ready / success */
+  --olive-d:      #4f5d28;
+  --ink:          #2b1b10;   /* deep brown ink */
+  --ink-2:        #4a3525;
+  --ink-3:        #7a614c;
+  --char:         #1a0f08;   /* near-black, dough crust */
+  --shadow-soft:  0 1px 2px rgba(43, 27, 16, 0.06), 0 4px 12px rgba(43, 27, 16, 0.05);
+  --shadow-card:  0 2px 4px rgba(43, 27, 16, 0.08), 0 12px 28px rgba(43, 27, 16, 0.10);
+
+  --display: 'Fraunces', 'Times New Roman', serif;
+  --body: 'Inter', system-ui, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+
+  /* spacing scale */
+  --r-sm: 6px;
+  --r: 12px;
+  --r-lg: 18px;
+  --r-pill: 999px;
+}
+
+/* Reset within hi-fi root */
+.hifi *, .hifi *::before, .hifi *::after { box-sizing: border-box; }
+.hifi {
+  font-family: var(--body);
+  color: var(--ink);
+  background: var(--cream);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+.hifi .display { font-family: var(--display); font-weight: 600; letter-spacing: -0.01em; }
+.hifi .display-italic { font-family: var(--display); font-style: italic; font-weight: 500; }
+.hifi .mono { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-3); }
+
+/* Buttons */
+.hifi .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  border: none; cursor: pointer; user-select: none;
+  font-family: var(--body); font-weight: 600;
+  padding: 12px 18px; border-radius: var(--r);
+  background: var(--cream-2); color: var(--ink);
+  font-size: 14px;
+  transition: transform .12s ease, background .15s ease, box-shadow .15s ease;
+}
+.hifi .btn:hover { background: var(--cream-3); }
+.hifi .btn:active { transform: translateY(1px); }
+.hifi .btn-primary {
+  background: var(--terracotta); color: #fff8ec;
+  box-shadow: 0 2px 0 var(--terracotta-d), 0 8px 16px rgba(193, 74, 38, 0.22);
+}
+.hifi .btn-primary:hover { background: var(--terracotta-d); }
+.hifi .btn-ghost { background: transparent; color: var(--ink-2); }
+.hifi .btn-ghost:hover { background: var(--cream-2); }
+.hifi .btn-ready {
+  background: var(--olive); color: #fbfaee;
+  box-shadow: 0 2px 0 var(--olive-d), 0 8px 16px rgba(107, 123, 58, 0.22);
+}
+.hifi .btn-ready:hover { background: var(--olive-d); }
+.hifi .btn-icon { padding: 10px; border-radius: 50%; }
+.hifi .btn-lg { padding: 16px 24px; font-size: 16px; border-radius: var(--r-lg); }
+
+/* Pills / tags */
+.hifi .tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: var(--r-pill);
+  font-size: 11px; font-weight: 600;
+  background: var(--cream-2); color: var(--ink-2);
+}
+.hifi .tag-gold { background: rgba(212, 161, 59, 0.16); color: var(--gold-d); }
+.hifi .tag-terra { background: rgba(193, 74, 38, 0.12); color: var(--terracotta-d); }
+.hifi .tag-olive { background: rgba(107, 123, 58, 0.16); color: var(--olive-d); }
+
+/* Cards */
+.hifi .card {
+  background: #fffaf0;
+  border: 1px solid var(--cream-3);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-soft);
+}
+.hifi .card-flat { background: #fffaf0; border-radius: var(--r); }
+
+/* Photo */
+.hifi .photo {
+  background: var(--cream-2);
+  background-size: cover; background-position: center;
+  border-radius: var(--r);
+  overflow: hidden; position: relative;
+}
+.hifi .photo::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(180deg, transparent 60%, rgba(43, 27, 16, 0.18) 100%);
+  pointer-events: none;
+}
+
+/* Status dot */
+.hifi .dot {
+  display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+}
+.hifi .dot-queue   { background: var(--cream-3); }
+.hifi .dot-cooking { background: var(--gold); animation: pulse 1.5s ease-in-out infinite; }
+.hifi .dot-ready   { background: var(--olive); }
+@keyframes pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.3); opacity: 0.6; }
+}
+
+/* Tablet "screen" — no bezel */
+.hifi .screen {
+  width: 100%; height: 100%;
+  background: var(--cream);
+  border-radius: var(--r-lg);
+  position: relative; overflow: hidden;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--cream-3);
+}
+
+/* Top bar inside totem */
+.hifi .topbar {
+  position: absolute; top: 0; left: 0; right: 0; z-index: 5;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, var(--cream) 60%, transparent);
+  pointer-events: none;
+}
+.hifi .topbar > * { pointer-events: auto; }
+
+/* Layout helpers */
+.hifi .row { display: flex; align-items: center; gap: 8px; }
+.hifi .col { display: flex; flex-direction: column; }
+.hifi .between { justify-content: space-between; }
+.hifi .grow { flex: 1; }
+
+/* Scrollbar (subtle) */
+.hifi ::-webkit-scrollbar { width: 8px; height: 8px; }
+.hifi ::-webkit-scrollbar-track { background: transparent; }
+.hifi ::-webkit-scrollbar-thumb { background: var(--cream-3); border-radius: 4px; }
+.hifi ::-webkit-scrollbar-thumb:hover { background: var(--ink-3); }
+
+/* Shimmer for skeletons */
+@keyframes shimmer { 0% { background-position: -200px 0; } 100% { background-position: 200px 0; } }
+
+/* Subtle paper texture overlay (CSS only) */
+.hifi .paper-texture {
+  position: relative;
+}
+.hifi .paper-texture::before {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(43, 27, 16, 0.025) 0, transparent 2px),
+    radial-gradient(circle at 75% 60%, rgba(43, 27, 16, 0.02) 0, transparent 1.5px),
+    radial-gradient(circle at 40% 80%, rgba(43, 27, 16, 0.025) 0, transparent 2px);
+  background-size: 80px 80px, 60px 60px, 100px 100px;
+  opacity: 0.6;
+}
+
+/* Wax-stamp badge (for headings, "destaque", etc) */
+.hifi .stamp {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--display); font-style: italic;
+  border: 2px solid var(--terracotta); color: var(--terracotta);
+  padding: 6px 12px; border-radius: 4px;
+  transform: rotate(-3deg);
+  font-size: 13px; letter-spacing: 0.02em;
+}
+
+/* Hero ring */
+.hifi .ring-bg { stroke: var(--cream-3); }
+.hifi .ring-fg { stroke: var(--terracotta); transition: stroke-dashoffset .3s ease; }
+
+/* Slide-in / fade for transitions */
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+.hifi .fade-up { animation: fadeUp .35s ease both; }
+
+/* Bell ring shake */
+@keyframes bell-ring {
+  0%, 100% { transform: rotate(0); }
+  10%, 30% { transform: rotate(-15deg); }
+  20%, 40% { transform: rotate(15deg); }
+  50% { transform: rotate(0); }
+}
+.hifi .bell-shake { animation: bell-ring 1.2s ease-in-out infinite; transform-origin: top center; }

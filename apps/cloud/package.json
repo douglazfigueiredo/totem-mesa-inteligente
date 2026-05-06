@@ -1,0 +1,12 @@
+{
+  "name": "@app/cloud",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo '[cloud] scaffolded na Fase 6 (Cloud SaaS) — usar create-next-app dentro deste diretorio'",
+    "build": "echo '[cloud] scaffold pendente (Fase 6)'",
+    "test": "echo '[cloud] scaffold pendente (Fase 6)'",
+    "lint": "echo '[cloud] scaffold pendente (Fase 6)'",
+    "typecheck": "echo '[cloud] scaffold pendente (Fase 6)'"
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "@app/kds",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo '[kds] scaffolded na Fase 4 (KDS) — usar create-next-app dentro deste diretorio'",
+    "build": "echo '[kds] scaffold pendente (Fase 4)'",
+    "test": "echo '[kds] scaffold pendente (Fase 4)'",
+    "lint": "echo '[kds] scaffold pendente (Fase 4)'",
+    "typecheck": "echo '[kds] scaffold pendente (Fase 4)'"
+  }
+}

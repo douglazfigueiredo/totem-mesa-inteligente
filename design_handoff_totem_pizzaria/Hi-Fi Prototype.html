@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pizzaria Gigi · Hi-fi</title>
+  <link rel="stylesheet" href="hifi.css" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #ebe2ce; min-height: 100vh; }
+    body { font-family: 'Inter', system-ui, sans-serif; color: #2b1b10; }
+    .stage {
+      display: grid;
+      grid-template-columns: minmax(0, 880px) 410px;
+      grid-template-rows: auto 1fr 1fr;
+      gap: 18px;
+      padding: 24px;
+      max-width: 1340px;
+      margin: 0 auto;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    .header { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: end; gap: 20px; }
+    .header h1 { font-family: 'Fraunces', serif; font-size: 32px; font-weight: 700; margin: 0 0 4px; letter-spacing: -0.01em; }
+    .header h1 em { font-style: italic; font-weight: 500; color: #c14a26; }
+    .header p { font-size: 14px; line-height: 1.5; margin: 0; max-width: 620px; color: #4a3525; }
+    .header-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #7a614c; text-transform: uppercase; letter-spacing: 0.08em; }
+    .totem-wrap {
+      grid-row: 2 / 4;
+      width: 880px;
+      justify-self: start;
+    }
+    .panel-wrap { width: 410px; }
+    /* Tablet bezel — landscape, big & confident for the totem */
+    .tablet-bezel {
+      background: linear-gradient(160deg, #1a0f08 0%, #2b1b10 100%);
+      padding: 22px;
+      border-radius: 32px;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.08) inset,
+        0 -1px 0 rgba(0, 0, 0, 0.4) inset,
+        0 30px 60px -20px rgba(43, 27, 16, 0.55),
+        0 12px 24px -10px rgba(43, 27, 16, 0.4);
+      position: relative;
+    }
+    /* "Camera" dot */
+    .tablet-bezel::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 8px;
+      transform: translateY(-50%);
+      width: 4px; height: 4px; border-radius: 50%;
+      background: #4a3525;
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+    }
+    /* Power button hint */
+    .tablet-bezel::after {
+      content: '';
+      position: absolute;
+      top: -2px; right: 60px;
+      width: 50px; height: 3px;
+      background: #1a0f08;
+      border-radius: 0 0 4px 4px;
+    }
+    .tablet-screen-wrap {
+      border-radius: 14px;
+      overflow: hidden;
+      background: var(--cream);
+      position: relative;
+    }
+    /* Smaller bezel for side panels */
+    .panel-bezel {
+      background: linear-gradient(160deg, #2b1b10 0%, #4a3525 100%);
+      padding: 12px;
+      border-radius: 22px;
+      box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.06) inset,
+        0 16px 32px -12px rgba(43, 27, 16, 0.4);
+      position: relative;
+    }
+    .panel-bezel::before {
+      content: '';
+      position: absolute;
+      top: 50%; left: 4px;
+      transform: translateY(-50%);
+      width: 3px; height: 3px; border-radius: 50%;
+      background: #4a3525;
+    }
+    .panel-screen-wrap {
+      border-radius: 10px;
+      overflow: hidden;
+      background: var(--cream);
+      position: relative;
+    }
+    /* Let the screen fill the wrapper */
+    .tablet-screen-wrap > div, .panel-screen-wrap > div {
+      width: 100%; height: 100%;
+    }
+    .hifi .screen { box-shadow: none; border: none; border-radius: 0; }
+    .panel-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 10px;
+      color: #7a614c; margin-bottom: 6px;
+      display: flex; justify-content: space-between;
+      text-transform: uppercase; letter-spacing: 0.08em;
+    }
+    .reset {
+      position: fixed; bottom: 18px; right: 18px;
+      background: #2b1b10; color: #f7f1e6;
+      border: none; padding: 10px 16px; border-radius: 12px;
+      font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+      cursor: pointer; box-shadow: 0 4px 12px rgba(43, 27, 16, 0.2);
+      transition: transform .15s;
+    }
+    .reset:hover { transform: translateY(-2px); }
+    @media (max-width: 1320px) {
+      .stage { grid-template-columns: 1fr; max-width: 820px; }
+      .totem-wrap { grid-row: auto; }
+      .header { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body class="hifi">
+  <div class="stage">
+    <div class="header">
+      <div>
+        <h1>Pizzaria Gigi · <em>protótipo</em> hi-fi</h1>
+        <p>totem da mesa, KDS da cozinha e app do garçom — todos sincronizados em tempo real. peça uma pizza no totem, aceite no KDS, veja o timer rodar e o pedido virar "pronto" automaticamente. tempos reduzidos para demo.</p>
+      </div>
+      <div class="header-meta">
+        <div>v0.2 · hi-fi</div>
+        <div>3 superfícies · 1 store</div>
+      </div>
+    </div>
+    <div class="totem-wrap">
+      <div class="panel-label"><span>TOTEM · mesa 07 · landscape</span><span>820 × 510</span></div>
+      <div class="tablet-bezel">
+        <div class="tablet-screen-wrap" id="totem" style="width: 820px; height: 510px;"></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel-label"><span>KDS · cozinha</span><span>380 × 326</span></div>
+      <div class="panel-bezel">
+        <div class="panel-screen-wrap" id="kds" style="width: 380px; height: 326px;"></div>
+      </div>
+    </div>
+    <div>
+      <div class="panel-label"><span>APP DO GARÇOM</span><span>380 × 326</span></div>
+      <div class="panel-bezel">
+        <div class="panel-screen-wrap" id="garcom" style="width: 380px; height: 326px;"></div>
+      </div>
+    </div>
+  </div>
+  <button class="reset" id="reset">↺ resetar demo</button>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="proto-store.jsx"></script>
+  <script type="text/babel" src="hifi-totem.jsx"></script>
+  <script type="text/babel" src="hifi-other.jsx"></script>
+
+  <script type="text/babel" data-presets="react">
+    function Root() {
+      return (
+        <StoreProvider>
+          <Mount />
+        </StoreProvider>
+      );
+    }
+    function Mount() {
+      const { dispatch } = useStore();
+      React.useEffect(() => {
+        const btn = document.getElementById('reset');
+        const handler = () => dispatch({ type: 'reset' });
+        btn?.addEventListener('click', handler);
+        return () => btn?.removeEventListener('click', handler);
+      }, [dispatch]);
+      return (
+        <>
+          {ReactDOM.createPortal(<HiFiTotem />, document.getElementById('totem'))}
+          {ReactDOM.createPortal(<HiFiKDS />, document.getElementById('kds'))}
+          {ReactDOM.createPortal(<HiFiGarcom />, document.getElementById('garcom'))}
+        </>
+      );
+    }
+    ReactDOM.createRoot(document.body.appendChild(document.createElement('div'))).render(<Root />);
+  </script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+name: totemmesa-hub-dev
+
+services:
+  hub:
+    build:
+      context: ../..
+      dockerfile: apps/hub/Dockerfile
+    image: totemmesa/hub:dev
+    container_name: tm-hub-dev
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      LOG_LEVEL: debug
+      TENANT_ID: dev-tenant
+      DEVICE_API_KEY: dev-key
+      CLOUD_BASE_URL: http://host.docker.internal:3000
+      DATABASE_PATH: /data/hub.db
+    volumes:
+      - hub-dev-data:/data
+    networks:
+      - tm-dev-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: tm-redis-dev
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - tm-dev-net
+
+volumes:
+  hub-dev-data:
+
+networks:
+  tm-dev-net:
+    driver: bridge

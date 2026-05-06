@@ -1,0 +1,640 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Pizzaria Gigi · Handoff p/ desenvolvimento</title>
+  <link rel="stylesheet" href="hifi.css" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #ebe2ce; min-height: 100vh; font-family: 'Inter', sans-serif; color: #2b1b10; }
+    .wrap { max-width: 1180px; margin: 0 auto; padding: 28px 28px 80px; }
+    .doc-h1 { font-family: 'Fraunces', serif; font-size: 36px; font-weight: 700; margin: 0 0 6px; letter-spacing: -0.01em; }
+    .doc-h1 em { font-style: italic; color: #c14a26; font-weight: 500; }
+    .doc-sub { font-size: 14px; color: #4a3525; max-width: 680px; line-height: 1.5; margin-bottom: 22px; }
+    .tabs { display: flex; gap: 4px; border-bottom: 1.5px solid #d4a13b; margin-bottom: 22px; padding-bottom: 0; flex-wrap: wrap; }
+    .tab {
+      background: none; border: none; cursor: pointer;
+      font-family: 'Inter', sans-serif; font-size: 14px; font-weight: 600;
+      padding: 10px 16px; color: #7a614c; position: relative; bottom: -2px;
+      border-bottom: 3px solid transparent;
+      transition: all .15s;
+    }
+    .tab:hover { color: #2b1b10; }
+    .tab.active { color: #c14a26; border-bottom-color: #c14a26; }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; animation: fadeUp .3s ease; }
+    .section {
+      background: #fffaf0;
+      border: 1px solid #e3d4b8;
+      border-radius: 18px;
+      padding: 22px 26px;
+      margin-bottom: 18px;
+      box-shadow: 0 1px 2px rgba(43, 27, 16, 0.04), 0 8px 20px rgba(43, 27, 16, 0.05);
+    }
+    .section-h {
+      font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600;
+      margin: 0 0 4px; display: flex; align-items: center; gap: 10px;
+    }
+    .section-meta { font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #7a614c; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 16px; }
+    .check-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+    .check-item {
+      display: flex; gap: 12px; padding: 10px 12px;
+      background: #faf3e2; border-radius: 10px;
+      border-left: 3px solid #d4a13b;
+      cursor: pointer;
+      transition: background .15s;
+    }
+    .check-item:hover { background: #f5ead0; }
+    .check-item.done { background: rgba(107, 123, 58, 0.06); border-left-color: #6b7b3a; }
+    .check-item.done .check-title { text-decoration: line-through; color: #7a614c; }
+    .check-item.crit { border-left-color: #c14a26; }
+    .check-cb {
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 1.5px solid #2b1b10; flex-shrink: 0; margin-top: 2px;
+      display: flex; align-items: center; justify-content: center;
+      background: white;
+    }
+    .check-item.done .check-cb { background: #6b7b3a; border-color: #6b7b3a; color: white; }
+    .check-body { flex: 1; }
+    .check-title { font-weight: 600; font-size: 14px; line-height: 1.3; }
+    .check-detail { font-size: 13px; color: #4a3525; margin-top: 3px; line-height: 1.45; }
+    .priority { display: inline-block; font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 2px 6px; border-radius: 4px; margin-left: 8px; vertical-align: middle; text-transform: uppercase; letter-spacing: 0.08em; }
+    .pri-p0 { background: #c14a26; color: white; }
+    .pri-p1 { background: #d4a13b; color: #2b1b10; }
+    .pri-p2 { background: #cde8e1; color: #4f5d28; }
+    .progress { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #7a614c; }
+    .screen-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 22px;
+    }
+    .screen-card {
+      background: #fffaf0;
+      border: 1px solid #e3d4b8;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(43, 27, 16, 0.04), 0 8px 20px rgba(43, 27, 16, 0.05);
+    }
+    .screen-card-h {
+      padding: 14px 18px;
+      border-bottom: 1px solid #e3d4b8;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .screen-card-title { font-family: 'Fraunces', serif; font-size: 18px; font-weight: 600; margin: 0; }
+    .screen-card-tag { font-family: 'JetBrains Mono', monospace; font-size: 9px; padding: 3px 8px; border-radius: 4px; background: #cde8e1; color: #4f5d28; text-transform: uppercase; letter-spacing: 0.08em; }
+    .screen-mock-frame {
+      background: linear-gradient(160deg, #1a0f08 0%, #2b1b10 100%);
+      padding: 14px;
+      margin: 14px;
+      border-radius: 18px;
+    }
+    .screen-mock-screen {
+      background: #f7f1e6;
+      border-radius: 8px;
+      overflow: hidden;
+      width: 100%; aspect-ratio: 16 / 10;
+      position: relative;
+    }
+    .screen-card-notes {
+      padding: 12px 18px 18px; font-size: 13px; color: #4a3525; line-height: 1.5;
+    }
+    .ws-event {
+      display: grid; grid-template-columns: 180px 1fr; gap: 8px;
+      padding: 8px 0; border-bottom: 1px dashed #e3d4b8; font-size: 13px;
+    }
+    .ws-event:last-child { border-bottom: none; }
+    .ws-event code {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      background: #2b1b10; color: #f7f1e6; padding: 2px 8px; border-radius: 4px;
+      align-self: start; display: inline-block; width: fit-content;
+    }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 22px; }
+    .stat {
+      background: #fffaf0; border: 1px solid #e3d4b8; border-radius: 12px;
+      padding: 14px;
+    }
+    .stat-num { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 700; line-height: 1; }
+    .stat-label { font-family: 'JetBrains Mono', monospace; font-size: 9px; color: #7a614c; text-transform: uppercase; letter-spacing: 0.08em; margin-top: 4px; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+    /* Mock-specific styles */
+    .m-topbar { padding: 8px 12px; border-bottom: 1px solid #e3d4b8; display: flex; justify-content: space-between; align-items: center; font-size: 11px; }
+    .m-tag-gold { padding: 2px 7px; border-radius: 999px; background: rgba(212, 161, 59, 0.16); color: #a87b22; font-size: 10px; font-weight: 600; }
+    .m-tag-terra { padding: 2px 7px; border-radius: 999px; background: rgba(193, 74, 38, 0.12); color: #9c3819; font-size: 10px; font-weight: 600; }
+    .m-disp { font-family: 'Fraunces', serif; font-weight: 600; }
+    .m-mono { font-family: 'JetBrains Mono', monospace; font-size: 8px; color: #7a614c; text-transform: uppercase; letter-spacing: 0.08em; }
+    .m-photo {
+      background: linear-gradient(135deg, #c14a26 0%, #d4a13b 100%);
+      border-radius: 6px;
+    }
+    .m-btn {
+      padding: 6px 12px; border-radius: 8px; background: #efe5d2; font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px;
+    }
+    .m-btn-pri { background: #c14a26; color: #fff8ec; }
+    .m-btn-rdy { background: #6b7b3a; color: #fbfaee; }
+  </style>
+</head>
+<body class="hifi">
+  <div class="wrap">
+    <h1 class="doc-h1">handoff <em>para desenvolvimento</em></h1>
+    <p class="doc-sub">tudo que falta entre o protótipo atual e um produto pronto para o piloto. organizado por prioridade. clique nos itens para marcar conforme avançar.</p>
+
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-num" id="total">68</div><div class="stat-label">itens totais</div></div>
+      <div class="stat"><div class="stat-num" style="color:#c14a26" id="p0">23</div><div class="stat-label">P0 · bloqueia piloto</div></div>
+      <div class="stat"><div class="stat-num" style="color:#a87b22" id="p1">28</div><div class="stat-label">P1 · pós-piloto</div></div>
+      <div class="stat"><div class="stat-num" style="color:#4f5d28" id="done-count">0</div><div class="stat-label">marcados</div></div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" data-tab="checklist">📋 checklist</button>
+      <button class="tab" data-tab="screens">🖼 telas que faltam</button>
+      <button class="tab" data-tab="ws">🔌 contrato websocket</button>
+      <button class="tab" data-tab="hardware">📱 hardware & ops</button>
+    </div>
+
+    <!-- CHECKLIST TAB -->
+    <div class="tab-panel active" id="tab-checklist">
+
+      <div class="section">
+        <h2 class="section-h">🚨 Estados de erro e edge cases</h2>
+        <div class="section-meta">P0 · bloqueia piloto · ~10 itens</div>
+        <ul class="check-list" data-section="erros"></ul>
+      </div>
+
+      <div class="section">
+        <h2 class="section-h">🔐 Autenticação e papéis</h2>
+        <div class="section-meta">P0 · ~6 itens</div>
+        <ul class="check-list" data-section="auth"></ul>
+      </div>
+
+      <div class="section">
+        <h2 class="section-h">💸 Fluxo de pagamento</h2>
+        <div class="section-meta">P0 · ~8 itens</div>
+        <ul class="check-list" data-section="pagamento"></ul>
+      </div>
+
+      <div class="section">
+        <h2 class="section-h">⚙️ Painel admin / configuração</h2>
+        <div class="section-meta">P1 · pós-piloto · ~7 itens</div>
+        <ul class="check-list" data-section="admin"></ul>
+      </div>
+
+      <div class="section">
+        <h2 class="section-h">📊 Métricas e observabilidade</h2>
+        <div class="section-meta">P1 · ~6 itens</div>
+        <ul class="check-list" data-section="metrics"></ul>
+      </div>
+
+      <div class="section">
+        <h2 class="section-h">♿ Acessibilidade e i18n</h2>
+        <div class="section-meta">P1/P2 · ~5 itens</div>
+        <ul class="check-list" data-section="a11y"></ul>
+      </div>
+
+      <div class="section">
+        <h2 class="section-h">🔌 Infra técnica</h2>
+        <div class="section-meta">P0 · ~9 itens</div>
+        <ul class="check-list" data-section="infra"></ul>
+      </div>
+
+      <div class="section">
+        <h2 class="section-h">📱 Hardware e operação</h2>
+        <div class="section-meta">P0/P1 · ~7 itens</div>
+        <ul class="check-list" data-section="hw"></ul>
+      </div>
+
+      <div class="section">
+        <h2 class="section-h">🧪 Plano de piloto</h2>
+        <div class="section-meta">P0 · ~5 itens</div>
+        <ul class="check-list" data-section="pilot"></ul>
+      </div>
+    </div>
+
+    <!-- SCREENS TAB -->
+    <div class="tab-panel" id="tab-screens">
+      <p class="doc-sub">wireframes em alta das 6 telas críticas que ainda não estão no protótipo.</p>
+      <div class="screen-grid" id="screens-grid"></div>
+    </div>
+
+    <!-- WS CONTRACT TAB -->
+    <div class="tab-panel" id="tab-ws">
+      <div class="section">
+        <h2 class="section-h">eventos do websocket</h2>
+        <div class="section-meta">contrato sugerido · cliente ↔ servidor</div>
+        <p style="font-size:13px;color:#4a3525;margin:0 0 14px;line-height:1.5">o servidor é fonte da verdade dos timers — manda <code>started_at</code> + <code>duration</code> em segundos UTC; o cliente só calcula o display. nunca confiar no clock do tablet.</p>
+        <div id="ws-events"></div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-h">reconexão e sincronização</h2>
+        <div class="section-meta">resilência · P0</div>
+        <ul class="check-list">
+          <li class="check-item crit"><div class="check-cb"></div><div class="check-body"><div class="check-title">retry com backoff exponencial<span class="priority pri-p0">p0</span></div><div class="check-detail">1s, 2s, 4s, 8s, 16s, max 30s. notificação visível no totem após 3 tentativas falhas.</div></div></li>
+          <li class="check-item crit"><div class="check-cb"></div><div class="check-body"><div class="check-title">snapshot de estado ao reconectar<span class="priority pri-p0">p0</span></div><div class="check-detail">cliente envia <code>last_event_id</code>, servidor manda diff ou snapshot completo do estado da mesa.</div></div></li>
+          <li class="check-item crit"><div class="check-cb"></div><div class="check-body"><div class="check-title">queue local de ações offline<span class="priority pri-p0">p0</span></div><div class="check-detail">addToCart/removeCart em IndexedDB, sync ao voltar. enviar pedido bloqueado se offline.</div></div></li>
+          <li class="check-item crit"><div class="check-cb"></div><div class="check-body"><div class="check-title">conflito de "iniciar" simultâneo<span class="priority pri-p0">p0</span></div><div class="check-detail">primeira request vence, segunda recebe 409 + estado atualizado. KDS mostra quem assumiu.</div></div></li>
+          <li class="check-item"><div class="check-cb"></div><div class="check-body"><div class="check-title">heartbeat para detectar clientes mortos<span class="priority pri-p1">p1</span></div><div class="check-detail">ping a cada 15s. se totem não responde por 60s, KDS mostra mesa "offline".</div></div></li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- HARDWARE & OPS TAB -->
+    <div class="tab-panel" id="tab-hardware">
+      <div class="section">
+        <h2 class="section-h">tablet do totem</h2>
+        <div class="section-meta">spec sugerida</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;font-size:13px;line-height:1.6">
+          <div>
+            <strong>Tela:</strong> 10-12" landscape, brilho ≥ 400 nits<br>
+            <strong>OS:</strong> Android 13+ ou iPad OS<br>
+            <strong>Touch:</strong> capacitivo, vidro temperado anti-impressão<br>
+            <strong>Conectividade:</strong> WiFi 5 dual-band, fallback 4G opcional
+          </div>
+          <div>
+            <strong>Suporte:</strong> base de mesa fixa, anti-furto, ângulo regulável<br>
+            <strong>Energia:</strong> cabo passando pelo pé da mesa, sem bateria operacional<br>
+            <strong>Higiene:</strong> capa silicone removível, álcool 70% OK<br>
+            <strong>Modo quiosque:</strong> Single App Mode (iOS) / Lock Task (Android)
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-h">cozinha (KDS)</h2>
+        <div class="section-meta">monitor da cozinha</div>
+        <div style="font-size:13px;line-height:1.6">
+          <strong>Tela:</strong> 21-27" 1080p+, bezel emborrachado, à prova de respingo<br>
+          <strong>Input:</strong> botões físicos opcionais (mais rápido em ambiente molhado/oleoso) ou touch resistivo<br>
+          <strong>Som:</strong> alto-falante audível em cozinha (60-70 dB), bell quando entra ticket<br>
+          <strong>Suporte:</strong> braço articulado fixo na parede, longe de calor direto
+        </div>
+      </div>
+
+      <div class="section">
+        <h2 class="section-h">app do garçom</h2>
+        <div class="section-meta">smartphone</div>
+        <div style="font-size:13px;line-height:1.6">
+          <strong>Plataforma:</strong> PWA cross-platform OU app nativo (iOS/Android)<br>
+          <strong>Notificação:</strong> push + vibração + som curto. evitar overload (rate limit 1 alerta/3s)<br>
+          <strong>Login:</strong> PIN no início do turno, expira ao sair<br>
+          <strong>Backup:</strong> garçom pode lançar pedido manual se totem da mesa falhar
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+  // ─── DATA ───
+  const checklists = {
+    erros: [
+      { p: 'p0', title: 'Cozinha sobrecarregada', detail: 'Quando fila > N tickets, totem mostra tempo estimado maior + badge "alta demanda". Backend define threshold.' },
+      { p: 'p0', title: 'Item esgotou no momento do pedido', detail: 'Totem recebe 409, marca item como indisponível em todos os totens em <2s, oferece substituto.' },
+      { p: 'p0', title: 'Cancelar pedido', detail: 'Janela de 30s para cancelar pelo cliente. Depois disso, exige autorização do gerente (PIN).' },
+      { p: 'p0', title: 'Garçom não responde chamado', detail: 'Após 3 min, escala para outro garçom. Após 6 min, alerta no painel do gerente.' },
+      { p: 'p0', title: 'Fechar mesa / rodízio de cliente', detail: 'Garçom faz "fechar mesa" no app dele → totem volta para tela de boas-vindas, estado zerado.' },
+      { p: 'p0', title: 'Totem offline / WiFi cai', detail: 'Banner persistente "sem conexão", cart funciona local, envio bloqueado até reconectar.' },
+      { p: 'p0', title: 'Pedido pronto e ninguém pega', detail: 'Após 5 min em "pronto", alerta sonoro recorrente no KDS + push pro garçom.' },
+      { p: 'p0', title: 'Undo de 5s em ações destrutivas', detail: 'Toast "Removido. Desfazer (5s)" para remover item, cancelar pedido, fechar mesa.' },
+      { p: 'p1', title: 'Tempo estimado errado (calibração)', detail: 'Se preparo real > 1.5x estimado, totem se adapta: "está demorando mais que o normal".' },
+      { p: 'p1', title: 'Cliente desiste no meio', detail: 'Após 5 min de inatividade no totem, dialog "ainda aí?", reseta após 8 min total.' },
+    ],
+    auth: [
+      { p: 'p0', title: 'PIN do funcionário (cozinheiro/garçom)', detail: 'Login com PIN de 4-6 dígitos no início do turno. Sessão expira após 12h ou logout manual.' },
+      { p: 'p0', title: 'Papéis e permissões', detail: 'Garçom, cozinheiro, gerente, admin. Matriz: quem cancela pedido, dá desconto, fecha caixa, edita cardápio.' },
+      { p: 'p0', title: 'Autorização do gerente (PIN override)', detail: 'Dialog "Pedir autorização" + campo PIN para ações restritas (desconto, cancelamento tardio).' },
+      { p: 'p1', title: 'Identificação do cliente (CPF na nota)', detail: 'Tela opcional após pagamento. Dado armazenado só se cliente consentir (LGPD).' },
+      { p: 'p1', title: 'Programa de fidelidade', detail: 'Cliente entra com telefone/CPF, vê pontos acumulados. Resgate de prêmios.' },
+      { p: 'p2', title: 'Auditoria de ações', detail: 'Log de quem cancelou, deu desconto, alterou cardápio. Visível para gerente.' },
+    ],
+    pagamento: [
+      { p: 'p0', title: 'Pagar no totem (TEF integrado)', detail: 'Maquininha SmartPOS ou pinpad USB. Cielo/Stone/PagSeguro SDK. Confirma pagamento antes de fechar pedido.' },
+      { p: 'p0', title: 'Pagar no caixa (alternativa)', detail: 'Botão "Pagar no caixa" gera QR code com resumo do pedido. Caixa escaneia.' },
+      { p: 'p0', title: 'Dividir conta — igualmente', detail: 'Selecionar nº de pessoas, totem divide. Cada um paga sua parte. Status visível.' },
+      { p: 'p0', title: 'Dividir conta — por item', detail: 'Atribuir cada item a uma pessoa. Útil em mesas grandes.' },
+      { p: 'p1', title: 'Gorjeta personalizada', detail: 'Toggle 10% existe; adicionar opções 15%, 20%, valor livre.' },
+      { p: 'p0', title: 'Emissão de nota fiscal', detail: 'Integração SAT/NFCe. CPF na nota opcional. Email pra cliente.' },
+      { p: 'p1', title: 'Comanda híbrida (couvert + pedido)', detail: 'Suporta itens lançados pelo garçom (couvert artístico) somando ao pedido do totem.' },
+      { p: 'p2', title: 'Vale-refeição', detail: 'Suporte a Sodexo, VR, Alelo via maquininha.' },
+    ],
+    admin: [
+      { p: 'p1', title: 'CRUD de cardápio', detail: 'Admin cria/edita/desativa itens. Upload de foto, preço, descrição, alérgenos.' },
+      { p: 'p1', title: 'Tempo de preparo configurável por item', detail: 'PRD menciona — UI para gerente ajustar. Suporta tempos diferentes por horário (almoço/janta).' },
+      { p: 'p1', title: 'Esgotados do dia', detail: 'Botão "marcar esgotado" sincroniza em todos os totens. Reset diário automático.' },
+      { p: 'p1', title: 'Mapa de mesas', detail: 'Vincular UUID do totem ↔ número da mesa. Reagrupar mesas (juntar 2 mesas em 1 grupo).' },
+      { p: 'p1', title: 'Horários de funcionamento', detail: 'Pausas da cozinha (ex: 15:00-17:00 só bebidas). Totem mostra "cozinha fechada" fora do horário.' },
+      { p: 'p2', title: 'Promoções e cupons', detail: 'Combos, desconto de %, frete grátis (não aplicável aqui), 2x1.' },
+      { p: 'p2', title: 'Multi-filial', detail: 'Admin gerencia várias unidades, com cardápios e preços por filial.' },
+    ],
+    metrics: [
+      { p: 'p1', title: 'Tempo até "iniciar" (TTL ticket)', detail: 'Mediana e p95 do tempo entre receber ticket e cozinha clicar iniciar. Alerta se > 5 min.' },
+      { p: 'p1', title: 'Tempo real vs estimado', detail: 'Calibração automática do estimado por item baseada em histórico.' },
+      { p: 'p1', title: 'Taxa de chamados de garçom', detail: 'Por hora, por mesa, por garçom. Identifica mesas problemáticas.' },
+      { p: 'p1', title: 'Itens mais vendidos / horários de pico', detail: 'Dashboard simples para o gerente. Ticket médio.' },
+      { p: 'p1', title: 'NPS / feedback após pagamento', detail: '"Como foi sua experiência?" 1-5 estrelas + comentário opcional.' },
+      { p: 'p2', title: 'Funil: visita → pedido → pagamento', detail: 'Quantos abriram cardápio, quantos finalizaram. Onde abandonam.' },
+    ],
+    a11y: [
+      { p: 'p1', title: 'Aumento de fonte', detail: 'Toggle "letras grandes" na tela de boas-vindas (público idoso).' },
+      { p: 'p1', title: 'Alto contraste', detail: 'Modo escuro / contraste extra para baixa visão.' },
+      { p: 'p1', title: 'VoiceOver / TalkBack', detail: 'Labels em todos os botões. Ordem de tab lógica. Testes com leitor de tela.' },
+      { p: 'p1', title: 'Filtros alimentares', detail: 'Vegetariano, sem glúten, sem lactose, vegano. Selo nos itens.' },
+      { p: 'p2', title: 'Idiomas: PT/EN/ES', detail: 'Seletor na tela de boas-vindas. Conteúdo do cardápio traduzido.' },
+    ],
+    infra: [
+      { p: 'p0', title: 'Spec completo dos eventos WebSocket', detail: 'Ver aba "contrato websocket". Versionar com header `X-API-Version`.' },
+      { p: 'p0', title: 'Backend é fonte da verdade do timer', detail: 'Servidor manda `started_at` (timestamp UTC) + `duration_s`. Cliente só calcula display.' },
+      { p: 'p0', title: 'Reconexão com retry exponencial', detail: '1s, 2s, 4s, 8s, 16s, max 30s. Banner visível após 3 tentativas.' },
+      { p: 'p0', title: 'Persistência: pedido sobrevive a reload', detail: 'Estado da mesa hidratado do servidor ao abrir o app. Mesa identificada por QR ou MAC do device.' },
+      { p: 'p0', title: 'Idempotência de eventos', detail: 'Cliente manda `event_id` único. Servidor descarta duplicatas (caso de retry após timeout).' },
+      { p: 'p1', title: 'Multi-tenant', detail: 'Vários restaurantes na mesma plataforma. Isolamento de dados por `tenant_id`.' },
+      { p: 'p1', title: 'Integração iFood/Rappi (mesmo KDS)', detail: 'Pedidos de delivery aparecem na mesma fila da cozinha, com tag "delivery".' },
+      { p: 'p1', title: 'Backup e disaster recovery', detail: 'Snapshot diário do banco. RPO ≤ 1h, RTO ≤ 4h.' },
+      { p: 'p2', title: 'GDPR/LGPD compliance', detail: 'Política de privacidade, consentimento explícito, direito ao esquecimento.' },
+    ],
+    hw: [
+      { p: 'p0', title: 'Modelo de tablet padronizado', detail: 'Samsung Tab A8/A9 ou similar. 10-11" landscape. Vidro temperado.' },
+      { p: 'p0', title: 'Modo quiosque', detail: 'Single App Mode iOS / Lock Task Android. Cliente não sai do app, não acessa Settings.' },
+      { p: 'p0', title: 'Suporte de mesa antifurto', detail: 'Base parafusada à mesa, cabo passando pelo pé. Carregamento contínuo.' },
+      { p: 'p0', title: 'Higiene', detail: 'Capa silicone, anti-impressão digital. Álcool 70% não danifica. Limpeza entre clientes.' },
+      { p: 'p1', title: 'Backup quando totem quebra', detail: 'Garçom assume o pedido pelo app dele. UX para "totem manual".' },
+      { p: 'p1', title: 'Bateria de emergência', detail: 'No-break para o servidor local em caso de queda de energia.' },
+      { p: 'p1', title: 'Logística: provisionamento e troca', detail: 'Como configurar um totem novo (autoenrollment via QR). Como trocar quando quebra.' },
+    ],
+    pilot: [
+      { p: 'p0', title: 'Definir métricas de sucesso ANTES', detail: 'Tempo médio de pedido < X min, % chamados garçom -50%, ticket médio +X%, NPS > 8.' },
+      { p: 'p0', title: 'Piloto em 1-2 mesas, 1 noite', detail: 'Equipe completa observa. Cliente sabe que é piloto. Plano B (garçom assume) sempre disponível.' },
+      { p: 'p0', title: 'Plano de rollback', detail: 'Critérios para abortar (NPS < 5, > 30% pedidos com problema). Reverter para fluxo manual em < 5 min.' },
+      { p: 'p0', title: 'Treinamento da equipe', detail: 'Garçons, cozinheiros, gerente — 1h de treino + manual. Identificar embaixador interno.' },
+      { p: 'p0', title: 'Feedback estruturado pós-noite', detail: 'Entrevista com 5 clientes + retrospectiva com equipe. Issues priorizados em 24h.' },
+    ],
+  };
+
+  // Render checklists
+  let totalCount = 0, p0Count = 0, p1Count = 0;
+  Object.entries(checklists).forEach(([key, items]) => {
+    const ul = document.querySelector(`[data-section="${key}"]`);
+    if (!ul) return;
+    items.forEach((item, idx) => {
+      totalCount++;
+      if (item.p === 'p0') p0Count++;
+      if (item.p === 'p1') p1Count++;
+      const id = `${key}-${idx}`;
+      const li = document.createElement('li');
+      li.className = `check-item ${item.p === 'p0' ? 'crit' : ''}`;
+      li.dataset.id = id;
+      li.innerHTML = `
+        <div class="check-cb">${''}</div>
+        <div class="check-body">
+          <div class="check-title">${item.title}<span class="priority pri-${item.p}">${item.p}</span></div>
+          <div class="check-detail">${item.detail}</div>
+        </div>
+      `;
+      li.addEventListener('click', () => {
+        li.classList.toggle('done');
+        if (li.classList.contains('done')) {
+          li.querySelector('.check-cb').textContent = '✓';
+        } else {
+          li.querySelector('.check-cb').textContent = '';
+        }
+        updateDoneCount();
+      });
+      ul.appendChild(li);
+    });
+  });
+
+  document.getElementById('total').textContent = totalCount;
+  document.getElementById('p0').textContent = p0Count;
+  document.getElementById('p1').textContent = p1Count;
+
+  function updateDoneCount() {
+    document.getElementById('done-count').textContent = document.querySelectorAll('.check-item.done').length;
+  }
+
+  // ─── WebSocket events ───
+  const wsEvents = [
+    { code: 'order:create', desc: 'totem → server. paylaod: { table_id, items[], session_id, event_id }. server retorna order_id.' },
+    { code: 'order:created', desc: 'server → KDS/garçom. broadcast com novo pedido criado.' },
+    { code: 'prep:start', desc: 'KDS → server. paylaod: { order_id, cook_id }. server retorna started_at + duration.' },
+    { code: 'prep:started', desc: 'server → totem. broadcast com timestamp para iniciar contagem visual.' },
+    { code: 'prep:ready', desc: 'KDS ou auto-timer → server. quando ticket fica pronto. broadcast pra garçom + totem (overlay + som).' },
+    { code: 'order:cancel', desc: 'totem (≤30s) ou gerente. payload: { order_id, reason, authorized_by? }.' },
+    { code: 'item:unavailable', desc: 'admin → server. broadcast pra todos os totens. cart limpo do item.' },
+    { code: 'waiter:call', desc: 'totem → server. payload: { table_id, reason }. broadcast pra app do garçom.' },
+    { code: 'waiter:ack', desc: 'garçom → server. confirma chamado. totem mostra "a caminho".' },
+    { code: 'waiter:resolved', desc: 'garçom → server. fecha o chamado.' },
+    { code: 'table:close', desc: 'garçom → server. limpa estado da mesa, totem volta pra welcome.' },
+    { code: 'payment:request', desc: 'totem → server. inicia fluxo de pagamento, server retorna intent_id pra TEF.' },
+    { code: 'payment:confirmed', desc: 'TEF → server → totem. fecha conta, emite NF.' },
+    { code: 'state:sync', desc: 'cliente → server. payload: { last_event_id }. server manda diff ou snapshot.' },
+    { code: 'heartbeat', desc: 'cliente → server a cada 15s. server responde com pong + server_time.' },
+  ];
+  const wsContainer = document.getElementById('ws-events');
+  wsEvents.forEach(e => {
+    const div = document.createElement('div');
+    div.className = 'ws-event';
+    div.innerHTML = `<code>${e.code}</code><div>${e.desc}</div>`;
+    wsContainer.appendChild(div);
+  });
+
+  // ─── Tabs ───
+  document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      const target = tab.dataset.tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === target));
+      document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id === `tab-${target}`));
+    });
+  });
+
+  // ─── Screens ───
+  const screens = [
+    {
+      title: 'Login do funcionário (PIN)',
+      tag: 'P0 · auth',
+      mock: `
+        <div class="m-topbar"><span class="m-disp" style="font-weight:700">Pizzaria Gigi · KDS</span><span class="m-mono">cozinha</span></div>
+        <div style="padding:18px;display:flex;flex-direction:column;align-items:center;gap:14px">
+          <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:600">quem está chegando?</div>
+          <div style="display:flex;gap:6px">
+            <div style="width:32px;height:32px;border-radius:50%;background:#cde8e1;border:2px solid #6b7b3a"></div>
+            <div style="width:32px;height:32px;border-radius:50%;background:#efe5d2"></div>
+            <div style="width:32px;height:32px;border-radius:50%;background:#efe5d2"></div>
+            <div style="width:32px;height:32px;border-radius:50%;background:#efe5d2"></div>
+          </div>
+          <div style="font-size:11px;color:#7a614c">PIN · ●●●●</div>
+          <div style="display:grid;grid-template-columns:repeat(3,30px);gap:5px">
+            ${[1,2,3,4,5,6,7,8,9,'C',0,'⌫'].map(n=>`<div style="background:#efe5d2;width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600">${n}</div>`).join('')}
+          </div>
+        </div>
+      `,
+      notes: 'PIN 4-6 dígitos no início do turno. Avatar mostra quem está logado. "C" limpa, "⌫" volta. Mesma tela usada no app do garçom e no painel admin (com PIN de gerente).'
+    },
+    {
+      title: 'Sem conexão / offline',
+      tag: 'P0 · erros',
+      mock: `
+        <div class="m-topbar"><span class="m-disp" style="font-weight:700">Pizzaria Gigi</span><span class="m-tag-gold">mesa 07</span></div>
+        <div style="background:#c14a26;color:#fff8ec;padding:6px 12px;font-size:11px;display:flex;align-items:center;gap:6px;justify-content:space-between">
+          <span>⚠ sem conexão — reconectando... (3s)</span>
+          <span class="m-mono" style="color:rgba(255,255,255,0.7)">tentativa 2/5</span>
+        </div>
+        <div style="padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <div style="background:#fffaf0;border:1px solid #e3d4b8;border-radius:8px;padding:8px;opacity:0.6">
+            <div class="m-photo" style="height:40px;margin-bottom:4px"></div>
+            <div style="font-size:11px;font-weight:600">pizza calabresa</div>
+            <div class="m-mono">indisponível offline</div>
+          </div>
+          <div style="background:#fffaf0;border:1px solid #e3d4b8;border-radius:8px;padding:8px;opacity:0.6">
+            <div class="m-photo" style="height:40px;margin-bottom:4px;background:linear-gradient(135deg,#d4a13b 0%,#c14a26 100%)"></div>
+            <div style="font-size:11px;font-weight:600">pizza margherita</div>
+            <div class="m-mono">indisponível offline</div>
+          </div>
+        </div>
+        <div style="padding:0 14px"><div class="m-btn" style="font-size:10px;justify-content:center">🛎 chamar garçom (manual)</div></div>
+      `,
+      notes: 'Banner persistente vermelho no topo. Cardápio fica esmaecido (não pode pedir). CTA fallback: chamar garçom (que tem app próprio com sincronização separada). Reconectar restaura tudo.'
+    },
+    {
+      title: 'Item esgotou no meio do pedido',
+      tag: 'P0 · erros',
+      mock: `
+        <div style="position:absolute;inset:0;background:rgba(43,27,16,0.55);display:flex;align-items:center;justify-content:center">
+          <div style="background:#fffaf0;border-radius:14px;padding:18px;width:80%;border:2px solid #c14a26;display:flex;flex-direction:column;gap:8px;text-align:center">
+            <div style="font-size:32px">🥺</div>
+            <div style="font-family:'Fraunces',serif;font-size:18px;font-weight:600">acabou o catupiry!</div>
+            <div style="font-size:11px;color:#4a3525;line-height:1.4">a cozinha avisou que o catupiry da sua pizza 4 queijos esgotou. quer trocar por outro adicional?</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+              <div class="m-btn" style="justify-content:center">+ requeijão</div>
+              <div class="m-btn" style="justify-content:center">+ provolone</div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:6px">
+              <div class="m-btn" style="flex:1;justify-content:center">tirar item</div>
+              <div class="m-btn m-btn-pri" style="flex:1;justify-content:center">trocar e continuar</div>
+            </div>
+          </div>
+        </div>
+      `,
+      notes: 'Modal aparece se item esgota entre cart e confirmação. Tom amigável (não culpar o cliente). Sugestões de substitutos com preço equivalente. Saída fácil: tirar item. Substitutos inteligentes (categoria similar).'
+    },
+    {
+      title: 'Pagamento — dividir conta',
+      tag: 'P0 · pagamento',
+      mock: `
+        <div class="m-topbar"><span class="m-disp" style="font-weight:700">dividir a conta</span><span class="m-mono">total · R$ 184</span></div>
+        <div style="padding:14px;display:grid;grid-template-columns:1fr 1fr;gap:14px;height:calc(100% - 30px)">
+          <div>
+            <div class="m-mono" style="margin-bottom:6px">como dividir?</div>
+            <div style="display:flex;flex-direction:column;gap:6px">
+              <div style="background:#2b1b10;color:#f7f1e6;padding:8px;border-radius:8px;font-size:12px;font-weight:600">igualmente</div>
+              <div class="m-btn" style="justify-content:flex-start">por item</div>
+              <div class="m-btn" style="justify-content:flex-start">valores diferentes</div>
+            </div>
+            <div class="m-mono" style="margin-top:14px;margin-bottom:6px">quantas pessoas?</div>
+            <div style="display:flex;align-items:center;gap:8px;background:#efe5d2;border-radius:999px;padding:4px 8px;width:fit-content">
+              <span style="font-size:14px">−</span>
+              <span class="m-disp" style="font-size:14px;font-weight:700;min-width:14px;text-align:center">4</span>
+              <span style="font-size:14px">+</span>
+            </div>
+          </div>
+          <div>
+            <div class="m-mono" style="margin-bottom:6px">cada um paga</div>
+            <div style="font-family:'Fraunces',serif;font-size:30px;font-weight:700;color:#c14a26">R$ 46</div>
+            <div style="font-size:10px;color:#7a614c">já com 10% de serviço</div>
+            <div style="margin-top:14px;background:#faf3e2;border-radius:8px;padding:8px;font-size:11px">
+              <div style="display:flex;justify-content:space-between"><span>pessoa 1 ●</span><span class="m-tag-terra" style="font-size:8px">pago</span></div>
+              <div style="display:flex;justify-content:space-between;margin-top:2px"><span>pessoa 2 ○</span><span class="m-mono">pendente</span></div>
+              <div style="display:flex;justify-content:space-between;margin-top:2px"><span>pessoa 3 ○</span><span class="m-mono">pendente</span></div>
+            </div>
+            <div class="m-btn m-btn-pri" style="margin-top:10px;justify-content:center;width:100%">pagar minha parte →</div>
+          </div>
+        </div>
+      `,
+      notes: 'Cliente escolhe modo (igual / por item / valores). Sistema acompanha quem já pagou — uma pessoa termina, vê quem falta. Maquininha integrada cobra apenas o valor da pessoa atual. Suporta pagamentos parciais (alguns no caixa, outros no totem).'
+    },
+    {
+      title: 'Admin — cadastro de cardápio',
+      tag: 'P1 · admin',
+      mock: `
+        <div class="m-topbar"><span class="m-disp" style="font-weight:700">admin · cardápio</span><span class="m-tag-gold">gerente</span></div>
+        <div style="padding:10px 14px;display:grid;grid-template-columns:140px 1fr;gap:10px;height:calc(100% - 30px)">
+          <div>
+            <div class="m-mono" style="margin-bottom:4px">categorias</div>
+            <div style="display:flex;flex-direction:column;gap:3px;font-size:11px">
+              <div style="padding:4px 8px;background:#2b1b10;color:#f7f1e6;border-radius:6px">pizzas (12)</div>
+              <div style="padding:4px 8px">lanches (8)</div>
+              <div style="padding:4px 8px">bebidas (15)</div>
+              <div style="padding:4px 8px">sobremesas (6)</div>
+              <div style="padding:4px 8px;color:#c14a26">+ nova categoria</div>
+            </div>
+          </div>
+          <div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+              <div class="m-mono">12 pizzas</div>
+              <div class="m-btn m-btn-pri" style="font-size:10px">+ adicionar</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px">
+              ${['calabresa','margherita','portuguesa','4 queijos'].map((n,i)=>`
+                <div style="display:flex;align-items:center;gap:8px;padding:5px;background:#fffaf0;border:1px solid #e3d4b8;border-radius:6px;font-size:11px">
+                  <div class="m-photo" style="width:24px;height:20px"></div>
+                  <div style="flex:1">
+                    <div style="font-weight:600">${n}</div>
+                    <div class="m-mono">tempo · ${20+i*2}min</div>
+                  </div>
+                  <div style="font-family:'Fraunces',serif;font-weight:700">R$ ${64+i*4}</div>
+                  <div style="width:24px;height:12px;border-radius:6px;background:${i===2?'#7a614c':'#6b7b3a'};position:relative">
+                    <div style="position:absolute;top:1px;${i===2?'left:1px':'right:1px'};width:10px;height:10px;border-radius:50%;background:white"></div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `,
+      notes: 'CRUD básico de cardápio. Esquerda: categorias. Direita: itens da categoria selecionada. Toggle direito = "ativo/esgotado" (sincroniza em tempo real para todos os totens). Edição inline de tempo, preço, foto. Histórico de alterações para auditoria.'
+    },
+    {
+      title: 'Pedido pronto + alarme escalonado',
+      tag: 'P0 · erros',
+      mock: `
+        <div class="m-topbar" style="background:#1a0f08;color:#f7f1e6;border:none"><span class="m-disp" style="font-weight:700">cozinha · gigi</span><span class="m-mono" style="color:rgba(247,241,230,0.5)">3 prontos · 2 esperando</span></div>
+        <div style="padding:8px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;height:calc(100% - 30px);background:#1a0f08">
+          <div style="grid-column:3;background:rgba(193,74,38,0.15);border:2px solid #c14a26;border-radius:8px;padding:6px">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span class="m-disp" style="color:#f7f1e6;font-size:12px;font-weight:700">mesa 09</span>
+              <span class="m-mono" style="color:#c14a26;animation:pulse 1s infinite">⚠ 6m parado</span>
+            </div>
+            <div style="font-size:10px;color:rgba(247,241,230,0.8);margin:4px 0">2× pizza · 1× burger</div>
+            <div style="font-size:9px;color:#c14a26;margin-bottom:4px">garçom não pegou. avisar gerente?</div>
+            <div style="background:#c14a26;color:white;padding:4px;border-radius:4px;font-size:10px;text-align:center;font-weight:600">avisar gerente</div>
+          </div>
+          <div style="background:rgba(107,123,58,0.15);border-left:3px solid #6b7b3a;border-radius:6px;padding:6px;font-size:10px;color:#f7f1e6">
+            <div style="font-weight:700">mesa 03</div>
+            <div class="m-mono" style="color:#6b7b3a">pronto há 30s</div>
+          </div>
+          <div style="background:rgba(107,123,58,0.15);border-left:3px solid #6b7b3a;border-radius:6px;padding:6px;font-size:10px;color:#f7f1e6">
+            <div style="font-weight:700">mesa 11</div>
+            <div class="m-mono" style="color:#6b7b3a">pronto há 1m</div>
+          </div>
+        </div>
+      `,
+      notes: 'Quando ticket fica em "pronto" sem ser pego: 2min — pulsa silencioso, 4min — som suave a cada 30s, 6min — vermelho + opção "avisar gerente" + push pro app do gerente. Evita comida fria por desorganização operacional.'
+    },
+  ];
+
+  const sg = document.getElementById('screens-grid');
+  screens.forEach(s => {
+    const card = document.createElement('div');
+    card.className = 'screen-card';
+    card.innerHTML = `
+      <div class="screen-card-h">
+        <h3 class="screen-card-title">${s.title}</h3>
+        <span class="screen-card-tag">${s.tag}</span>
+      </div>
+      <div class="screen-mock-frame">
+        <div class="screen-mock-screen">${s.mock}</div>
+      </div>
+      <div class="screen-card-notes">${s.notes}</div>
+    `;
+    sg.appendChild(card);
+  });
+  </script>
+</body>
+</html>

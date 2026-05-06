@@ -1,0 +1,12 @@
+{
+  "name": "@app/waiter",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo '[waiter] scaffolded na Fase 5 (App Garcom) — usar create-next-app dentro deste diretorio'",
+    "build": "echo '[waiter] scaffold pendente (Fase 5)'",
+    "test": "echo '[waiter] scaffold pendente (Fase 5)'",
+    "lint": "echo '[waiter] scaffold pendente (Fase 5)'",
+    "typecheck": "echo '[waiter] scaffold pendente (Fase 5)'"
+  }
+}

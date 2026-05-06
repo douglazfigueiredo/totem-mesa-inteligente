@@ -1,0 +1,12 @@
+{
+  "name": "@app/totem",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "echo '[totem] scaffolded na Fase 3 (Totem) — usar create-next-app dentro deste diretorio'",
+    "build": "echo '[totem] scaffold pendente (Fase 3)'",
+    "test": "echo '[totem] scaffold pendente (Fase 3)'",
+    "lint": "echo '[totem] scaffold pendente (Fase 3)'",
+    "typecheck": "echo '[totem] scaffold pendente (Fase 3)'"
+  }
+}

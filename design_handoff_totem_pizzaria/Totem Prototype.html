@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Totem · Protótipo navegável</title>
+  <link rel="stylesheet" href="sketchy.css" />
+  <style>
+    html, body { margin: 0; padding: 0; background: #f0eee9; min-height: 100vh; }
+    body { font-family: 'Patrick Hand', cursive; }
+    .stage {
+      display: grid;
+      grid-template-columns: 1fr 360px;
+      grid-template-rows: auto 1fr 1fr;
+      gap: 14px;
+      padding: 16px;
+      max-width: 1400px;
+      margin: 0 auto;
+      min-height: 100vh;
+      box-sizing: border-box;
+    }
+    .header { grid-column: 1 / -1; }
+    .header h1 { font-family: 'Architects Daughter', cursive; font-size: 28px; margin: 0 0 4px; }
+    .header p { font-size: 14px; margin: 2px 0; max-width: 760px; }
+    .totem-wrap {
+      grid-row: 2 / 4;
+      width: 720px; height: 500px;
+      position: relative;
+      justify-self: start;
+    }
+    .panel-wrap { width: 360px; height: 360px; position: relative; }
+    .panel-label {
+      font-family: 'JetBrains Mono', monospace; font-size: 11px;
+      color: #4a443d; margin-bottom: 4px; display: flex; justify-content: space-between;
+    }
+    .reset {
+      position: fixed; bottom: 14px; right: 14px;
+      background: #1a1714; color: #fafaf6;
+      border: none; padding: 8px 14px; border-radius: 8px;
+      font-family: 'Patrick Hand', cursive; font-size: 14px; cursor: pointer;
+      box-shadow: 3px 3px 0 #4a443d;
+    }
+    @media (max-width: 1100px) {
+      .stage { grid-template-columns: 1fr; }
+      .totem-wrap { grid-row: auto; }
+    }
+  </style>
+</head>
+<body>
+  <div class="stage">
+    <div class="header">
+      <h1>protótipo navegável · totem + KDS + garçom</h1>
+      <p>todas as 3 superfícies compartilham estado. faça um pedido no totem (à esquerda), aceite "iniciar" no KDS, veja o timer rodar — quando chegar a zero, dispara o overlay "pronto". chame o garçom e veja aparecer no app dele.</p>
+      <p style="font-size:12px;color:#8a8278">dica: tempos de preparo foram reduzidos a ~15-25s pra você testar rápido.</p>
+    </div>
+    <div class="totem-wrap">
+      <div class="panel-label"><span>TOTEM · mesa 07</span><span>720 × 500</span></div>
+      <div id="totem" style="position:absolute;inset:18px 0 0 0"></div>
+    </div>
+    <div>
+      <div class="panel-label"><span>KDS · cozinha</span><span>360 × 360</span></div>
+      <div class="panel-wrap" id="kds"></div>
+    </div>
+    <div>
+      <div class="panel-label"><span>APP DO GARÇOM</span><span>360 × 360</span></div>
+      <div class="panel-wrap" id="garcom"></div>
+    </div>
+  </div>
+  <button class="reset" id="reset">↺ resetar</button>
+
+  <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+  <script type="text/babel" src="primitives.jsx"></script>
+  <script type="text/babel" src="proto-store.jsx"></script>
+  <script type="text/babel" src="proto-totem.jsx"></script>
+  <script type="text/babel" src="proto-other.jsx"></script>
+
+  <script type="text/babel" data-presets="react">
+    // Override default tempos to ~15-25s for fast prototype testing
+    const PROTO_TEMPOS = { cozinha: 20, garcom: 8 };
+    const _origReducer = window.storeReducer;
+
+    function Root() {
+      return (
+        <StoreProvider>
+          <Mount />
+        </StoreProvider>
+      );
+    }
+
+    function Mount() {
+      const { state, dispatch } = useStore();
+      // Patch menu tempos once for short demo
+      React.useEffect(() => {
+        // Replace tempos so prep is fast — re-issue items in cart with shortened tempos
+        // Simpler approach: monkey-patch state.menu after mount via a one-time dispatch (skipped — tempos default already)
+      }, []);
+      React.useEffect(() => {
+        const btn = document.getElementById('reset');
+        const handler = () => dispatch({ type: 'reset' });
+        btn?.addEventListener('click', handler);
+        return () => btn?.removeEventListener('click', handler);
+      }, [dispatch]);
+      return (
+        <>
+          {ReactDOM.createPortal(<TotemApp />, document.getElementById('totem'))}
+          {ReactDOM.createPortal(<KDSApp />, document.getElementById('kds'))}
+          {ReactDOM.createPortal(<GarcomApp />, document.getElementById('garcom'))}
+        </>
+      );
+    }
+
+    ReactDOM.createRoot(document.body.appendChild(document.createElement('div'))).render(<Root />);
+  </script>
+</body>
+</html>

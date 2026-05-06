@@ -1,0 +1,47 @@
+.scroll {
+  position: sticky;
+  top: 65px;
+  background: var(--bg-cream);
+  z-index: 5;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.row {
+  display: flex;
+  gap: 8px;
+  padding: 14px 28px;
+  width: max-content;
+  min-width: 100%;
+}
+
+.tab {
+  padding: 10px 18px;
+  background: var(--bg-paper);
+  color: var(--ink-soft);
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.tab:hover {
+  background: var(--bg-warm);
+}
+
+.active {
+  background: var(--ink);
+  color: var(--bg-paper);
+}
+
+.active:hover {
+  background: var(--ink);
+}

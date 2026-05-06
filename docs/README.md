@@ -8,7 +8,7 @@ Indice de docs do projeto. Cada fase de desenvolvimento fecha com um doc novo aq
 |---|---|
 | Dev novo no projeto | [`00-arquitetura.md`](./00-arquitetura.md) |
 | Quer entender uma decisao | [`adr/`](./adr/) — Architecture Decision Records |
-| Vai instalar hub na loja | `04-deploy-hub.md` (Fase 2) |
+| Vai instalar hub na loja | [`04-deploy-hub.md`](./04-deploy-hub.md) |
 | Vai operar o painel cloud | `08-cloud-saas.md` (Fase 6) |
 
 ## Indice por fase
@@ -16,8 +16,8 @@ Indice de docs do projeto. Cada fase de desenvolvimento fecha com um doc novo aq
 | Fase | Doc | Status |
 |---|---|---|
 | 0 — Fundacao | [`00-arquitetura.md`](./00-arquitetura.md) | ✅ |
-| 1 — Schemas e WebSocket | [`01-data-model.md`](./01-data-model.md) (entidades + eventos) | ⏳ Drizzle DSL na Fase 2 |
-| 2 — Hub local | [`03-hub-local.md`](./03-hub-local.md) (persistencia ✅) + `04-deploy-hub.md` (pendente) | ⏳ Fase 2B/2C |
+| 1 — Schemas e WebSocket | [`01-data-model.md`](./01-data-model.md) | ✅ |
+| 2 — Hub local | [`03-hub-local.md`](./03-hub-local.md) + [`04-deploy-hub.md`](./04-deploy-hub.md) | ✅ (2A+2B+2C+2D) |
 | 3 — Totem | `05-totem-app.md` | ⏳ |
 | 4 — KDS | `06-kds.md` | ⏳ |
 | 5 — App Garcom | `07-waiter-app.md` | ⏳ |

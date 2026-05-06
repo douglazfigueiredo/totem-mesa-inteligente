@@ -10,6 +10,8 @@ import prepRoutes from './routes/prep.js';
 import waiterRoutes from './routes/waiter.js';
 import stateRoutes from './routes/state.js';
 import heartbeatRoutes from './routes/heartbeat.js';
+import catalogRoutes from './routes/catalog.js';
+import authRoutes from './routes/auth.js';
 import type { Broadcaster } from './lib/broadcaster.js';
 import { makeEvent } from './lib/events.js';
 import type { TenantId, WSEvent, WSEventType } from '@app/schemas';
@@ -77,6 +79,8 @@ export const buildApp = async (opts: BuildAppOptions): Promise<FastifyInstance> 
   await app.register(waiterRoutes);
   await app.register(stateRoutes);
   await app.register(heartbeatRoutes);
+  await app.register(catalogRoutes);
+  await app.register(authRoutes);
 
   return app;
 };

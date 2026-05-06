@@ -15,6 +15,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
     "db:studio": "drizzle-kit studio",
+    "seed": "tsx src/seed.ts",
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
     "@fastify/rate-limit": "^10.1.1",
     "@app/schemas": "workspace:*",
     "@app/types": "workspace:*",
+    "bcryptjs": "^2.4.3",
     "better-sqlite3": "^11.5.0",
     "drizzle-orm": "^0.36.4",
     "fastify": "^5.1.0",
@@ -34,6 +36,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/better-sqlite3": "^7.6.12",
     "drizzle-kit": "^0.28.1",
     "socket.io-client": "^4.8.1",

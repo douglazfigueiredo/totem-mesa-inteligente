@@ -7,6 +7,44 @@ Versionamento: `vX.Y-faseN` no fim de cada fase.
 
 ---
 
+## [v0.2-fase2] — 2026-05-06 — Fase 2 (Hub local) COMPLETA
+
+### Adicionado (Fase 2D — Hub local: catalogo + PIN auth + GHCR + deploy doc)
+
+- **CatalogRepo** + endpoints REST:
+  - `GET /catalog` (qualquer device) — retorna `CatalogSnapshot` + ETag baseado em version, suporta `If-None-Match` → 304.
+  - `GET /catalog/version` — retorna apenas `{ version }` (poll barato).
+  - `POST /admin/catalog` (admin) — install/replace.
+- **EmployeeRepo** com bcrypt:
+  - `create({ pin })` valida PIN 4-6 digitos, hashSync com 10 rounds.
+  - `findByPin(tenantId, pin)` percorre employees ativos com compareSync (timing-safe).
+- **POST /auth/pin** — login de funcionario com PIN, retorna `{ employee: { id, nome, roles } }`.
+- **Seed CLI** (`pnpm seed`) — instala catalogo de dev (3 categorias, 4 produtos, com pizza meio-a-meio + variantes + modifiers) + 3 funcionarios test (cozinheiro 1111, garcom 2222, gerente 9999).
+- **Seed JSON exemplar** em `apps/hub/seeds/pizzaria-dev.json`.
+- **GHCR ativado** — workflow `.github/workflows/hub-image.yml` removido `if: false`. Push em main publica `ghcr.io/douglazfigueiredo/totem-mesa-inteligente-hub:stable` (multi-arch amd64+arm64).
+- **Doc `docs/04-deploy-hub.md`** (~250 linhas) — runbook completo de instalacao em loja real: hardware, OS prep, install.sh, pareamento, catalogo, OTA, monitoramento, backup, recovery, seguranca operacional, checklist de instalacao.
+- **11 novos tests** (catalog 7 + auth 4) → **total 79 tests passando** em ~2.6s.
+
+### Validado E2E em Docker
+
+- `docker exec tm-hub node dist/seed.js` rodou: 3 categorias + 4 produtos + 3 funcionarios criados.
+- `GET /catalog` (totem) retornou snapshot completo. ETag `"v1"` funcionando — `If-None-Match: "v1"` → 304.
+- `POST /auth/pin` com 1111 → 200 com `{ nome: "Cozinheiro Dev", roles: ["cozinheiro"] }`. PIN 0000 → 401.
+
+### Resumo Fase 2 (todas as sub-fases)
+
+| Sub-fase | Entrega | Tests |
+|---|---|---|
+| 2A | Persistencia + 6 repos | 29 |
+| 2B | Auth + 8 endpoints REST + bootstrap | +30 |
+| 2C | Socket.IO + workers (timer + outbox) | +9 |
+| 2D | Catalog + PIN + seed + GHCR + doc deploy | +11 |
+| **TOTAL** | **Hub completo** | **79** |
+
+Hub publicado, documentado, testado, validado E2E. Pronto para Fase 3 (Totem PWA) consumir.
+
+---
+
 ## [Unreleased] — Fase 2C concluida
 
 ### Adicionado (Fase 2C — Hub local: Socket.IO + workers)

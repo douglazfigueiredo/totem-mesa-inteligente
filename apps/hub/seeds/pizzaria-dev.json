@@ -1,0 +1,154 @@
+{
+  "version": 1,
+  "categories": [
+    {
+      "id": "00000000-0000-7000-8000-000000000001",
+      "nome": "Pizzas",
+      "ordem": 0,
+      "isActive": true
+    },
+    {
+      "id": "00000000-0000-7000-8000-000000000002",
+      "nome": "Bebidas",
+      "ordem": 1,
+      "isActive": true
+    },
+    {
+      "id": "00000000-0000-7000-8000-000000000003",
+      "nome": "Sobremesas",
+      "ordem": 2,
+      "isActive": true
+    }
+  ],
+  "products": [
+    {
+      "id": "00000000-0000-7000-8000-000000000101",
+      "categoryId": "00000000-0000-7000-8000-000000000001",
+      "nome": "Pizza Margherita",
+      "descricao": "Molho de tomate, muçarela de búfala, manjericão fresco e azeite",
+      "basePriceCents": 4500,
+      "destino": "cozinha",
+      "tempoEstimadoSec": 1320,
+      "isAvailable": true,
+      "isVegetarian": true,
+      "isGlutenFree": false,
+      "verticalConfig": {
+        "tipo": "pizza",
+        "saboresMax": 2,
+        "bordaRecheadaDisponivel": true
+      },
+      "variants": [
+        {
+          "id": "00000000-0000-7000-8000-000000000201",
+          "productId": "00000000-0000-7000-8000-000000000101",
+          "nome": "Média",
+          "priceCents": 4500,
+          "isDefault": true,
+          "isAvailable": true,
+          "ordem": 0
+        },
+        {
+          "id": "00000000-0000-7000-8000-000000000202",
+          "productId": "00000000-0000-7000-8000-000000000101",
+          "nome": "Grande",
+          "priceCents": 5800,
+          "isDefault": false,
+          "isAvailable": true,
+          "ordem": 1
+        }
+      ],
+      "modifierGroups": [
+        {
+          "id": "00000000-0000-7000-8000-000000000301",
+          "productId": "00000000-0000-7000-8000-000000000101",
+          "nome": "Borda recheada",
+          "selectionType": "single",
+          "required": false,
+          "minSelect": 0,
+          "ordem": 0,
+          "modifiers": [
+            {
+              "id": "00000000-0000-7000-8000-000000000401",
+              "groupId": "00000000-0000-7000-8000-000000000301",
+              "nome": "Catupiry",
+              "priceDeltaCents": 800,
+              "isAvailable": true,
+              "ordem": 0
+            },
+            {
+              "id": "00000000-0000-7000-8000-000000000402",
+              "groupId": "00000000-0000-7000-8000-000000000301",
+              "nome": "Cheddar",
+              "priceDeltaCents": 800,
+              "isAvailable": true,
+              "ordem": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "00000000-0000-7000-8000-000000000102",
+      "categoryId": "00000000-0000-7000-8000-000000000001",
+      "nome": "Pizza Calabresa",
+      "descricao": "Calabresa, cebola roxa, azeitona e molho de tomate",
+      "basePriceCents": 4800,
+      "destino": "cozinha",
+      "tempoEstimadoSec": 1320,
+      "isAvailable": true,
+      "isVegetarian": false,
+      "isGlutenFree": false,
+      "verticalConfig": {
+        "tipo": "pizza",
+        "saboresMax": 2,
+        "bordaRecheadaDisponivel": true
+      },
+      "variants": [
+        {
+          "id": "00000000-0000-7000-8000-000000000203",
+          "productId": "00000000-0000-7000-8000-000000000102",
+          "nome": "Média",
+          "priceCents": 4800,
+          "isDefault": true,
+          "isAvailable": true,
+          "ordem": 0
+        }
+      ],
+      "modifierGroups": []
+    },
+    {
+      "id": "00000000-0000-7000-8000-000000000103",
+      "categoryId": "00000000-0000-7000-8000-000000000002",
+      "nome": "Coca-Cola 2L",
+      "descricao": "Refrigerante 2 litros gelado",
+      "basePriceCents": 1500,
+      "destino": "garcom",
+      "tempoEstimadoSec": 60,
+      "isAvailable": true,
+      "isVegetarian": true,
+      "isGlutenFree": true,
+      "verticalConfig": {
+        "tipo": "bebida"
+      },
+      "variants": [],
+      "modifierGroups": []
+    },
+    {
+      "id": "00000000-0000-7000-8000-000000000104",
+      "categoryId": "00000000-0000-7000-8000-000000000003",
+      "nome": "Brigadeirao",
+      "descricao": "Brigadeiro de panela com granulado belga",
+      "basePriceCents": 1800,
+      "destino": "garcom",
+      "tempoEstimadoSec": 60,
+      "isAvailable": true,
+      "isVegetarian": true,
+      "isGlutenFree": true,
+      "verticalConfig": {
+        "tipo": "sobremesa"
+      },
+      "variants": [],
+      "modifierGroups": []
+    }
+  ]
+}

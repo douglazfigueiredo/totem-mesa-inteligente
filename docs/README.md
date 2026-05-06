@@ -13,19 +13,19 @@ Indice de docs do projeto. Cada fase de desenvolvimento fecha com um doc novo aq
 
 ## Indice por fase
 
-| Fase                            | Doc                                                                               | Status           |
-| ------------------------------- | --------------------------------------------------------------------------------- | ---------------- |
-| 0 — Fundacao                    | [`00-arquitetura.md`](./00-arquitetura.md)                                        | ✅               |
-| 1 — Schemas e WebSocket         | [`01-data-model.md`](./01-data-model.md)                                          | ✅               |
-| 2 — Hub local                   | [`03-hub-local.md`](./03-hub-local.md) + [`04-deploy-hub.md`](./04-deploy-hub.md) | ✅ (2A+2B+2C+2D) |
-| 3 — Totem                       | `05-totem-app.md`                                                                 | ⏳               |
-| 4 — KDS                         | `06-kds.md`                                                                       | ⏳               |
-| 5 — App Garcom                  | `07-waiter-app.md`                                                                | ⏳               |
-| 6 — Cloud SaaS                  | `08-cloud-saas.md`, `09-pareamento.md`                                            | ⏳               |
-| 7 — Pagamento                   | `10-pagamento.md`                                                                 | ⏳               |
-| 8 — Erros & resiliencia         | `11-error-states.md`                                                              | ⏳               |
-| 9 — Observabilidade & piloto    | `12-observability.md`, `13-runbook-piloto.md`                                     | ⏳               |
-| 10 — Hardening & multi-vertical | `14-vertical-recipes.md`, `15-test-strategy.md`                                   | ⏳               |
+| Fase                            | Doc                                                                               | Status                     |
+| ------------------------------- | --------------------------------------------------------------------------------- | -------------------------- |
+| 0 — Fundacao                    | [`00-arquitetura.md`](./00-arquitetura.md)                                        | ✅                         |
+| 1 — Schemas e WebSocket         | [`01-data-model.md`](./01-data-model.md)                                          | ✅                         |
+| 2 — Hub local                   | [`03-hub-local.md`](./03-hub-local.md) + [`04-deploy-hub.md`](./04-deploy-hub.md) | ✅ (2A+2B+2C+2D)           |
+| 3 — Totem                       | [`05-totem-app.md`](./05-totem-app.md)                                            | ⏳ 3A ✅ / 3B-3D pendentes |
+| 4 — KDS                         | `06-kds.md`                                                                       | ⏳                         |
+| 5 — App Garcom                  | `07-waiter-app.md`                                                                | ⏳                         |
+| 6 — Cloud SaaS                  | `08-cloud-saas.md`, `09-pareamento.md`                                            | ⏳                         |
+| 7 — Pagamento                   | `10-pagamento.md`                                                                 | ⏳                         |
+| 8 — Erros & resiliencia         | `11-error-states.md`                                                              | ⏳                         |
+| 9 — Observabilidade & piloto    | `12-observability.md`, `13-runbook-piloto.md`                                     | ⏳                         |
+| 10 — Hardening & multi-vertical | `14-vertical-recipes.md`, `15-test-strategy.md`                                   | ⏳                         |
 
 ## ADRs
 

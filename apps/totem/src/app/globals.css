@@ -1,0 +1,123 @@
+:root {
+  --bg-cream: #ebe2ce;
+  --bg-paper: #fffaf0;
+  --bg-soft: #faf3e2;
+  --bg-warm: #efe5d2;
+  --ink: #2b1b10;
+  --ink-soft: #4a3525;
+  --ink-mute: #7a614c;
+  --terracota: #c14a26;
+  --terracota-deep: #9c3819;
+  --gold: #d4a13b;
+  --gold-deep: #a87b22;
+  --green: #6b7b3a;
+  --green-soft: #cde8e1;
+
+  --shadow-card: 0 1px 2px rgba(43, 27, 16, 0.04), 0 8px 20px rgba(43, 27, 16, 0.05);
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains), 'SF Mono', Menlo, monospace;
+
+  --motion-page: cubic-bezier(0.2, 0, 0, 1);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-cream);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+button {
+  font: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 14px 22px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 16px;
+  transition:
+    transform 120ms ease,
+    background-color 200ms ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--terracota);
+  color: var(--bg-paper);
+}
+
+.btn-primary:hover {
+  background: var(--terracota-deep);
+}
+
+.btn-secondary {
+  background: var(--bg-warm);
+  color: var(--ink);
+}
+
+.fade-up {
+  animation: fadeUp 300ms var(--motion-page) both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

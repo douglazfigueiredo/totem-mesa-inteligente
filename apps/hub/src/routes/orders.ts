@@ -3,7 +3,6 @@ import type { FastifyPluginAsync } from 'fastify';
 import {
   Bps,
   EventId,
-  Order,
   OrderId,
   OrderItem,
   TableId,
@@ -12,7 +11,7 @@ import {
   type OrderDestino,
 } from '@app/schemas';
 import { newEventId, newOrderItemId } from '../lib/ids.js';
-import { ConflictError, ValidationError } from '../lib/errors.js';
+import { ValidationError } from '../lib/errors.js';
 
 const CreateOrderItem = OrderItem.omit({ id: true });
 
@@ -75,12 +74,7 @@ const ordersRoutes: FastifyPluginAsync = async (app) => {
         obs: body.obs,
       });
 
-      app.repos.outbox.enqueue({
-        eventId: newEventId(),
-        tenantId: order.tenantId,
-        type: 'order:created',
-        payload: { order },
-      });
+      app.publishAndEnqueue('order:created', order.tenantId, { order });
 
       app.repos.idempotency.record({
         eventId,
@@ -111,11 +105,9 @@ const ordersRoutes: FastifyPluginAsync = async (app) => {
         .object({ reason: z.string().min(1).max(200) })
         .parse(request.body);
       const cancelled = app.repos.orders.cancel(id, reason);
-      app.repos.outbox.enqueue({
-        eventId: newEventId(),
-        tenantId: cancelled.tenantId,
-        type: 'order:cancel',
-        payload: { orderId: cancelled.id, reason },
+      app.publishAndEnqueue('order:cancel', cancelled.tenantId, {
+        orderId: cancelled.id,
+        reason,
       });
       return cancelled;
     },

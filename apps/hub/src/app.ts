@@ -10,18 +10,27 @@ import prepRoutes from './routes/prep.js';
 import waiterRoutes from './routes/waiter.js';
 import stateRoutes from './routes/state.js';
 import heartbeatRoutes from './routes/heartbeat.js';
-import type { TenantId } from '@app/schemas';
+import type { Broadcaster } from './lib/broadcaster.js';
+import { makeEvent } from './lib/events.js';
+import type { TenantId, WSEvent, WSEventType } from '@app/schemas';
 
 declare module 'fastify' {
   interface FastifyInstance {
     repos: Repos;
     tenantId: TenantId;
+    broadcaster: Broadcaster;
+    publishAndEnqueue: <T extends WSEventType>(
+      type: T,
+      tenantId: TenantId,
+      payload: Extract<WSEvent, { type: T }>['payload'],
+    ) => WSEvent;
   }
 }
 
 export type BuildAppOptions = {
   repos: Repos;
   tenantId: TenantId;
+  broadcaster: Broadcaster;
   adminSecret?: string;
   logger?: boolean | object;
 };
@@ -35,6 +44,18 @@ export const buildApp = async (opts: BuildAppOptions): Promise<FastifyInstance> 
 
   app.decorate('repos', opts.repos);
   app.decorate('tenantId', opts.tenantId);
+  app.decorate('broadcaster', opts.broadcaster);
+  app.decorate('publishAndEnqueue', function publishAndEnqueue(type, tenantId, payload) {
+    const event = makeEvent(type, tenantId, payload);
+    opts.broadcaster.broadcast(event);
+    opts.repos.outbox.enqueue({
+      eventId: event.eventId,
+      tenantId,
+      type,
+      payload,
+    });
+    return event;
+  });
 
   await app.register(errorHandlerPlugin);
   await app.register(helmet);

@@ -35,11 +35,9 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
 
       app.repos.orders.updateStatus(body.orderId, 'preparando');
 
-      app.repos.outbox.enqueue({
-        eventId: newEventId(),
-        tenantId: order.tenantId,
-        type: 'prep:started',
-        payload: { preparo, serverTime: preparo.startedAt },
+      app.publishAndEnqueue('prep:started', order.tenantId, {
+        preparo,
+        serverTime: preparo.startedAt,
       });
 
       app.repos.idempotency.record({
@@ -61,15 +59,10 @@ const prepRoutes: FastifyPluginAsync = async (app) => {
       const ready = app.repos.preparos.markReady(id);
       const order = app.repos.orders.getByIdOrThrow(ready.orderId);
       app.repos.orders.updateStatus(ready.orderId, 'pronto');
-      app.repos.outbox.enqueue({
-        eventId: newEventId(),
-        tenantId: order.tenantId,
-        type: 'prep:ready',
-        payload: {
-          orderId: ready.orderId,
-          preparoId: ready.id,
-          readyAt: ready.readyAt!,
-        },
+      app.publishAndEnqueue('prep:ready', order.tenantId, {
+        orderId: ready.orderId,
+        preparoId: ready.id,
+        readyAt: ready.readyAt!,
       });
       return ready;
     },

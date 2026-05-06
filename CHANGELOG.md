@@ -7,6 +7,49 @@ Versionamento: `vX.Y-faseN` no fim de cada fase.
 
 ---
 
+## [Unreleased] — Fase 2C concluida
+
+### Adicionado (Fase 2C — Hub local: Socket.IO + workers)
+
+- **Socket.IO server** (`sockets/server.ts`) anexado ao mesmo HTTP server do Fastify:
+  - Auth via handshake (`auth.apiKey` ou header `x-device-api-key`).
+  - Rooms: `tenant:<id>`, `role:<role>`, `table:<id>`.
+  - Eventos client→server com ack: `state:sync`, `heartbeat`, `event` (idempotency record).
+  - Evento server→client: `event` com WSEvent.
+- **Broadcaster abstraction** (`lib/broadcaster.ts`):
+  - `makeMemoryBroadcaster()` para tests (expoe `events[]`).
+  - `makeSocketBroadcaster(io)` para producao (emit no room tenant:X).
+- **Helper `app.publishAndEnqueue(type, tenantId, payload)`** — combina broadcast + outbox enqueue em uma chamada. Rotas REST refatoradas para usar.
+- **Timer worker** (`workers/timer.ts`):
+  - `setInterval(1000ms)` polling `preparos.listDue()`.
+  - Ao expirar: `markReady` atomic + `orders.updateStatus('pronto')` + publishAndEnqueue `prep:ready`.
+  - Idempotente — restart do hub mid-timer recupera automaticamente na primeira tick.
+- **Outbox worker** (`workers/outbox.ts`):
+  - `setInterval(2000ms)` polling `outbox.listPending(25)`.
+  - Push HTTP via `makeHttpCloudPusher(baseUrl, tenantId)` (real) ou `noopCloudPusher` (drena silenciosamente).
+  - Falha → markFailed com backoff exp.
+- **server.ts refatorado**: registra `onClose` hook ANTES de `listen()` (Fastify exige). Workers + Socket.IO sobem apos listen, parados via closures.
+- **9 novos tests**:
+  - `worker.timer.test.ts` (2): timer due + idempotente em re-tick.
+  - `worker.outbox.test.ts` (2): push success + fail+backoff.
+  - `sockets.test.ts` (5): auth handshake, broadcast room, heartbeat/state:sync acks, reject sem auth.
+- **Total tests: 68** passando em ~1.8s.
+
+### Validado E2E em Docker
+
+- Bootstrap criou tenant + 10 mesas + funcionario test.
+- Totem + KDS pareados via `/admin/pairing-codes` + `/devices/pair`.
+- Pedido criado (3s prep), KDS chamou `/prep/start`.
+- Aguardado 5s → status do order virou `pronto` automaticamente (sem chamar `/prep/:id/ready`).
+- Outbox tinha 3 pending: `order:created`, `prep:started`, `prep:ready`.
+- Logs do hub: `INFO timer due → prep:ready preparoId=...`
+
+### Doc atualizada
+
+`docs/03-hub-local.md` ganhou secao 9 (Socket.IO + workers + smoke test E2E) e secao 10 atualizada com nova lista de Tests.
+
+---
+
 ## [Unreleased] — Fase 2B concluida
 
 ### Adicionado (Fase 2B — Hub local: REST + auth)

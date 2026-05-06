@@ -6,7 +6,6 @@ import {
   WaiterCallId,
   WaiterCallReason,
 } from '@app/schemas';
-import { newEventId } from '../lib/ids.js';
 
 const CreateWaiterCallRequest = z.object({
   tableId: TableId,
@@ -30,11 +29,10 @@ const waiterRoutes: FastifyPluginAsync = async (app) => {
         reason: body.reason,
         obs: body.obs,
       });
-      app.repos.outbox.enqueue({
-        eventId: newEventId(),
-        tenantId: call.tenantId,
-        type: 'waiter:call',
-        payload: { tableId: call.tableId, reason: call.reason, obs: call.obs },
+      app.publishAndEnqueue('waiter:call', call.tenantId, {
+        tableId: call.tableId,
+        reason: call.reason,
+        obs: call.obs,
       });
       return reply.code(201).send(call);
     },
@@ -47,11 +45,9 @@ const waiterRoutes: FastifyPluginAsync = async (app) => {
       const { id } = z.object({ id: WaiterCallId }).parse(request.params);
       const body = ResolveWaiterCallRequest.parse(request.body);
       const call = app.repos.waiter.ack(id, body.employeeId);
-      app.repos.outbox.enqueue({
-        eventId: newEventId(),
-        tenantId: call.tenantId,
-        type: 'waiter:ack',
-        payload: { callId: call.id, employeeId: body.employeeId },
+      app.publishAndEnqueue('waiter:ack', call.tenantId, {
+        callId: call.id,
+        employeeId: body.employeeId,
       });
       return call;
     },
@@ -64,11 +60,9 @@ const waiterRoutes: FastifyPluginAsync = async (app) => {
       const { id } = z.object({ id: WaiterCallId }).parse(request.params);
       const body = ResolveWaiterCallRequest.parse(request.body);
       const call = app.repos.waiter.resolve(id, body.employeeId);
-      app.repos.outbox.enqueue({
-        eventId: newEventId(),
-        tenantId: call.tenantId,
-        type: 'waiter:resolved',
-        payload: { callId: call.id, employeeId: body.employeeId },
+      app.publishAndEnqueue('waiter:resolved', call.tenantId, {
+        callId: call.id,
+        employeeId: body.employeeId,
       });
       return call;
     },

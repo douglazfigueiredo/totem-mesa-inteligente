@@ -255,40 +255,103 @@ curl -sX POST http://localhost:4000/orders \
 # → 201 Order, outbox pending=1, event 'order:created' enqueued
 ```
 
-## 9. O que NAO esta nas Fases 2A/2B
+## 9. Real-time — Socket.IO + workers (Fase 2C) ✅
+
+### Socket.IO
+
+Servidor anexado ao mesmo HTTP server do Fastify. Auth via handshake:
+
+```ts
+// cliente:
+import { io } from 'socket.io-client';
+const socket = io('http://hub.local:4000', { auth: { apiKey: '<chave do pareamento>' } });
+```
+
+Equivalente como header: `x-device-api-key: <chave>`.
+
+**Rooms** (entrada automatica no connect):
+- `tenant:<tenantId>` — todos os devices da loja
+- `role:<role>` — todos com mesma role (totem/kds/waiter)
+- `table:<tableId>` — apenas o totem daquela mesa
+
+**Eventos do servidor → cliente**:
+- `event` — broadcast generico de `WSEvent` (order:created, prep:started, prep:ready, waiter:call, etc). Por enquanto vai para o room `tenant:<id>` (todos recebem; cliente filtra por relevancia).
+
+**Eventos cliente → servidor (com ack)**:
+- `state:sync` payload `{ tableId? }` → snapshot da mesa (orders ativos + preparos + waiter calls)
+- `heartbeat` payload `{ clientTime? }` → `{ deviceId, serverTime, driftMs }`
+- `event` payload `WSEvent` → marcacao de idempotencia (registra event_id e responde `{ ok, replay? }`)
+
+### Broadcaster abstraction
+
+Rotas REST chamam `app.publishAndEnqueue(type, tenantId, payload)`:
+
+1. Constroi `WSEvent` com `eventId` UUID v7.
+2. `broadcaster.broadcast(event)` — emite para o room `tenant:X` via Socket.IO.
+3. `outbox.enqueue(...)` — persiste no SQLite para sync com cloud (Fase 2D).
+
+Em testes, `makeMemoryBroadcaster()` substitui Socket.IO e expoe `events: WSEvent[]` para asserções.
+
+### Timer worker (`workers/timer.ts`)
+
+`setInterval(1000ms)` polling `repos.preparos.listDue()`. Ao encontrar preparo com `now - startedAt >= durationSec * 1000`:
+
+1. `markReady(id)` — atomic update (so transita de 'preparando' para 'pronto')
+2. `orders.updateStatus(orderId, 'pronto')`
+3. `publishAndEnqueue('prep:ready', ...)` via broadcaster + outbox
+
+**Determinismo**: SQLite e fonte de verdade. Restart do hub no meio do timer = on boot, todos preparos com tempo expirado serao processados na primeira tick. Sem perda.
+
+### Outbox worker (`workers/outbox.ts`)
+
+`setInterval(2000ms)` polling `repos.outbox.listPending(25)`:
+
+1. Para cada entry, chama `push(entry)` (HTTP cloud ou no-op).
+2. Sucesso → `markSent`. Falha → `markFailed` (backoff exp 1/2/4/8/16/30s).
+
+`makeHttpCloudPusher(cloudBaseUrl, tenantId)` faz POST em `${cloudBaseUrl}/api/hub/events` com `x-tenant-id` header. Cloud recebe (Fase 2D, hoje no-op). Sem `CLOUD_BASE_URL` env, usa `noopCloudPusher` (sucesso silencioso, drena a outbox).
+
+### Smoke test E2E validado (Docker)
+
+Sequencia:
+1. Admin gera codigos pairing para totem + KDS.
+2. Devices emparelham, recebem apiKey.
+3. Funcionario inserido manualmente (PIN auth e Fase 2D ou 5).
+4. Totem `POST /orders` com `tempoEstimadoSec: 3` e `durationSec: 3`.
+5. KDS `POST /prep/start` armando timer.
+6. Aguardar 5 segundos.
+7. `GET /orders/:id` → status `pronto` (timer worker disparou automaticamente).
+8. `outbox.pending` = 3 (`order:created`, `prep:started`, `prep:ready`).
+9. Logs do hub: `INFO timer due → prep:ready preparoId=...`
+
+## 10. O que NAO esta nas Fases 2A/2B/2C
 
 | Reservado | Fase |
 |---|---|
-| Socket.IO server + broadcast | 2C |
-| BullMQ workers (timer due → prep:ready automatico) | 2C |
 | Pull catalog do cloud | 2D |
-| Push outbox para cloud (worker) | 2D |
+| Push outbox para cloud real (HTTP) | 2D (HTTP pusher ja codado, falta cloud target) |
 | GHCR image publishing (ativar `hub-image.yml`) | 2D |
 | Bcrypt PIN auth para funcionarios | 2D ou 5 |
+| Targeted broadcasting (room por mesa/role) | 9 (otimizacao) |
 
-## 10. Tests
+## 11. Tests
 
 ```bash
 cd apps/hub
-pnpm test          # 59 tests, ~1.5s
+pnpm test          # 68 tests, ~1.8s
 ```
 
 Cobertura atual:
 
 **Repos** (29 tests):
-- `device.repo.test.ts` — 4
-- `idempotency.repo.test.ts` — 3
-- `order.repo.test.ts` — 6
-- `outbox.repo.test.ts` — 5 (backoff exponencial)
-- `pairing.repo.test.ts` — 5 (TTL, double-consume)
-- `preparo.repo.test.ts` — 6 (timer determinismo, conflicts)
+- `device`, `idempotency`, `order`, `outbox` (backoff), `pairing` (TTL), `preparo`
 
 **Routes** (30 tests, via `fastify.inject()`):
-- `routes.health.test.ts` — 1
-- `routes.devices.test.ts` — 7
-- `routes.orders.test.ts` — 8 (auth/role, totals, idempotencia, outbox)
-- `routes.prep.test.ts` — 4 (start, race 409, ready)
-- `routes.waiter.test.ts` — 6
-- `routes.state.test.ts` — 4 (sync + heartbeat)
+- `health`, `devices` (admin auth + pair), `orders` (auth/role + idempotencia + outbox), `prep`, `waiter`, `state`
 
-In-memory SQLite isolado por suite, Fastify in-process via `buildApp()`.
+**Workers + Sockets** (9 tests):
+- `worker.timer.test.ts` — 2 (timer due, idempotente em re-tick)
+- `worker.outbox.test.ts` — 2 (push success, fail+backoff)
+- `sockets.test.ts` — 5 (auth handshake, broadcast tenant, heartbeat ack, state:sync ack, rejeicao sem auth)
+
+In-memory SQLite isolado por suite. Sockets sobem HTTP server real em porta efemera com socket.io-client.

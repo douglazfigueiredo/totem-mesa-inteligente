@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import { Fraunces, Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
+import { SocketProvider } from '@/components/SocketProvider';
+import { ConnectionBadge } from '@/components/ConnectionBadge';
+import { TimerWidget } from '@/components/TimerWidget';
+import { ReadyOverlay } from '@/components/ReadyOverlay';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -41,7 +45,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="pt-BR" className={`${fraunces.variable} ${inter.variable} ${jetbrains.variable}`}>
       <body>
-        <div className="app">{children}</div>
+        <SocketProvider>
+          <ConnectionBadge />
+          <div className="app">{children}</div>
+          <TimerWidget />
+          <ReadyOverlay />
+        </SocketProvider>
       </body>
     </html>
   );

@@ -1,0 +1,37 @@
+.banner {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 8px 16px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  animation: slideDown 200ms ease-out;
+}
+
+.connecting {
+  background: var(--gold);
+  color: var(--gold-deep);
+}
+
+.reconnecting {
+  background: var(--gold);
+  color: var(--gold-deep);
+}
+
+.offline {
+  background: var(--terracota);
+  color: var(--bg-paper);
+}
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}

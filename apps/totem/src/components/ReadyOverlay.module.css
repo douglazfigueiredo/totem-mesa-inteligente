@@ -1,0 +1,83 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(43, 27, 16, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+}
+
+.card {
+  background: var(--bg-paper);
+  border-radius: 22px;
+  padding: 40px 36px;
+  max-width: 480px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  box-shadow: 0 20px 60px rgba(43, 27, 16, 0.4);
+}
+
+.bell {
+  font-size: 80px;
+  display: inline-block;
+}
+
+.bellShake {
+  animation: shake 600ms ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  20% {
+    transform: rotate(-12deg);
+  }
+  40% {
+    transform: rotate(12deg);
+  }
+  60% {
+    transform: rotate(-8deg);
+  }
+  80% {
+    transform: rotate(8deg);
+  }
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 44px;
+  color: var(--green);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 16px;
+  color: var(--ink-soft);
+}
+
+.itemList {
+  list-style: none;
+  margin: 8px 0 16px;
+  padding: 16px 22px;
+  background: var(--bg-soft);
+  border-radius: 14px;
+  width: 100%;
+  text-align: left;
+  font-size: 14px;
+  color: var(--ink-soft);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}

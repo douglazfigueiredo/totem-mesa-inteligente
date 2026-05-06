@@ -8,15 +8,28 @@ on:
   push:
     branches: [main]
     paths:
-      - "apps/hub/**"
-      - "packages/**"
-      - "deploy/hub/**"
+      - "apps/hub/src/**"
+      - "apps/hub/Dockerfile"
+      - "apps/hub/package.json"
+      - "apps/hub/tsconfig.json"
+      - "apps/hub/seeds/**"
+      - "packages/schemas/src/**"
+      - "packages/schemas/package.json"
+      - "packages/types/src/**"
+      - "packages/types/package.json"
+      - "pnpm-lock.yaml"
       - ".github/workflows/hub-image.yml"
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
         description: "Tag adicional (alem do SHA / branch)"
         required: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build:

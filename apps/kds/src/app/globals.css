@@ -1,0 +1,124 @@
+:root {
+  --bg-base: #1a0f08;
+  --bg-card: #261810;
+  --bg-elev: #311f15;
+  --text: #f7f1e6;
+  --text-soft: #c9b8a0;
+  --text-mute: #8a755e;
+
+  --gold: #d4a13b;
+  --gold-deep: #a87b22;
+  --terracota: #d96d4a;
+  --terracota-deep: #c14a26;
+  --green: #a3b562;
+  --green-deep: #6b7b3a;
+  --red: #d96b62;
+
+  --shadow-card: 0 2px 4px rgba(0, 0, 0, 0.4), 0 12px 24px rgba(0, 0, 0, 0.3);
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-mono: var(--font-jetbrains), 'SF Mono', Menlo, monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg-base);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
+
+button {
+  font: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: inherit;
+}
+
+input,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+.app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.mono-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-mute);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 16px;
+  transition:
+    transform 100ms ease,
+    background-color 200ms ease;
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-primary {
+  background: var(--terracota);
+  color: var(--text);
+}
+
+.btn-primary:hover {
+  background: var(--terracota-deep);
+}
+
+.btn-secondary {
+  background: var(--bg-elev);
+  color: var(--text);
+}
+
+.btn-success {
+  background: var(--green-deep);
+  color: var(--text);
+}
+
+.fade-up {
+  animation: fadeUp 250ms ease-out both;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -76,6 +76,26 @@ export const createSocketServer = (opts: CreateSocketServerOptions): SocketIOSer
             ? (raw as { tableId: string }).tableId
             : device.tableId
         ) as TableId | undefined;
+
+        if (device.role === 'kds' || device.role === 'admin') {
+          const activeOrders = repos.orders.listActiveByTenant(device.tenantId);
+          const activePreparos = activeOrders
+            .map((o) => repos.preparos.getByOrderId(o.id))
+            .filter((p): p is NonNullable<typeof p> => p !== null);
+          const tablesList = repos.tables.list(device.tenantId);
+          const pendingWaiterCalls = repos.waiter.listPending(device.tenantId);
+
+          ack({
+            scope: 'tenant',
+            serverTime: Date.now(),
+            activeOrders,
+            activePreparos,
+            tables: tablesList,
+            pendingWaiterCalls,
+          });
+          return;
+        }
+
         if (!tableId) {
           ack({ error: 'tableId required for state:sync' });
           return;
@@ -89,6 +109,7 @@ export const createSocketServer = (opts: CreateSocketServerOptions): SocketIOSer
           .filter((c) => c.tableId === tableId);
 
         ack({
+          scope: 'table',
           tableId,
           serverTime: Date.now(),
           activeOrders,

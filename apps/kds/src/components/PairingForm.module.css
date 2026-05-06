@@ -1,0 +1,58 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 480px;
+  width: 100%;
+  margin: 40px auto;
+  padding: 40px;
+  background: var(--bg-card);
+  border-radius: 18px;
+  box-shadow: var(--shadow-card);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-style: italic;
+  font-size: 36px;
+  margin: 0;
+  color: var(--text);
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input {
+  padding: 14px 16px;
+  background: var(--bg-elev);
+  color: var(--text);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 150ms ease;
+}
+
+.input:focus {
+  border-color: var(--gold);
+}
+
+.error {
+  margin: 0;
+  padding: 12px 14px;
+  background: rgba(217, 109, 74, 0.15);
+  color: var(--terracota);
+  border-radius: 8px;
+  font-size: 13px;
+}

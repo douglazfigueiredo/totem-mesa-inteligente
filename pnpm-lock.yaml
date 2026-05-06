@@ -90,7 +90,39 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(@types/node@22.19.17)
 
-  apps/kds: {}
+  apps/kds:
+    dependencies:
+      '@app/schemas':
+        specifier: workspace:*
+        version: link:../../packages/schemas
+      '@app/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+      next:
+        specifier: ^15.1.0
+        version: 15.5.16(react-dom@19.2.6(react@19.2.6))(react@19.2.6)
+      react:
+        specifier: ^19.0.0
+        version: 19.2.6
+      react-dom:
+        specifier: ^19.0.0
+        version: 19.2.6(react@19.2.6)
+      socket.io-client:
+        specifier: ^4.8.1
+        version: 4.8.3
+      zustand:
+        specifier: ^5.0.2
+        version: 5.0.13(@types/react@19.2.14)(react@19.2.6)
+    devDependencies:
+      '@types/react':
+        specifier: ^19.0.0
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.0.0
+        version: 19.2.3(@types/react@19.2.14)
+      typescript:
+        specifier: ^5.7.2
+        version: 5.9.3
 
   apps/totem:
     dependencies:

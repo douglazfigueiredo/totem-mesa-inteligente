@@ -1,0 +1,155 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--bg-card);
+  border-radius: 14px;
+  border-left: 6px solid var(--text-mute);
+  box-shadow: var(--shadow-card);
+  min-height: 200px;
+}
+
+.novo {
+  border-left-color: var(--gold);
+}
+
+.preparando {
+  border-left-color: var(--terracota);
+}
+
+.overdue {
+  border-left-color: var(--red);
+  animation: pulseRed 1.4s ease-in-out infinite;
+}
+
+.pronto {
+  border-left-color: var(--green);
+  animation: pulseGreen 2s ease-in-out infinite;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mesa {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 22px;
+  color: var(--text);
+}
+
+.idShort {
+  margin-left: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-mute);
+}
+
+.statusTag {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: var(--bg-elev);
+  color: var(--text-soft);
+}
+
+.items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.item {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  font-size: 15px;
+  color: var(--text);
+  padding: 4px 0;
+  border-bottom: 1px dashed var(--bg-elev);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.qty {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--gold);
+  min-width: 28px;
+}
+
+.name {
+  flex: 1;
+}
+
+.obs {
+  display: block;
+  width: 100%;
+  margin-top: 2px;
+  font-size: 12px;
+  font-style: italic;
+  color: var(--text-soft);
+  padding-left: 34px;
+}
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.timer {
+  font-family: var(--font-mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text);
+  letter-spacing: 0.04em;
+}
+
+.timerOver {
+  color: var(--red);
+}
+
+.action {
+  flex-shrink: 0;
+  padding: 10px 16px !important;
+  font-size: 14px !important;
+}
+
+@keyframes pulseGreen {
+  0%,
+  100% {
+    box-shadow: var(--shadow-card);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 0 3px rgba(163, 181, 98, 0.4);
+  }
+}
+
+@keyframes pulseRed {
+  0%,
+  100% {
+    box-shadow: var(--shadow-card);
+  }
+  50% {
+    box-shadow:
+      var(--shadow-card),
+      0 0 0 3px rgba(217, 107, 98, 0.4);
+  }
+}

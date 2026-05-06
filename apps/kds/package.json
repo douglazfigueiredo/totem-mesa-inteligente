@@ -3,10 +3,26 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "echo '[kds] scaffolded na Fase 4 (KDS) — usar create-next-app dentro deste diretorio'",
-    "build": "echo '[kds] scaffold pendente (Fase 4)'",
-    "test": "echo '[kds] scaffold pendente (Fase 4)'",
-    "lint": "echo '[kds] scaffold pendente (Fase 4)'",
-    "typecheck": "echo '[kds] scaffold pendente (Fase 4)'"
+    "dev": "next dev -p 3002",
+    "build": "next build",
+    "start": "next start -p 3002",
+    "test": "echo '[kds] tests E2E na Fase 9 (Playwright)'",
+    "lint": "echo '[kds] lint pendente'",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf .next .turbo"
+  },
+  "dependencies": {
+    "@app/schemas": "workspace:*",
+    "@app/types": "workspace:*",
+    "next": "^15.1.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "socket.io-client": "^4.8.1",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.2"
   }
 }

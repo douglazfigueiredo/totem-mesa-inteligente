@@ -1,0 +1,67 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 20px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--bg-elev);
+}
+
+.left,
+.right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-style: italic;
+  font-size: 22px;
+  color: var(--gold);
+}
+
+.device {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-mute);
+}
+
+.clock {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--text);
+}
+
+.drift {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: rgba(212, 161, 59, 0.15);
+  color: var(--gold);
+}
+
+.user {
+  font-size: 14px;
+  color: var(--text);
+}
+
+.logout {
+  padding: 6px 12px;
+  font-size: 12px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: var(--bg-elev);
+  color: var(--text-soft);
+  border-radius: 6px;
+}
+
+.logout:hover {
+  background: var(--terracota);
+  color: var(--text);
+}

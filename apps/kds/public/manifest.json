@@ -1,0 +1,11 @@
+{
+  "name": "TotemMesa KDS",
+  "short_name": "KDS",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#1a0f08",
+  "theme_color": "#d4a13b",
+  "start_url": "/",
+  "scope": "/",
+  "icons": []
+}

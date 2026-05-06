@@ -5,7 +5,7 @@ RUN apk add --no-cache libc6-compat python3 make g++ \
 WORKDIR /repo
 
 FROM base AS deps
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml turbo.json tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY apps/hub/package.json apps/hub/
 COPY packages/schemas/package.json packages/schemas/
 COPY packages/types/package.json packages/types/
@@ -13,23 +13,26 @@ RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
     pnpm install --frozen-lockfile
 
 FROM base AS build
-COPY --from=deps /repo/node_modules ./node_modules
-COPY --from=deps /repo/apps/hub/node_modules ./apps/hub/node_modules
-COPY --from=deps /repo/packages/schemas/node_modules ./packages/schemas/node_modules
-COPY --from=deps /repo/packages/types/node_modules ./packages/types/node_modules
-COPY . .
-RUN pnpm --filter @app/schemas --filter @app/types --filter @app/hub build
+COPY --from=deps /repo ./
+COPY tsconfig.base.json turbo.json ./
+COPY apps/hub apps/hub
+COPY packages/schemas packages/schemas
+COPY packages/types packages/types
+RUN pnpm --filter @app/schemas build \
+ && pnpm --filter @app/types build \
+ && pnpm --filter @app/hub build
+
+FROM base AS deploy
+COPY --from=build /repo ./
+RUN pnpm deploy --filter @app/hub --prod /deploy
 
 FROM node:${NODE_VERSION}-alpine AS runtime
-RUN apk add --no-cache tini && corepack enable
+RUN apk add --no-cache tini wget
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
 
-COPY --from=build /repo/apps/hub/dist ./dist
-COPY --from=build /repo/apps/hub/package.json ./package.json
-COPY --from=build /repo/apps/hub/node_modules ./node_modules
-COPY --from=build /repo/packages ./packages
+COPY --from=deploy /deploy ./
 
 EXPOSE 4000
 USER node

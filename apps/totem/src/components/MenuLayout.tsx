@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { useCartStore, cartItemCount } from '@/lib/cart-store';
+import { WaiterCallButton } from './WaiterCallButton';
 import styles from './MenuLayout.module.css';
 
 export const MenuLayout = ({ children }: { children: React.ReactNode }) => {
@@ -17,7 +18,10 @@ export const MenuLayout = ({ children }: { children: React.ReactNode }) => {
         <button className={styles.brand} onClick={() => router.push('/')}>
           ← TotemMesa
         </button>
-        <span className={styles.tag}>mesa {String(tableNumero ?? '?').padStart(2, '0')}</span>
+        <div className={styles.topActions}>
+          <WaiterCallButton variant="icon" />
+          <span className={styles.tag}>mesa {String(tableNumero ?? '?').padStart(2, '0')}</span>
+        </div>
       </header>
       <div className={styles.content}>{children}</div>
       {count > 0 && (

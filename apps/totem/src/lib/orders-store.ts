@@ -1,17 +1,25 @@
 'use client';
 
 import { create } from 'zustand';
-import type { Order, OrderId, Preparo, PreparoId, WSEvent } from '@app/schemas';
+import type { Order, OrderId, Preparo, PreparoId, ProductId, WSEvent } from '@app/schemas';
+
+export type UnavailableNotice = {
+  productId: ProductId;
+  suggestedSubstitutes: ProductId[];
+  receivedAt: number;
+};
 
 type OrdersState = {
   orders: Map<OrderId, Order>;
   preparos: Map<PreparoId, Preparo>;
   preparoByOrder: Map<OrderId, PreparoId>;
   readyAlerts: OrderId[];
+  unavailableQueue: UnavailableNotice[];
 
   setSnapshot: (orders: Order[], preparos: Preparo[]) => void;
   applyEvent: (event: WSEvent) => void;
   dismissReady: (orderId: OrderId) => void;
+  dismissUnavailable: (productId: ProductId) => void;
   clear: () => void;
 };
 
@@ -20,6 +28,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
   preparos: new Map(),
   preparoByOrder: new Map(),
   readyAlerts: [],
+  unavailableQueue: [],
 
   setSnapshot(orders, preparos) {
     const ordersMap = new Map<OrderId, Order>();
@@ -83,11 +92,28 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
         orders.set(orderId, { ...order, status: 'cancelado' });
       }
       set({ orders });
+    } else if (event.type === 'item:unavailable') {
+      const { productId, suggestedSubstitutes } = event.payload;
+      const already = cur.unavailableQueue.some((u) => u.productId === productId);
+      if (!already) {
+        set({
+          unavailableQueue: [
+            ...cur.unavailableQueue,
+            { productId, suggestedSubstitutes, receivedAt: Date.now() },
+          ],
+        });
+      }
     }
   },
 
   dismissReady(orderId) {
     set((s) => ({ readyAlerts: s.readyAlerts.filter((id) => id !== orderId) }));
+  },
+
+  dismissUnavailable(productId) {
+    set((s) => ({
+      unavailableQueue: s.unavailableQueue.filter((u) => u.productId !== productId),
+    }));
   },
 
   clear() {
@@ -96,6 +122,7 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       preparos: new Map(),
       preparoByOrder: new Map(),
       readyAlerts: [],
+      unavailableQueue: [],
     });
   },
 }));

@@ -1,0 +1,140 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(43, 27, 16, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
+}
+
+.card {
+  background: var(--bg-paper);
+  border-radius: 22px;
+  padding: 32px 28px;
+  max-width: 480px;
+  width: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 20px 60px rgba(43, 27, 16, 0.4);
+}
+
+.closeBtn {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  background: var(--bg-warm);
+  color: var(--ink-soft);
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 28px;
+  color: var(--ink);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.reason {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px 10px;
+  background: var(--bg-soft);
+  border: 2px solid transparent;
+  border-radius: 14px;
+  transition:
+    border-color 120ms ease,
+    background-color 120ms ease;
+}
+
+.reason:hover {
+  background: var(--bg-warm);
+}
+
+.selected {
+  border-color: var(--terracota);
+  background: var(--bg-paper);
+}
+
+.reasonEmoji {
+  font-size: 36px;
+}
+
+.reasonLabel {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink);
+}
+
+.textarea {
+  padding: 10px 14px;
+  background: var(--bg-soft);
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  resize: none;
+}
+
+.textarea:focus {
+  border-color: var(--terracota);
+}
+
+.error {
+  padding: 10px 14px;
+  background: #fbeae0;
+  color: var(--terracota-deep);
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.success {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+}
+
+.bell {
+  font-size: 80px;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}

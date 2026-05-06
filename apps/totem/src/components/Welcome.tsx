@@ -2,6 +2,8 @@
 
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
+import { ActiveOrders } from './ActiveOrders';
+import { WaiterCallButton } from './WaiterCallButton';
 import styles from './Welcome.module.css';
 
 const greeting = (date = new Date()) => {
@@ -32,6 +34,12 @@ export const Welcome = () => {
         <button className="btn btn-primary" onClick={() => router.push('/menu')}>
           ver cardápio →
         </button>
+
+        <ActiveOrders />
+
+        <div style={{ marginTop: 12 }}>
+          <WaiterCallButton variant="pill" />
+        </div>
       </section>
 
       <footer className={styles.footer}>

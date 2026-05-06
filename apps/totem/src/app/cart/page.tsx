@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { isPaired, useAuthStore } from '@/lib/auth-store';
 import { useCartStore, cartSubtotalCents } from '@/lib/cart-store';
+import { useSocketStore } from '@/lib/socket-client';
 import { hubFetch, HubError } from '@/lib/hub-client';
 import { formatBRL } from '@/lib/format';
 import { MenuLayout } from '@/components/MenuLayout';
@@ -73,6 +74,9 @@ export default function CartPage() {
     }
   };
 
+  const connectionState = useSocketStore((s) => s.state);
+  const isOffline = connectionState !== 'connected' && connectionState !== 'idle';
+
   if (items.length === 0) {
     return (
       <MenuLayout>
@@ -127,14 +131,19 @@ export default function CartPage() {
         </div>
 
         {error && <p className={styles.error}>{error}</p>}
+        {isOffline && (
+          <p className={styles.error}>
+            sem conexão com o hub — não é possível enviar agora. tente em alguns segundos.
+          </p>
+        )}
 
         <button
           className="btn btn-primary"
           onClick={handleSubmit}
-          disabled={submitting}
+          disabled={submitting || isOffline}
           style={{ width: '100%', padding: '18px' }}
         >
-          {submitting ? 'enviando...' : 'enviar pedido →'}
+          {submitting ? 'enviando...' : isOffline ? 'sem conexão' : 'enviar pedido →'}
         </button>
       </div>
     </MenuLayout>

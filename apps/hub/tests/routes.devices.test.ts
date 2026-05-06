@@ -120,3 +120,15 @@ describe('POST /devices/pair', () => {
     expect(second.statusCode).toBe(409);
   });
 });
+
+describe('GET /pairing/tables', () => {
+  it('retorna tabela criada no setup (publica, sem auth)', async () => {
+    const res = await ctx.app.inject({ method: 'GET', url: '/pairing/tables' });
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(Array.isArray(body.tables)).toBe(true);
+    expect(body.tables.length).toBeGreaterThan(0);
+    expect(body.tables[0]).toHaveProperty('id');
+    expect(body.tables[0]).toHaveProperty('numero');
+  });
+});

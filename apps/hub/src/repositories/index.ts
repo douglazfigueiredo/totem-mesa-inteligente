@@ -8,6 +8,7 @@ import { makeOrderRepo, type OrderRepo } from './order.repo.js';
 import { makeOutboxRepo, type OutboxRepo } from './outbox.repo.js';
 import { makePairingRepo, type PairingRepo } from './pairing.repo.js';
 import { makePreparoRepo, type PreparoRepo } from './preparo.repo.js';
+import { makeTableRepo, type TableRepo } from './table.repo.js';
 import { makeWaiterRepo, type WaiterRepo } from './waiter.repo.js';
 
 export type Repos = {
@@ -19,6 +20,7 @@ export type Repos = {
   outbox: OutboxRepo;
   pairing: PairingRepo;
   preparos: PreparoRepo;
+  tables: TableRepo;
   waiter: WaiterRepo;
 };
 
@@ -31,6 +33,7 @@ export const makeRepos = (db: DBClient, clock: Clock): Repos => ({
   outbox: makeOutboxRepo(db, clock),
   pairing: makePairingRepo(db, clock),
   preparos: makePreparoRepo(db, clock),
+  tables: makeTableRepo(db, clock),
   waiter: makeWaiterRepo(db, clock),
 });
 
@@ -43,5 +46,6 @@ export type {
   OutboxRepo,
   PairingRepo,
   PreparoRepo,
+  TableRepo,
   WaiterRepo,
 };

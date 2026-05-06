@@ -62,6 +62,17 @@ const devicesRoutes: FastifyPluginAsync = async (app) => {
       expiresAt: created.expiresAt,
     };
   });
+
+  app.get('/pairing/tables', async () => {
+    const tables = app.repos.tables.list(app.tenantId);
+    return {
+      tables: tables.map((t) => ({
+        id: t.id,
+        numero: t.numero,
+        capacidade: t.capacidade,
+      })),
+    };
+  });
 };
 
 export default devicesRoutes;

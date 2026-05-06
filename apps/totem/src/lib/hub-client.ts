@@ -69,6 +69,10 @@ export const pairDevice = (input: {
     body: input,
   });
 
+export type PairingTable = { id: string; numero: number; capacidade: number };
+
+export const listTables = (): Promise<{ tables: PairingTable[] }> => hubFetch('/pairing/tables');
+
 export const checkHealth = (): Promise<{ status: string; timestamp: number }> =>
   hubFetch('/health');
 

@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+coverage/
+pnpm-lock.yaml
+*.min.js
+*.min.css
+
+design_handoff_totem_pizzaria/
+
+apps/hub/src/db/migrations/

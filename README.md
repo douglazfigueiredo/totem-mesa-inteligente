@@ -62,29 +62,29 @@ Indice completo: [`docs/README.md`](./docs/README.md).
 
 Pontos de partida:
 
-| Quem voce e | Comece por |
-|---|---|
-| Dev novo no projeto | [`docs/00-arquitetura.md`](./docs/00-arquitetura.md) |
-| Quer entender uma decisao | [`docs/adr/`](./docs/adr/) |
-| Vai instalar hub na loja | `docs/04-deploy-hub.md` (Fase 2) |
+| Quem voce e               | Comece por                                           |
+| ------------------------- | ---------------------------------------------------- |
+| Dev novo no projeto       | [`docs/00-arquitetura.md`](./docs/00-arquitetura.md) |
+| Quer entender uma decisao | [`docs/adr/`](./docs/adr/)                           |
+| Vai instalar hub na loja  | `docs/04-deploy-hub.md` (Fase 2)                     |
 
 ## Plano de fases
 
 10 fases, ~14 semanas com 1 dev senior. Cada fase fecha com doc + tag git `vX.Y-faseN`.
 
-| Fase | Tema |
-|---|---|
-| 0 | Fundacao (monorepo + Docker + docs base) — **atual** |
-| 1 | Schemas e contrato WebSocket |
-| 2 | Hub local |
-| 3 | Totem |
-| 4 | KDS |
-| 5 | App Garcom |
-| 6 | Cloud SaaS |
-| 7 | Pagamento (MP Point Pro 3) |
-| 8 | Estados de erro & resiliencia |
-| 9 | Observabilidade & deploy piloto |
-| 10 | Hardening & multi-vertical polish |
+| Fase | Tema                                                 |
+| ---- | ---------------------------------------------------- |
+| 0    | Fundacao (monorepo + Docker + docs base) — **atual** |
+| 1    | Schemas e contrato WebSocket                         |
+| 2    | Hub local                                            |
+| 3    | Totem                                                |
+| 4    | KDS                                                  |
+| 5    | App Garcom                                           |
+| 6    | Cloud SaaS                                           |
+| 7    | Pagamento (MP Point Pro 3)                           |
+| 8    | Estados de erro & resiliencia                        |
+| 9    | Observabilidade & deploy piloto                      |
+| 10   | Hardening & multi-vertical polish                    |
 
 Detalhes: [`docs/00-arquitetura.md`](./docs/00-arquitetura.md).
 

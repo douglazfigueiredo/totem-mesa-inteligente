@@ -6,50 +6,47 @@ import { newEventId } from '../lib/ids.js';
 const PrepStartRequest = z.object({
   orderId: OrderId,
   employeeId: EmployeeId,
-  durationSec: z.number().int().positive().max(60 * 60 * 4),
+  durationSec: z
+    .number()
+    .int()
+    .positive()
+    .max(60 * 60 * 4),
 });
 
 const prepRoutes: FastifyPluginAsync = async (app) => {
-  app.post(
-    '/prep/start',
-    { preHandler: app.requireRole(['kds']) },
-    async (request, reply) => {
-      const body = PrepStartRequest.parse(request.body);
-      const eventIdHeader = request.headers['x-event-id'];
-      const eventId =
-        typeof eventIdHeader === 'string'
-          ? EventId.parse(eventIdHeader)
-          : newEventId();
+  app.post('/prep/start', { preHandler: app.requireRole(['kds']) }, async (request, reply) => {
+    const body = PrepStartRequest.parse(request.body);
+    const eventIdHeader = request.headers['x-event-id'];
+    const eventId = typeof eventIdHeader === 'string' ? EventId.parse(eventIdHeader) : newEventId();
 
-      const cached = app.repos.idempotency.get(eventId);
-      if (cached?.resultJson) {
-        return reply.code(200).send(JSON.parse(cached.resultJson));
-      }
+    const cached = app.repos.idempotency.get(eventId);
+    if (cached?.resultJson) {
+      return reply.code(200).send(JSON.parse(cached.resultJson));
+    }
 
-      const order = app.repos.orders.getByIdOrThrow(body.orderId);
-      const preparo = app.repos.preparos.start({
-        orderId: body.orderId,
-        employeeId: body.employeeId,
-        durationSec: body.durationSec,
-      });
+    const order = app.repos.orders.getByIdOrThrow(body.orderId);
+    const preparo = app.repos.preparos.start({
+      orderId: body.orderId,
+      employeeId: body.employeeId,
+      durationSec: body.durationSec,
+    });
 
-      app.repos.orders.updateStatus(body.orderId, 'preparando');
+    app.repos.orders.updateStatus(body.orderId, 'preparando');
 
-      app.publishAndEnqueue('prep:started', order.tenantId, {
-        preparo,
-        serverTime: preparo.startedAt,
-      });
+    app.publishAndEnqueue('prep:started', order.tenantId, {
+      preparo,
+      serverTime: preparo.startedAt,
+    });
 
-      app.repos.idempotency.record({
-        eventId,
-        type: 'prep:start',
-        deviceId: request.device!.id,
-        result: preparo,
-      });
+    app.repos.idempotency.record({
+      eventId,
+      type: 'prep:start',
+      deviceId: request.device!.id,
+      result: preparo,
+    });
 
-      return reply.code(201).send(preparo);
-    },
-  );
+    return reply.code(201).send(preparo);
+  });
 
   app.post(
     '/prep/:id/ready',

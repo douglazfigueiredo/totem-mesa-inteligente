@@ -22,22 +22,22 @@ Opcoes:
 
 ### Estagios
 
-| Escala | Setup | Tempo por loja | Implementacao |
-|---|---|---|---|
-| 1–10 lojas (Estagio 1) | `install.sh` + Docker Compose | ~10 min | Fase 0 + ajustes na Fase 2 |
-| 10–50 lojas (Estagio 2) | Imagem `.img` (RPi OS Lite + Docker pre-instalado) | ~3 min | Apos Fase 9 (piloto validado) |
-| 50+ lojas (Estagio 3) | Avaliar Balena.io ou Mender | varia | Decisao futura |
+| Escala                  | Setup                                              | Tempo por loja | Implementacao                 |
+| ----------------------- | -------------------------------------------------- | -------------- | ----------------------------- |
+| 1–10 lojas (Estagio 1)  | `install.sh` + Docker Compose                      | ~10 min        | Fase 0 + ajustes na Fase 2    |
+| 10–50 lojas (Estagio 2) | Imagem `.img` (RPi OS Lite + Docker pre-instalado) | ~3 min         | Apos Fase 9 (piloto validado) |
+| 50+ lojas (Estagio 3)   | Avaliar Balena.io ou Mender                        | varia          | Decisao futura                |
 
 ### Por que Docker Compose como base
 
-| Criterio | Sem Docker | Com Docker Compose |
-|---|---|---|
-| Reproduzir bug "so na loja X" | versao do node difere | imagem identica |
-| Rollback de update quebrado | git checkout + reinstall | `docker compose up old-tag` |
-| Adicionar Redis/Postgres local | apt + systemd manual | +5 linhas no compose |
-| Update atomic | janela com app fora do ar | pull → up zero-downtime |
-| Overhead RPi 5 (8GB) | — | ~80MB RAM, irrelevante |
-| Dev local identico ao prod | macOS≠RPi | mesmo `docker compose up` |
+| Criterio                       | Sem Docker                | Com Docker Compose          |
+| ------------------------------ | ------------------------- | --------------------------- |
+| Reproduzir bug "so na loja X"  | versao do node difere     | imagem identica             |
+| Rollback de update quebrado    | git checkout + reinstall  | `docker compose up old-tag` |
+| Adicionar Redis/Postgres local | apt + systemd manual      | +5 linhas no compose        |
+| Update atomic                  | janela com app fora do ar | pull → up zero-downtime     |
+| Overhead RPi 5 (8GB)           | —                         | ~80MB RAM, irrelevante      |
+| Dev local identico ao prod     | macOS≠RPi                 | mesmo `docker compose up`   |
 
 ### Por que NAO Balena/Mender no v1
 

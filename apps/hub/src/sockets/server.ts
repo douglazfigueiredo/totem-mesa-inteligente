@@ -71,9 +71,11 @@ export const createSocketServer = (opts: CreateSocketServerOptions): SocketIOSer
 
     socket.on('state:sync', (raw, ack: (snapshot: unknown) => void) => {
       try {
-        const tableId = (raw && typeof raw === 'object' && 'tableId' in raw
-          ? (raw as { tableId: string }).tableId
-          : device.tableId) as TableId | undefined;
+        const tableId = (
+          raw && typeof raw === 'object' && 'tableId' in raw
+            ? (raw as { tableId: string }).tableId
+            : device.tableId
+        ) as TableId | undefined;
         if (!tableId) {
           ack({ error: 'tableId required for state:sync' });
           return;

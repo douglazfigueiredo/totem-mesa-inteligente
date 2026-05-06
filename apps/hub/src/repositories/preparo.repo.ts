@@ -21,11 +21,7 @@ export type StartPreparoInput = {
 
 export const makePreparoRepo = (db: DBClient, clock: Clock) => ({
   start(input: StartPreparoInput): Preparo {
-    const existing = db
-      .select()
-      .from(preparos)
-      .where(eq(preparos.orderId, input.orderId))
-      .get();
+    const existing = db.select().from(preparos).where(eq(preparos.orderId, input.orderId)).get();
 
     if (existing) {
       throw new ConflictError(`preparo for order ${input.orderId} already exists`);
@@ -87,22 +83,12 @@ export const makePreparoRepo = (db: DBClient, clock: Clock) => ({
   },
 
   listDue(nowMs: number = clock.now()): Preparo[] {
-    const rows = db
-      .select()
-      .from(preparos)
-      .where(eq(preparos.status, 'preparando'))
-      .all();
-    return rows
-      .map(rowToPreparo)
-      .filter((p) => computeRemainingSec(p, nowMs) === 0);
+    const rows = db.select().from(preparos).where(eq(preparos.status, 'preparando')).all();
+    return rows.map(rowToPreparo).filter((p) => computeRemainingSec(p, nowMs) === 0);
   },
 
   listActive(): Preparo[] {
-    const rows = db
-      .select()
-      .from(preparos)
-      .where(eq(preparos.status, 'preparando'))
-      .all();
+    const rows = db.select().from(preparos).where(eq(preparos.status, 'preparando')).all();
     return rows.map(rowToPreparo);
   },
 });

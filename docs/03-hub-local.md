@@ -36,22 +36,23 @@ apps/hub/
 
 ## 2. Schema do banco (12 tabelas)
 
-| Tabela | Proposito |
-|---|---|
-| `tenants` | Loja unica que o hub serve (denormalizado em todas as tabelas) |
-| `tables` | Mesas (numero, capacidade, status, sessionStartedAt) |
-| `devices` | Totens/KDS/garcons emparelhados (apiKeyHash sha256, role) |
-| `pairing_codes` | Codigos de 6 digitos com TTL 10min (atomic consume) |
-| `employees` | Funcionarios com PIN (bcrypt hash) e roles |
-| `catalog_snapshots` | Cache do catalogo puxado do cloud (1 row por tenant) |
-| `orders` | Pedidos com items JSON, status, totals, timestamps |
-| `preparos` | Timer authoritative — startedAt + durationSec |
-| `waiter_calls` | Chamados com escalationLevel 0..2 |
-| `event_outbox` | Fila de eventos a empurrar para cloud (retry com backoff) |
-| `processed_events` | Cache de event_ids ja processados (idempotencia) |
-| `heartbeats` | Ultimo ping de cada device + RTT p95 |
+| Tabela              | Proposito                                                      |
+| ------------------- | -------------------------------------------------------------- |
+| `tenants`           | Loja unica que o hub serve (denormalizado em todas as tabelas) |
+| `tables`            | Mesas (numero, capacidade, status, sessionStartedAt)           |
+| `devices`           | Totens/KDS/garcons emparelhados (apiKeyHash sha256, role)      |
+| `pairing_codes`     | Codigos de 6 digitos com TTL 10min (atomic consume)            |
+| `employees`         | Funcionarios com PIN (bcrypt hash) e roles                     |
+| `catalog_snapshots` | Cache do catalogo puxado do cloud (1 row por tenant)           |
+| `orders`            | Pedidos com items JSON, status, totals, timestamps             |
+| `preparos`          | Timer authoritative — startedAt + durationSec                  |
+| `waiter_calls`      | Chamados com escalationLevel 0..2                              |
+| `event_outbox`      | Fila de eventos a empurrar para cloud (retry com backoff)      |
+| `processed_events`  | Cache de event_ids ja processados (idempotencia)               |
+| `heartbeats`        | Ultimo ping de cada device + RTT p95                           |
 
 **Regras**:
+
 - `id` em todas as tabelas e UUID v7 (texto). UUID v7 e ordenavel temporalmente — bom para indices B-tree.
 - Timestamps sao `INTEGER` (ms desde epoch UTC).
 - JSON via `text({ mode: 'json' })` — Drizzle serializa/desserializa.
@@ -89,6 +90,7 @@ const repo = makeXxxRepo(db, clock);
 - **Type-safe via Zod**: rows de saida sao parseados via Zod (`Order.parse(...)`) — falhas no parse indicam corrupcao de schema.
 
 ### Exemplo — criar um pedido
+
 ```ts
 const order = repos.orders.create({
   tenantId,
@@ -104,6 +106,7 @@ const order = repos.orders.create({
 ```
 
 ### Exemplo — outbox com retry
+
 ```ts
 repos.outbox.enqueue({ eventId, tenantId, type: 'order:created', payload });
 // ... worker pega da pending queue:
@@ -113,12 +116,13 @@ for (const ev of pending) {
     await pushToCloud(ev);
     repos.outbox.markSent(ev.eventId);
   } catch (e) {
-    repos.outbox.markFailed(ev.eventId, String(e));  // backoff 1/2/4/8/16/30s
+    repos.outbox.markFailed(ev.eventId, String(e)); // backoff 1/2/4/8/16/30s
   }
 }
 ```
 
 ### Exemplo — idempotency guard em handler
+
 ```ts
 if (repos.idempotency.has(event.eventId)) {
   return repos.idempotency.get(event.eventId)?.resultJson;
@@ -179,13 +183,13 @@ Volume `hub-dev-data` preserva `/data/hub.db` entre restarts.
 
 ## 7. Resiliencia
 
-| Falha | Mitigacao |
-|---|---|
-| Container crash | `restart: unless-stopped` + healthcheck (wget /health a cada 30s) |
-| DB corrompido (raro com WAL) | Recovery: backup automatico via `sqlite3 .backup` (Fase 9) |
-| Disco cheio | OS sysctl + alerta via cloud heartbeat (Fase 9) |
-| Crash durante write | WAL + synchronous=NORMAL = consistencia transacional ate o ultimo commit |
-| Restart entre o `prep:start` e `prep:ready` | Hub recalcula `due` na inicializacao (recovery automatico) |
+| Falha                                       | Mitigacao                                                                |
+| ------------------------------------------- | ------------------------------------------------------------------------ |
+| Container crash                             | `restart: unless-stopped` + healthcheck (wget /health a cada 30s)        |
+| DB corrompido (raro com WAL)                | Recovery: backup automatico via `sqlite3 .backup` (Fase 9)               |
+| Disco cheio                                 | OS sysctl + alerta via cloud heartbeat (Fase 9)                          |
+| Crash durante write                         | WAL + synchronous=NORMAL = consistencia transacional ate o ultimo commit |
+| Restart entre o `prep:start` e `prep:ready` | Hub recalcula `due` na inicializacao (recovery automatico)               |
 
 ## 8. REST API (Fase 2B) ✅
 
@@ -200,6 +204,7 @@ x-device-api-key: <chave gerada no pareamento>
 Endpoints `/admin/*` exigem `x-admin-secret: <ADMIN_SECRET env>` (timing-safe compare).
 
 Erros padronizados via `DomainError`:
+
 - `401 unauthorized` — sem/invalida API key
 - `403 forbidden` — role do device nao permite
 - `404 not_found` — entidade nao existe
@@ -208,21 +213,21 @@ Erros padronizados via `DomainError`:
 
 ### Endpoints
 
-| Metodo + Path | Auth | Body / Query |
-|---|---|---|
-| `GET  /health` | publico | — |
-| `POST /admin/pairing-codes` | admin | `{ role, ttlMs? }` |
-| `POST /devices/pair` | publico | `{ code, nome, tableId? }` → `{ device, apiKey }` |
-| `POST /orders` | totem | `{ tableId, items[], taxaServicoBps?, obs? }` + `x-event-id?` |
-| `GET  /orders/:id` | qualquer | — |
-| `POST /orders/:id/cancel` | totem/admin | `{ reason }` |
-| `POST /prep/start` | kds | `{ orderId, employeeId, durationSec }` + `x-event-id?` |
-| `POST /prep/:id/ready` | kds/admin | — |
-| `POST /waiter/calls` | totem | `{ tableId, reason, obs? }` |
-| `POST /waiter/calls/:id/ack` | waiter/admin | `{ employeeId }` |
-| `POST /waiter/calls/:id/resolve` | waiter/admin | `{ employeeId }` |
-| `POST /state/sync` | totem/kds/waiter | `{ tableId, lastEventId? }` |
-| `POST /heartbeat` | qualquer | `{ clientTime? }` |
+| Metodo + Path                    | Auth             | Body / Query                                                  |
+| -------------------------------- | ---------------- | ------------------------------------------------------------- |
+| `GET  /health`                   | publico          | —                                                             |
+| `POST /admin/pairing-codes`      | admin            | `{ role, ttlMs? }`                                            |
+| `POST /devices/pair`             | publico          | `{ code, nome, tableId? }` → `{ device, apiKey }`             |
+| `POST /orders`                   | totem            | `{ tableId, items[], taxaServicoBps?, obs? }` + `x-event-id?` |
+| `GET  /orders/:id`               | qualquer         | —                                                             |
+| `POST /orders/:id/cancel`        | totem/admin      | `{ reason }`                                                  |
+| `POST /prep/start`               | kds              | `{ orderId, employeeId, durationSec }` + `x-event-id?`        |
+| `POST /prep/:id/ready`           | kds/admin        | —                                                             |
+| `POST /waiter/calls`             | totem            | `{ tableId, reason, obs? }`                                   |
+| `POST /waiter/calls/:id/ack`     | waiter/admin     | `{ employeeId }`                                              |
+| `POST /waiter/calls/:id/resolve` | waiter/admin     | `{ employeeId }`                                              |
+| `POST /state/sync`               | totem/kds/waiter | `{ tableId, lastEventId? }`                                   |
+| `POST /heartbeat`                | qualquer         | `{ clientTime? }`                                             |
 
 ### Idempotencia em mutacoes
 
@@ -231,6 +236,7 @@ Erros padronizados via `DomainError`:
 ### Bootstrap automatico
 
 No primeiro boot, se nao existir tenant, hub cria a partir de envs:
+
 - `TENANT_ID`, `TENANT_SLUG`, `TENANT_NAME`, `TENANT_VERTICAL`, `TENANT_TABLES`
 
 Cria tenant + N mesas (default 10). Subsequente: no-op.
@@ -270,14 +276,17 @@ const socket = io('http://hub.local:4000', { auth: { apiKey: '<chave do pareamen
 Equivalente como header: `x-device-api-key: <chave>`.
 
 **Rooms** (entrada automatica no connect):
+
 - `tenant:<tenantId>` — todos os devices da loja
 - `role:<role>` — todos com mesma role (totem/kds/waiter)
 - `table:<tableId>` — apenas o totem daquela mesa
 
 **Eventos do servidor → cliente**:
+
 - `event` — broadcast generico de `WSEvent` (order:created, prep:started, prep:ready, waiter:call, etc). Por enquanto vai para o room `tenant:<id>` (todos recebem; cliente filtra por relevancia).
 
 **Eventos cliente → servidor (com ack)**:
+
 - `state:sync` payload `{ tableId? }` → snapshot da mesa (orders ativos + preparos + waiter calls)
 - `heartbeat` payload `{ clientTime? }` → `{ deviceId, serverTime, driftMs }`
 - `event` payload `WSEvent` → marcacao de idempotencia (registra event_id e responde `{ ok, replay? }`)
@@ -314,6 +323,7 @@ Em testes, `makeMemoryBroadcaster()` substitui Socket.IO e expoe `events: WSEven
 ### Smoke test E2E validado (Docker)
 
 Sequencia:
+
 1. Admin gera codigos pairing para totem + KDS.
 2. Devices emparelham, recebem apiKey.
 3. Funcionario inserido manualmente (PIN auth e Fase 2D ou 5).
@@ -326,13 +336,13 @@ Sequencia:
 
 ## 10. O que NAO esta nas Fases 2A/2B/2C
 
-| Reservado | Fase |
-|---|---|
-| Pull catalog do cloud | 2D |
-| Push outbox para cloud real (HTTP) | 2D (HTTP pusher ja codado, falta cloud target) |
-| GHCR image publishing (ativar `hub-image.yml`) | 2D |
-| Bcrypt PIN auth para funcionarios | 2D ou 5 |
-| Targeted broadcasting (room por mesa/role) | 9 (otimizacao) |
+| Reservado                                      | Fase                                           |
+| ---------------------------------------------- | ---------------------------------------------- |
+| Pull catalog do cloud                          | 2D                                             |
+| Push outbox para cloud real (HTTP)             | 2D (HTTP pusher ja codado, falta cloud target) |
+| GHCR image publishing (ativar `hub-image.yml`) | 2D                                             |
+| Bcrypt PIN auth para funcionarios              | 2D ou 5                                        |
+| Targeted broadcasting (room por mesa/role)     | 9 (otimizacao)                                 |
 
 ## 11. Tests
 
@@ -344,12 +354,15 @@ pnpm test          # 68 tests, ~1.8s
 Cobertura atual:
 
 **Repos** (29 tests):
+
 - `device`, `idempotency`, `order`, `outbox` (backoff), `pairing` (TTL), `preparo`
 
 **Routes** (30 tests, via `fastify.inject()`):
+
 - `health`, `devices` (admin auth + pair), `orders` (auth/role + idempotencia + outbox), `prep`, `waiter`, `state`
 
 **Workers + Sockets** (9 tests):
+
 - `worker.timer.test.ts` — 2 (timer due, idempotente em re-tick)
 - `worker.outbox.test.ts` — 2 (push success, fail+backoff)
 - `sockets.test.ts` — 5 (auth handshake, broadcast tenant, heartbeat ack, state:sync ack, rejeicao sem auth)

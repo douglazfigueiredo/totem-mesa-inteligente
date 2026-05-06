@@ -91,10 +91,7 @@ export const makeOutboxRepo = (db: DBClient, clock: Clock) => ({
   },
 
   pruneSentBefore(beforeMs: number): number {
-    const r = db
-      .delete(eventOutbox)
-      .where(lte(eventOutbox.sentAt, beforeMs))
-      .run();
+    const r = db.delete(eventOutbox).where(lte(eventOutbox.sentAt, beforeMs)).run();
     return r.changes;
   },
 });

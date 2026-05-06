@@ -68,15 +68,15 @@ Justificativa completa: [`adr/0001-hibrido-local-cloud.md`](./adr/0001-hibrido-l
 
 ## 3. Stack
 
-| Camada | Tecnologia |
-|---|---|
-| Cloud | Next.js 16 + Drizzle + Neon Postgres + NextAuth |
-| Hub | Fastify + Socket.IO + better-sqlite3 + BullMQ + Drizzle |
-| Totem / KDS / Garcom | Next.js 16 PWA + Tailwind + Zustand + Socket.IO client + Dexie (IndexedDB) |
-| Pagamento | Mercado Pago Point Pro 3 (Integration API) + fallback "pagar no caixa" via QR Code |
-| Observabilidade | Sentry + OpenTelemetry → Grafana Cloud (free) + pino logs |
-| Monorepo | Turborepo + pnpm workspaces |
-| CI/CD | GitHub Actions; cloud → Vercel; hub → GHCR (imagens multi-arch) |
+| Camada               | Tecnologia                                                                         |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| Cloud                | Next.js 16 + Drizzle + Neon Postgres + NextAuth                                    |
+| Hub                  | Fastify + Socket.IO + better-sqlite3 + BullMQ + Drizzle                            |
+| Totem / KDS / Garcom | Next.js 16 PWA + Tailwind + Zustand + Socket.IO client + Dexie (IndexedDB)         |
+| Pagamento            | Mercado Pago Point Pro 3 (Integration API) + fallback "pagar no caixa" via QR Code |
+| Observabilidade      | Sentry + OpenTelemetry → Grafana Cloud (free) + pino logs                          |
+| Monorepo             | Turborepo + pnpm workspaces                                                        |
+| CI/CD                | GitHub Actions; cloud → Vercel; hub → GHCR (imagens multi-arch)                    |
 
 Stack PWA (em vez de React Native): [`adr/0002-pwa-vs-react-native.md`](./adr/0002-pwa-vs-react-native.md).
 Fastify (em vez de NestJS): [`adr/0003-fastify-vs-nestjs.md`](./adr/0003-fastify-vs-nestjs.md).
@@ -132,51 +132,51 @@ totem-mesa-inteligente/
 
 ## 6. Estrategia de deploy
 
-| Componente | Deploy | Detalhes |
-|---|---|---|
-| `apps/cloud` | Vercel (git push → preview/prod) | Neon Postgres separado |
-| `apps/hub` | GHCR (image multi-arch) → Docker Compose nas lojas | Watchtower atualiza automatico |
-| `apps/totem`/`kds`/`waiter` | Servido pelo hub (assets estaticos) ou Vercel | PWA instalavel; modo kiosk no Android |
+| Componente                  | Deploy                                             | Detalhes                              |
+| --------------------------- | -------------------------------------------------- | ------------------------------------- |
+| `apps/cloud`                | Vercel (git push → preview/prod)                   | Neon Postgres separado                |
+| `apps/hub`                  | GHCR (image multi-arch) → Docker Compose nas lojas | Watchtower atualiza automatico        |
+| `apps/totem`/`kds`/`waiter` | Servido pelo hub (assets estaticos) ou Vercel      | PWA instalavel; modo kiosk no Android |
 
 Justificativa Docker no hub: [`adr/0004-deploy-hub-docker.md`](./adr/0004-deploy-hub-docker.md).
 
 ### Por escala de loja
 
-| Escala | Setup | Tempo por loja |
-|---|---|---|
-| 1–10 lojas (piloto) | `install.sh` + Docker Compose | ~10 min |
-| 10–50 lojas | Imagem `.img` pre-flashada para RPi | ~3 min |
-| 50+ lojas | Avaliar Balena.io ou Mender (fleet management) | varia |
+| Escala              | Setup                                          | Tempo por loja |
+| ------------------- | ---------------------------------------------- | -------------- |
+| 1–10 lojas (piloto) | `install.sh` + Docker Compose                  | ~10 min        |
+| 10–50 lojas         | Imagem `.img` pre-flashada para RPi            | ~3 min         |
+| 50+ lojas           | Avaliar Balena.io ou Mender (fleet management) | varia          |
 
 ## 7. Seguranca (visao geral)
 
-| Camada | Medida |
-|---|---|
-| Cloud → Hub | API key rotacionavel + IP allowlist por tenant |
-| Hub → Devices | API key por device (gerada no pareamento) |
-| Auth funcionario | PIN 4-6 digitos + bcrypt + lockout |
-| Auth dono (cloud) | NextAuth (magic link / OAuth) + 2FA opcional |
-| Token MP | Cifrado em rest (`pgcrypto`) — chave em env |
-| WebSocket | JWT curto (15min) + refresh; eventos validados Zod no servidor |
-| Idempotencia | `event_id` UUID v7 em toda mutacao |
-| Hub LAN | UFW + so portas 80/443/4000 expostas |
-| Totem (kiosk) | Lock Task Android, USB debugging desabilitado |
-| Updates | Imagens assinadas (cosign) |
+| Camada            | Medida                                                         |
+| ----------------- | -------------------------------------------------------------- |
+| Cloud → Hub       | API key rotacionavel + IP allowlist por tenant                 |
+| Hub → Devices     | API key por device (gerada no pareamento)                      |
+| Auth funcionario  | PIN 4-6 digitos + bcrypt + lockout                             |
+| Auth dono (cloud) | NextAuth (magic link / OAuth) + 2FA opcional                   |
+| Token MP          | Cifrado em rest (`pgcrypto`) — chave em env                    |
+| WebSocket         | JWT curto (15min) + refresh; eventos validados Zod no servidor |
+| Idempotencia      | `event_id` UUID v7 em toda mutacao                             |
+| Hub LAN           | UFW + so portas 80/443/4000 expostas                           |
+| Totem (kiosk)     | Lock Task Android, USB debugging desabilitado                  |
+| Updates           | Imagens assinadas (cosign)                                     |
 
 Detalhes em cada doc de fase + ADRs especificos quando houver.
 
 ## 8. Performance — targets
 
-| Metrica | Target |
-|---|---|
-| Totem TTI (RPi 4) | <1.5s |
-| WebSocket latency p95 (LAN) | <80ms |
-| WebSocket latency p99 (LAN) | <150ms |
-| Timer drift em 30min | <500ms |
-| KDS recebe ticket | <100ms apos "enviar" no totem |
-| Hub boot (cold) | <30s |
-| Cloud → Hub pull catalogo p95 | <2s |
-| Bundle JS gzip (totem) | <300KB |
+| Metrica                       | Target                        |
+| ----------------------------- | ----------------------------- |
+| Totem TTI (RPi 4)             | <1.5s                         |
+| WebSocket latency p95 (LAN)   | <80ms                         |
+| WebSocket latency p99 (LAN)   | <150ms                        |
+| Timer drift em 30min          | <500ms                        |
+| KDS recebe ticket             | <100ms apos "enviar" no totem |
+| Hub boot (cold)               | <30s                          |
+| Cloud → Hub pull catalogo p95 | <2s                           |
+| Bundle JS gzip (totem)        | <300KB                        |
 
 ## 9. Convencoes
 

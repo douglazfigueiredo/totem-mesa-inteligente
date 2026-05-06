@@ -6,19 +6,15 @@ const HeartbeatRequest = z.object({
 });
 
 const heartbeatRoutes: FastifyPluginAsync = async (app) => {
-  app.post(
-    '/heartbeat',
-    { preHandler: app.requireDevice },
-    async (request) => {
-      const body = HeartbeatRequest.parse(request.body ?? {});
-      const serverTime = Date.now();
-      return {
-        deviceId: request.device!.id,
-        serverTime,
-        driftMs: body.clientTime !== undefined ? serverTime - body.clientTime : null,
-      };
-    },
-  );
+  app.post('/heartbeat', { preHandler: app.requireDevice }, async (request) => {
+    const body = HeartbeatRequest.parse(request.body ?? {});
+    const serverTime = Date.now();
+    return {
+      deviceId: request.device!.id,
+      serverTime,
+      driftMs: body.clientTime !== undefined ? serverTime - body.clientTime : null,
+    };
+  });
 };
 
 export default heartbeatRoutes;

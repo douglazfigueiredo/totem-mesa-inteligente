@@ -103,10 +103,12 @@ describe('Tenant', () => {
 
 describe('VerticalConfig', () => {
   it('discrimina por tipo', () => {
-    expect(VerticalConfig.parse({ tipo: 'pizza', saboresMax: 2, bordaRecheadaDisponivel: true }))
-      .toMatchObject({ tipo: 'pizza' });
-    expect(VerticalConfig.parse({ tipo: 'lanche', pontoDaCarneDisponivel: ['mal', 'medio'] }))
-      .toMatchObject({ tipo: 'lanche' });
+    expect(
+      VerticalConfig.parse({ tipo: 'pizza', saboresMax: 2, bordaRecheadaDisponivel: true }),
+    ).toMatchObject({ tipo: 'pizza' });
+    expect(
+      VerticalConfig.parse({ tipo: 'lanche', pontoDaCarneDisponivel: ['mal', 'medio'] }),
+    ).toMatchObject({ tipo: 'lanche' });
     expect(VerticalConfig.parse({ tipo: 'simples' })).toMatchObject({ tipo: 'simples' });
   });
 
@@ -131,12 +133,8 @@ describe('ItemCustomization', () => {
   });
 
   it('aceita ponto da carne valido', () => {
-    expect(() =>
-      ItemCustomization.parse({ modifiers: [], pontoDaCarne: 'medio' }),
-    ).not.toThrow();
-    expect(() =>
-      ItemCustomization.parse({ modifiers: [], pontoDaCarne: 'queimado' }),
-    ).toThrow();
+    expect(() => ItemCustomization.parse({ modifiers: [], pontoDaCarne: 'medio' })).not.toThrow();
+    expect(() => ItemCustomization.parse({ modifiers: [], pontoDaCarne: 'queimado' })).toThrow();
   });
 });
 

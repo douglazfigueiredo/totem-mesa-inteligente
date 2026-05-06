@@ -67,11 +67,7 @@ export const makeDeviceRepo = (db: DBClient, clock: Clock) => ({
   },
 
   deactivate(id: DeviceId): void {
-    const r = db
-      .update(devices)
-      .set({ isActive: false })
-      .where(eq(devices.id, id))
-      .run();
+    const r = db.update(devices).set({ isActive: false }).where(eq(devices.id, id)).run();
     if (r.changes === 0) throw new NotFoundError(`device ${id} not found`);
   },
 });

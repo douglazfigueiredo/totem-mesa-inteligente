@@ -45,19 +45,12 @@ export const makePairingRepo = (db: DBClient, clock: Clock) => ({
       )
       .get();
     if (!row) {
-      const exists = db
-        .select()
-        .from(pairingCodes)
-        .where(eq(pairingCodes.code, code))
-        .get();
+      const exists = db.select().from(pairingCodes).where(eq(pairingCodes.code, code)).get();
       if (!exists) throw new NotFoundError('pairing code not found');
       if (exists.consumedAt) throw new ConflictError('pairing code already consumed');
       throw new ConflictError('pairing code expired');
     }
-    db.update(pairingCodes)
-      .set({ consumedAt: now })
-      .where(eq(pairingCodes.code, code))
-      .run();
+    db.update(pairingCodes).set({ consumedAt: now }).where(eq(pairingCodes.code, code)).run();
     return { ...row, consumedAt: now } as PairingCodeRow;
   },
 

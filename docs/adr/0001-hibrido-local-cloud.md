@@ -52,6 +52,7 @@ Tres opcoes consideradas:
 Fluxo critico (pedido) e 100% local. Fluxo de gestao (cardapio, analytics) e cloud.
 
 Sincronizacao cloud ↔ hub:
+
 - **Pull** catalogo: hub puxa a cada 10min (ETag) ou recebe push imediato em update.
 - **Push** pedidos: hub envia via outbox + retry.
 

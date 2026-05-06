@@ -1,11 +1,6 @@
 import { z } from 'zod';
 import type { FastifyPluginAsync } from 'fastify';
-import {
-  EmployeeId,
-  TableId,
-  WaiterCallId,
-  WaiterCallReason,
-} from '@app/schemas';
+import { EmployeeId, TableId, WaiterCallId, WaiterCallReason } from '@app/schemas';
 
 const CreateWaiterCallRequest = z.object({
   tableId: TableId,
@@ -18,25 +13,21 @@ const ResolveWaiterCallRequest = z.object({
 });
 
 const waiterRoutes: FastifyPluginAsync = async (app) => {
-  app.post(
-    '/waiter/calls',
-    { preHandler: app.requireRole(['totem']) },
-    async (request, reply) => {
-      const body = CreateWaiterCallRequest.parse(request.body);
-      const call = app.repos.waiter.create({
-        tenantId: request.device!.tenantId,
-        tableId: body.tableId,
-        reason: body.reason,
-        obs: body.obs,
-      });
-      app.publishAndEnqueue('waiter:call', call.tenantId, {
-        tableId: call.tableId,
-        reason: call.reason,
-        obs: call.obs,
-      });
-      return reply.code(201).send(call);
-    },
-  );
+  app.post('/waiter/calls', { preHandler: app.requireRole(['totem']) }, async (request, reply) => {
+    const body = CreateWaiterCallRequest.parse(request.body);
+    const call = app.repos.waiter.create({
+      tenantId: request.device!.tenantId,
+      tableId: body.tableId,
+      reason: body.reason,
+      obs: body.obs,
+    });
+    app.publishAndEnqueue('waiter:call', call.tenantId, {
+      tableId: call.tableId,
+      reason: call.reason,
+      obs: call.obs,
+    });
+    return reply.code(201).send(call);
+  });
 
   app.post(
     '/waiter/calls/:id/ack',

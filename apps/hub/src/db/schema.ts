@@ -111,17 +111,14 @@ export const employees = sqliteTable(
   }),
 );
 
-export const catalogSnapshots = sqliteTable(
-  'catalog_snapshots',
-  {
-    tenantId: text('tenant_id')
-      .primaryKey()
-      .references(() => tenants.id),
-    version: integer('version').notNull(),
-    data: json<CatalogSnapshot>('data').notNull(),
-    pulledAt: ts('pulled_at').notNull(),
-  },
-);
+export const catalogSnapshots = sqliteTable('catalog_snapshots', {
+  tenantId: text('tenant_id')
+    .primaryKey()
+    .references(() => tenants.id),
+  version: integer('version').notNull(),
+  data: json<CatalogSnapshot>('data').notNull(),
+  pulledAt: ts('pulled_at').notNull(),
+});
 
 export const orders = sqliteTable(
   'orders',
@@ -236,16 +233,13 @@ export const processedEvents = sqliteTable(
   }),
 );
 
-export const heartbeats = sqliteTable(
-  'heartbeats',
-  {
-    deviceId: text('device_id')
-      .primaryKey()
-      .references(() => devices.id),
-    lastPingAt: ts('last_ping_at').notNull(),
-    rttMsP95: integer('rtt_ms_p95'),
-  },
-);
+export const heartbeats = sqliteTable('heartbeats', {
+  deviceId: text('device_id')
+    .primaryKey()
+    .references(() => devices.id),
+  lastPingAt: ts('last_ping_at').notNull(),
+  rttMsP95: integer('rtt_ms_p95'),
+});
 
 export type DBSchema = {
   tenants: typeof tenants;

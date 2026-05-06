@@ -25,6 +25,7 @@ Tenant {
 ```
 
 **Multi-vertical via `verticalConfig` no produto** (discriminated union por `tipo`):
+
 - `pizza` — `saboresMax`, `bordaRecheadaDisponivel`
 - `lanche` — `pontoDaCarneDisponivel: PontoDaCarne[]`
 - `prato` — `acompanhamentoObrigatorio`
@@ -83,6 +84,7 @@ Preparo { id, orderId, status, startedAt, durationSec, startedByEmployeeId, read
 ```
 
 **Helpers determinísticos** (mesma semantica em hub e cliente):
+
 - `computeRemainingSec(preparo, nowMs)` — tempo restante calculado com clamp em 0.
 - `isReady(preparo, nowMs)` — `true` apos `startedAt + durationSec`.
 
@@ -122,23 +124,23 @@ Todos os eventos compartilham envelope:
 }
 ```
 
-| # | Evento | Origem | Destino | Payload essencial |
-|---|---|---|---|---|
-| 1 | `order:create` | Totem | Hub | `tableId`, `items[]`, `obs?`, `taxaServicoBps` |
-| 2 | `order:created` | Hub | Totem (echo) | `order` (Order completo com `id`/`createdAt`) |
-| 3 | `prep:start` | KDS | Hub | `orderId`, `employeeId`, `durationSec` |
-| 4 | `prep:started` | Hub | Totem + KDS | `preparo` (com `startedAt` server-side) + `serverTime` |
-| 5 | `prep:ready` | Hub | Totem + KDS + Garcom | `orderId`, `preparoId`, `readyAt` |
-| 6 | `order:cancel` | Totem/Admin | Hub | `orderId`, `reason`, `cancelledBy?` |
-| 7 | `item:unavailable` | Hub | Totem | `productId`, `suggestedSubstitutes[]`, `affectedOrderIds[]` |
-| 8 | `waiter:call` | Totem | Hub | `tableId`, `reason`, `obs?` |
-| 9 | `waiter:ack` | Garcom | Hub | `callId`, `employeeId` |
-| 10 | `waiter:resolved` | Garcom | Hub | `callId`, `employeeId` |
-| 11 | `table:close` | Admin/Hub | Totem | `tableId`, `closedBy` |
-| 12 | `payment:request` | Totem | Hub | `tableId`, `amountCents`, `method`, `splitMode` |
-| 13 | `payment:confirmed` | Hub | Totem | `tableId`, `amountCents`, `method`, `receiptUrl?` |
-| 14 | `state:sync` | bidirecional | reconexao | `tableId`, `lastEventId?`, `serverTime`, `activeOrders[]`, `activePreparos[]`, `pendingWaiterCalls[]`, `orderStatuses[]` |
-| 15 | `heartbeat` | bidirecional | 15s | `serverTime`, `deviceClientTime?` (drift correction) |
+| #   | Evento              | Origem       | Destino              | Payload essencial                                                                                                        |
+| --- | ------------------- | ------------ | -------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| 1   | `order:create`      | Totem        | Hub                  | `tableId`, `items[]`, `obs?`, `taxaServicoBps`                                                                           |
+| 2   | `order:created`     | Hub          | Totem (echo)         | `order` (Order completo com `id`/`createdAt`)                                                                            |
+| 3   | `prep:start`        | KDS          | Hub                  | `orderId`, `employeeId`, `durationSec`                                                                                   |
+| 4   | `prep:started`      | Hub          | Totem + KDS          | `preparo` (com `startedAt` server-side) + `serverTime`                                                                   |
+| 5   | `prep:ready`        | Hub          | Totem + KDS + Garcom | `orderId`, `preparoId`, `readyAt`                                                                                        |
+| 6   | `order:cancel`      | Totem/Admin  | Hub                  | `orderId`, `reason`, `cancelledBy?`                                                                                      |
+| 7   | `item:unavailable`  | Hub          | Totem                | `productId`, `suggestedSubstitutes[]`, `affectedOrderIds[]`                                                              |
+| 8   | `waiter:call`       | Totem        | Hub                  | `tableId`, `reason`, `obs?`                                                                                              |
+| 9   | `waiter:ack`        | Garcom       | Hub                  | `callId`, `employeeId`                                                                                                   |
+| 10  | `waiter:resolved`   | Garcom       | Hub                  | `callId`, `employeeId`                                                                                                   |
+| 11  | `table:close`       | Admin/Hub    | Totem                | `tableId`, `closedBy`                                                                                                    |
+| 12  | `payment:request`   | Totem        | Hub                  | `tableId`, `amountCents`, `method`, `splitMode`                                                                          |
+| 13  | `payment:confirmed` | Hub          | Totem                | `tableId`, `amountCents`, `method`, `receiptUrl?`                                                                        |
+| 14  | `state:sync`        | bidirecional | reconexao            | `tableId`, `lastEventId?`, `serverTime`, `activeOrders[]`, `activePreparos[]`, `pendingWaiterCalls[]`, `orderStatuses[]` |
+| 15  | `heartbeat`         | bidirecional | 15s                  | `serverTime`, `deviceClientTime?` (drift correction)                                                                     |
 
 ### Idempotencia
 
@@ -150,12 +152,14 @@ Todo evento tem `eventId` UUID v7. Servidor mantem cache LRU dos ultimos N event
 ### Conflito (corrida)
 
 Quando 2 KDS clicam "iniciar" no mesmo ticket simultaneamente (eventos diferentes, mesmo orderId):
+
 - Primeiro vence (`prep:started` broadcast).
 - Segundo recebe HTTP 409 com `Preparo` atual (quem assumiu, quando) — KDS redesenha.
 
 ### Reconexao
 
 Cliente desconectado tenta reconectar com backoff exp 1s/2s/4s/8s/16s, max 30s. Ao reconectar, envia `state:sync` com `lastEventId` recebido. Hub responde com `state:sync` contendo:
+
 - snapshot completo do estado da mesa (orders + preparos + calls)
 - ou diff desde `lastEventId` (otimizacao futura)
 

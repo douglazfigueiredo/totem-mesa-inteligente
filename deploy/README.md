@@ -1,10 +1,10 @@
 # Deploy
 
-| Caminho | Alvo | Status (Fase 0) |
-|---|---|---|
-| [`hub/`](./hub/) | Hub local (loja) — Docker Compose + install.sh | ✅ esqueleto pronto |
-| [`totem-kiosk/`](./totem-kiosk/) | Tablet Android em modo kiosk | ⏳ Fase 3 |
-| [`cloud/`](./cloud/) | Vercel deploy da app `cloud/` | ⏳ Fase 6 |
+| Caminho                          | Alvo                                           | Status (Fase 0)     |
+| -------------------------------- | ---------------------------------------------- | ------------------- |
+| [`hub/`](./hub/)                 | Hub local (loja) — Docker Compose + install.sh | ✅ esqueleto pronto |
+| [`totem-kiosk/`](./totem-kiosk/) | Tablet Android em modo kiosk                   | ⏳ Fase 3           |
+| [`cloud/`](./cloud/)             | Vercel deploy da app `cloud/`                  | ⏳ Fase 6           |
 
 ## Hub local — quickstart
 

@@ -40,7 +40,12 @@ const enriched = {
   version: raw.version,
   generatedAt: systemClock.now(),
   categories: raw.categories.map((c) => ({ ...c, tenantId })),
-  products: raw.products.map((p) => ({ ...p, tenantId, createdAt: systemClock.now(), updatedAt: systemClock.now() })),
+  products: raw.products.map((p) => ({
+    ...p,
+    tenantId,
+    createdAt: systemClock.now(),
+    updatedAt: systemClock.now(),
+  })),
 };
 
 const snapshot = CatalogSnapshot.parse(enriched);
@@ -57,35 +62,37 @@ if (!existingEmployees) {
   const garcomId = newEmployeeId();
   const gerenteId = newEmployeeId();
   const now = systemClock.now();
-  db.insert(employees).values([
-    {
-      id: cozinheiroId,
-      tenantId,
-      nome: 'Cozinheiro Dev',
-      pinHash: hashPin('1111'),
-      roles: ['cozinheiro'],
-      isActive: true,
-      createdAt: now,
-    },
-    {
-      id: garcomId,
-      tenantId,
-      nome: 'Garcom Dev',
-      pinHash: hashPin('2222'),
-      roles: ['garcom'],
-      isActive: true,
-      createdAt: now,
-    },
-    {
-      id: gerenteId,
-      tenantId,
-      nome: 'Gerente Dev',
-      pinHash: hashPin('9999'),
-      roles: ['gerente'],
-      isActive: true,
-      createdAt: now,
-    },
-  ]).run();
+  db.insert(employees)
+    .values([
+      {
+        id: cozinheiroId,
+        tenantId,
+        nome: 'Cozinheiro Dev',
+        pinHash: hashPin('1111'),
+        roles: ['cozinheiro'],
+        isActive: true,
+        createdAt: now,
+      },
+      {
+        id: garcomId,
+        tenantId,
+        nome: 'Garcom Dev',
+        pinHash: hashPin('2222'),
+        roles: ['garcom'],
+        isActive: true,
+        createdAt: now,
+      },
+      {
+        id: gerenteId,
+        tenantId,
+        nome: 'Gerente Dev',
+        pinHash: hashPin('9999'),
+        roles: ['gerente'],
+        isActive: true,
+        createdAt: now,
+      },
+    ])
+    .run();
   console.log('[seed] funcionarios dev criados:');
   console.log('  cozinheiro PIN 1111');
   console.log('  garcom     PIN 2222');

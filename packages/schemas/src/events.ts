@@ -166,9 +166,7 @@ export const StateSyncEvent = z.object({
     activeOrders: z.array(Order).default([]),
     activePreparos: z.array(Preparo).default([]),
     pendingWaiterCalls: z.array(WaiterCall).default([]),
-    orderStatuses: z
-      .array(z.object({ orderId: OrderId, status: OrderStatus }))
-      .default([]),
+    orderStatuses: z.array(z.object({ orderId: OrderId, status: OrderStatus })).default([]),
   }),
 });
 

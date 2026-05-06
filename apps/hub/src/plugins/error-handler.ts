@@ -28,9 +28,7 @@ const errorHandler: FastifyPluginAsync = async (app) => {
     }
 
     request.log.error({ err }, 'unhandled error');
-    return reply
-      .code(500)
-      .send({ code: 'internal', message: 'internal server error' });
+    return reply.code(500).send({ code: 'internal', message: 'internal server error' });
   });
 };
 

@@ -6,12 +6,12 @@ Este doc cobre como instalar o hub local em uma loja real (RPi 5 ou Mini PC). Pa
 
 ## 1. Hardware recomendado
 
-| Componente | Especificacao minima |
-|---|---|
-| CPU/SoC | Raspberry Pi 5 (4GB) ou Mini PC x86 com 4+ cores |
-| RAM | 4GB (8GB recomendado) |
-| Storage | SSD 32GB+ (USB ou NVMe). NUNCA cartao SD em producao — desgaste alto |
-| Rede | Ethernet preferencial (Wi-Fi como fallback) |
+| Componente  | Especificacao minima                                                           |
+| ----------- | ------------------------------------------------------------------------------ |
+| CPU/SoC     | Raspberry Pi 5 (4GB) ou Mini PC x86 com 4+ cores                               |
+| RAM         | 4GB (8GB recomendado)                                                          |
+| Storage     | SSD 32GB+ (USB ou NVMe). NUNCA cartao SD em producao — desgaste alto           |
+| Rede        | Ethernet preferencial (Wi-Fi como fallback)                                    |
 | Alimentacao | Fonte com no-break minimo de 5min (loja fica fora do ar em queda de luz curta) |
 
 **Importante**: o hub deve ter IP fixo na LAN. Configure DHCP reservation no roteador da loja ou IP estatico no `/etc/dhcpcd.conf`.
@@ -36,6 +36,7 @@ sudo bash <(curl -fsSL https://raw.githubusercontent.com/douglazfigueiredo/totem
 ```
 
 O script:
+
 1. Detecta arquitetura (arm64/amd64).
 2. Instala Docker (via script oficial) se nao houver.
 3. Cria `/opt/totemmesa/`.
@@ -98,6 +99,7 @@ content-type: application/json
 ```
 
 Resposta:
+
 ```json
 {
   "device": { "id": "...", "role": "totem", "tableId": "..." },
@@ -134,6 +136,7 @@ content-type: application/json
 ```
 
 Cliente (totem) puxa via:
+
 ```http
 GET http://hub.local:4000/catalog
 x-device-api-key: <chave>
@@ -147,6 +150,7 @@ Hub responde `200` com snapshot ou `304` se a versao bate.
 `docker-compose.yml` inclui Watchtower configurado com poll de 5min. Imagens novas em GHCR sao puxadas automaticamente.
 
 Forçar update manual:
+
 ```bash
 cd /opt/totemmesa
 bash update.sh                    # baixa tag stable
@@ -189,25 +193,25 @@ Em Fase 9 isso vira `borg`/`restic` automatico para storage offsite.
 
 ## 9. Recovery
 
-| Falha | Diagnostico | Acao |
-|---|---|---|
-| `/health` nao responde | `docker compose ps` mostra hub down | `docker compose logs hub` → corrigir + `docker compose up -d` |
-| DB locked / disco cheio | `df -h` mostra >90% | `docker exec tm-hub du -sh /data/*`; fazer prune `docker system prune -a` |
-| Imagem nova quebrou | `docker compose ps` = unhealthy apos update | `bash update.sh --rollback` |
-| Pareamento perdido (key nao funciona mais) | Device deactivated | Gerar novo codigo + repair no totem |
-| Watchtower nao pega updates | Container Watchtower nao rodando | `docker compose up -d watchtower` |
+| Falha                                      | Diagnostico                                 | Acao                                                                      |
+| ------------------------------------------ | ------------------------------------------- | ------------------------------------------------------------------------- |
+| `/health` nao responde                     | `docker compose ps` mostra hub down         | `docker compose logs hub` → corrigir + `docker compose up -d`             |
+| DB locked / disco cheio                    | `df -h` mostra >90%                         | `docker exec tm-hub du -sh /data/*`; fazer prune `docker system prune -a` |
+| Imagem nova quebrou                        | `docker compose ps` = unhealthy apos update | `bash update.sh --rollback`                                               |
+| Pareamento perdido (key nao funciona mais) | Device deactivated                          | Gerar novo codigo + repair no totem                                       |
+| Watchtower nao pega updates                | Container Watchtower nao rodando            | `docker compose up -d watchtower`                                         |
 
 Em casos extremos: re-instalar com `bash install.sh` + restore do backup.
 
 ## 10. Seguranca operacional
 
-| Item | Recomendacao |
-|---|---|
-| `ADMIN_SECRET` | 32+ caracteres aleatorios. NUNCA committar. Rotacionar a cada 6 meses |
-| Acesso SSH | Apenas via chave (desabilitar password). Apenas IPs do dono |
-| Firewall (UFW) | Abrir 4000/tcp APENAS na rede da loja. Bloquear externo |
-| Updates do SO | `unattended-upgrades` ativo |
-| Acesso fisico | Hub em local trancado, nao em area do cliente |
+| Item                 | Recomendacao                                                          |
+| -------------------- | --------------------------------------------------------------------- |
+| `ADMIN_SECRET`       | 32+ caracteres aleatorios. NUNCA committar. Rotacionar a cada 6 meses |
+| Acesso SSH           | Apenas via chave (desabilitar password). Apenas IPs do dono           |
+| Firewall (UFW)       | Abrir 4000/tcp APENAS na rede da loja. Bloquear externo               |
+| Updates do SO        | `unattended-upgrades` ativo                                           |
+| Acesso fisico        | Hub em local trancado, nao em area do cliente                         |
 | `apiKey` dos devices | Trafegar apenas em LAN. Nunca expor o hub na internet sem TLS reverso |
 
 ## 11. Checklist de instalacao
@@ -230,6 +234,7 @@ Em casos extremos: re-instalar com `bash install.sh` + restore do backup.
 Imagem oficial: `ghcr.io/douglazfigueiredo/totem-mesa-inteligente-hub:stable`
 
 Tags disponiveis:
+
 - `stable` — main branch (auto-deploy via push em `main`)
 - `<sha>` — commit especifico
 - `vX.Y.Z` — releases tagged

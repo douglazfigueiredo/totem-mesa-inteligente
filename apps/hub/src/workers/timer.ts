@@ -36,8 +36,7 @@ export const startTimerWorker = (opts: TimerWorkerOptions): WorkerHandle => {
         const event = makeEvent(
           'prep:ready',
           preparo.orderId
-            ? (order?.tenantId ??
-                opts.repos.orders.getByIdOrThrow(preparo.orderId).tenantId)
+            ? (order?.tenantId ?? opts.repos.orders.getByIdOrThrow(preparo.orderId).tenantId)
             : (() => {
                 throw new Error('preparo without order');
               })(),

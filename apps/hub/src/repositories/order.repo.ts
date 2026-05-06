@@ -118,7 +118,10 @@ export const makeOrderRepo = (db: DBClient, clock: Clock) => ({
   },
 
   count(): number {
-    const r = db.select({ c: sql<number>`count(*)` }).from(orders).get();
+    const r = db
+      .select({ c: sql<number>`count(*)` })
+      .from(orders)
+      .get();
     return r?.c ?? 0;
   },
 });

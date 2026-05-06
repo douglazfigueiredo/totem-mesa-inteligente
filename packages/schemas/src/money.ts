@@ -12,5 +12,4 @@ export type Bps = z.infer<typeof Bps>;
 export const formatBRL = (cents: number): string =>
   (cents / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 
-export const applyBps = (cents: number, bps: number): number =>
-  Math.round((cents * bps) / 10000);
+export const applyBps = (cents: number, bps: number): number => Math.round((cents * bps) / 10000);

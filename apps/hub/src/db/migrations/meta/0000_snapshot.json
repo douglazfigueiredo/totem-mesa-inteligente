@@ -42,12 +42,8 @@
           "name": "catalog_snapshots_tenant_id_tenants_id_fk",
           "tableFrom": "catalog_snapshots",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -127,23 +123,17 @@
       "indexes": {
         "devices_api_key_hash_ux": {
           "name": "devices_api_key_hash_ux",
-          "columns": [
-            "api_key_hash"
-          ],
+          "columns": ["api_key_hash"],
           "isUnique": true
         },
         "devices_role_ix": {
           "name": "devices_role_ix",
-          "columns": [
-            "role"
-          ],
+          "columns": ["role"],
           "isUnique": false
         },
         "devices_table_ix": {
           "name": "devices_table_ix",
-          "columns": [
-            "table_id"
-          ],
+          "columns": ["table_id"],
           "isUnique": false
         }
       },
@@ -152,12 +142,8 @@
           "name": "devices_tenant_id_tenants_id_fk",
           "tableFrom": "devices",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -165,12 +151,8 @@
           "name": "devices_table_id_tables_id_fk",
           "tableFrom": "devices",
           "tableTo": "tables",
-          "columnsFrom": [
-            "table_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["table_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -236,10 +218,7 @@
       "indexes": {
         "employees_active_ix": {
           "name": "employees_active_ix",
-          "columns": [
-            "tenant_id",
-            "is_active"
-          ],
+          "columns": ["tenant_id", "is_active"],
           "isUnique": false
         }
       },
@@ -248,12 +227,8 @@
           "name": "employees_tenant_id_tenants_id_fk",
           "tableFrom": "employees",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -333,18 +308,12 @@
       "indexes": {
         "event_outbox_pending_ix": {
           "name": "event_outbox_pending_ix",
-          "columns": [
-            "sent_at",
-            "next_retry_at"
-          ],
+          "columns": ["sent_at", "next_retry_at"],
           "isUnique": false
         },
         "event_outbox_tenant_created_ix": {
           "name": "event_outbox_tenant_created_ix",
-          "columns": [
-            "tenant_id",
-            "created_at"
-          ],
+          "columns": ["tenant_id", "created_at"],
           "isUnique": false
         }
       },
@@ -353,12 +322,8 @@
           "name": "event_outbox_tenant_id_tenants_id_fk",
           "tableFrom": "event_outbox",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -398,12 +363,8 @@
           "name": "heartbeats_device_id_devices_id_fk",
           "tableFrom": "heartbeats",
           "tableTo": "devices",
-          "columnsFrom": [
-            "device_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["device_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -526,24 +487,17 @@
       "indexes": {
         "orders_table_status_ix": {
           "name": "orders_table_status_ix",
-          "columns": [
-            "table_id",
-            "status"
-          ],
+          "columns": ["table_id", "status"],
           "isUnique": false
         },
         "orders_status_ix": {
           "name": "orders_status_ix",
-          "columns": [
-            "status"
-          ],
+          "columns": ["status"],
           "isUnique": false
         },
         "orders_created_ix": {
           "name": "orders_created_ix",
-          "columns": [
-            "created_at"
-          ],
+          "columns": ["created_at"],
           "isUnique": false
         }
       },
@@ -552,12 +506,8 @@
           "name": "orders_tenant_id_tenants_id_fk",
           "tableFrom": "orders",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -565,12 +515,8 @@
           "name": "orders_table_id_tables_id_fk",
           "tableFrom": "orders",
           "tableTo": "tables",
-          "columnsFrom": [
-            "table_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["table_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -621,9 +567,7 @@
       "indexes": {
         "pairing_codes_expires_ix": {
           "name": "pairing_codes_expires_ix",
-          "columns": [
-            "expires_at"
-          ],
+          "columns": ["expires_at"],
           "isUnique": false
         }
       },
@@ -632,12 +576,8 @@
           "name": "pairing_codes_tenant_id_tenants_id_fk",
           "tableFrom": "pairing_codes",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -709,24 +649,17 @@
       "indexes": {
         "preparos_order_ux": {
           "name": "preparos_order_ux",
-          "columns": [
-            "order_id"
-          ],
+          "columns": ["order_id"],
           "isUnique": true
         },
         "preparos_status_ix": {
           "name": "preparos_status_ix",
-          "columns": [
-            "status"
-          ],
+          "columns": ["status"],
           "isUnique": false
         },
         "preparos_ready_due_ix": {
           "name": "preparos_ready_due_ix",
-          "columns": [
-            "started_at",
-            "duration_sec"
-          ],
+          "columns": ["started_at", "duration_sec"],
           "isUnique": false
         }
       },
@@ -735,12 +668,8 @@
           "name": "preparos_order_id_orders_id_fk",
           "tableFrom": "preparos",
           "tableTo": "orders",
-          "columnsFrom": [
-            "order_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["order_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -748,12 +677,8 @@
           "name": "preparos_started_by_employee_id_employees_id_fk",
           "tableFrom": "preparos",
           "tableTo": "employees",
-          "columnsFrom": [
-            "started_by_employee_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["started_by_employee_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -804,9 +729,7 @@
       "indexes": {
         "processed_events_processed_at_ix": {
           "name": "processed_events_processed_at_ix",
-          "columns": [
-            "processed_at"
-          ],
+          "columns": ["processed_at"],
           "isUnique": false
         }
       },
@@ -866,17 +789,12 @@
       "indexes": {
         "tables_tenant_numero_ux": {
           "name": "tables_tenant_numero_ux",
-          "columns": [
-            "tenant_id",
-            "numero"
-          ],
+          "columns": ["tenant_id", "numero"],
           "isUnique": true
         },
         "tables_status_ix": {
           "name": "tables_status_ix",
-          "columns": [
-            "status"
-          ],
+          "columns": ["status"],
           "isUnique": false
         }
       },
@@ -885,12 +803,8 @@
           "name": "tables_tenant_id_tenants_id_fk",
           "tableFrom": "tables",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -963,9 +877,7 @@
       "indexes": {
         "tenants_slug_ux": {
           "name": "tenants_slug_ux",
-          "columns": [
-            "slug"
-          ],
+          "columns": ["slug"],
           "isUnique": true
         }
       },
@@ -1059,18 +971,12 @@
       "indexes": {
         "waiter_calls_status_ix": {
           "name": "waiter_calls_status_ix",
-          "columns": [
-            "status",
-            "created_at"
-          ],
+          "columns": ["status", "created_at"],
           "isUnique": false
         },
         "waiter_calls_table_ix": {
           "name": "waiter_calls_table_ix",
-          "columns": [
-            "table_id",
-            "status"
-          ],
+          "columns": ["table_id", "status"],
           "isUnique": false
         }
       },
@@ -1079,12 +985,8 @@
           "name": "waiter_calls_tenant_id_tenants_id_fk",
           "tableFrom": "waiter_calls",
           "tableTo": "tenants",
-          "columnsFrom": [
-            "tenant_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["tenant_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1092,12 +994,8 @@
           "name": "waiter_calls_table_id_tables_id_fk",
           "tableFrom": "waiter_calls",
           "tableTo": "tables",
-          "columnsFrom": [
-            "table_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["table_id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         },
@@ -1105,12 +1003,8 @@
           "name": "waiter_calls_acknowledged_by_employees_id_fk",
           "tableFrom": "waiter_calls",
           "tableTo": "employees",
-          "columnsFrom": [
-            "acknowledged_by"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["acknowledged_by"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }

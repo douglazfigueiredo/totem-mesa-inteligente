@@ -1,6 +1,11 @@
 import { timingSafeEqual } from 'node:crypto';
 import fp from 'fastify-plugin';
-import type { FastifyPluginAsync, FastifyReply, FastifyRequest, preHandlerHookHandler } from 'fastify';
+import type {
+  FastifyPluginAsync,
+  FastifyReply,
+  FastifyRequest,
+  preHandlerHookHandler,
+} from 'fastify';
 import type { DeviceRow } from '../repositories/device.repo.js';
 import type { DeviceRole } from '@app/schemas';
 import { UnauthorizedError } from '../lib/errors.js';

@@ -98,9 +98,7 @@ export const makeWaiterRepo = (db: DBClient, clock: Clock) => ({
     const rows = db
       .select()
       .from(waiterCalls)
-      .where(
-        and(eq(waiterCalls.tenantId, tenantId), inArray(waiterCalls.status, ACTIVE_STATUSES)),
-      )
+      .where(and(eq(waiterCalls.tenantId, tenantId), inArray(waiterCalls.status, ACTIVE_STATUSES)))
       .orderBy(desc(waiterCalls.createdAt))
       .all();
     return rows.map(rowToWaiterCall);

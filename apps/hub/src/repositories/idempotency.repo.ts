@@ -14,11 +14,7 @@ export type ProcessedEvent = {
 
 export const makeIdempotencyRepo = (db: DBClient, clock: Clock) => ({
   get(eventId: EventId): ProcessedEvent | null {
-    const row = db
-      .select()
-      .from(processedEvents)
-      .where(eq(processedEvents.eventId, eventId))
-      .get();
+    const row = db.select().from(processedEvents).where(eq(processedEvents.eventId, eventId)).get();
     return row ? (row as ProcessedEvent) : null;
   },
 
@@ -46,10 +42,7 @@ export const makeIdempotencyRepo = (db: DBClient, clock: Clock) => ({
 
   pruneBefore(olderThanMs: number): number {
     const cutoff = clock.now() - olderThanMs;
-    const r = db
-      .delete(processedEvents)
-      .where(lt(processedEvents.processedAt, cutoff))
-      .run();
+    const r = db.delete(processedEvents).where(lt(processedEvents.processedAt, cutoff)).run();
     return r.changes;
   },
 });

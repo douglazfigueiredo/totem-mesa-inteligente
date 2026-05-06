@@ -33,13 +33,13 @@ Versionamento: `vX.Y-faseN` no fim de cada fase.
 
 ### Resumo Fase 2 (todas as sub-fases)
 
-| Sub-fase | Entrega | Tests |
-|---|---|---|
-| 2A | Persistencia + 6 repos | 29 |
-| 2B | Auth + 8 endpoints REST + bootstrap | +30 |
-| 2C | Socket.IO + workers (timer + outbox) | +9 |
-| 2D | Catalog + PIN + seed + GHCR + doc deploy | +11 |
-| **TOTAL** | **Hub completo** | **79** |
+| Sub-fase  | Entrega                                  | Tests  |
+| --------- | ---------------------------------------- | ------ |
+| 2A        | Persistencia + 6 repos                   | 29     |
+| 2B        | Auth + 8 endpoints REST + bootstrap      | +30    |
+| 2C        | Socket.IO + workers (timer + outbox)     | +9     |
+| 2D        | Catalog + PIN + seed + GHCR + doc deploy | +11    |
+| **TOTAL** | **Hub completo**                         | **79** |
 
 Hub publicado, documentado, testado, validado E2E. Pronto para Fase 3 (Totem PWA) consumir.
 

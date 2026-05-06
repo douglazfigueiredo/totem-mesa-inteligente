@@ -48,24 +48,20 @@ const devicesRoutes: FastifyPluginAsync = async (app) => {
     });
   });
 
-  app.post(
-    '/admin/pairing-codes',
-    { preHandler: app.requireAdmin },
-    async (request) => {
-      const body = CreatePairingCodeRequest.parse(request.body);
-      const tenantId = app.tenantId;
-      const created = app.repos.pairing.create({
-        tenantId,
-        role: body.role,
-        ttlMs: body.ttlMs,
-      });
-      return {
-        code: created.code,
-        role: created.role,
-        expiresAt: created.expiresAt,
-      };
-    },
-  );
+  app.post('/admin/pairing-codes', { preHandler: app.requireAdmin }, async (request) => {
+    const body = CreatePairingCodeRequest.parse(request.body);
+    const tenantId = app.tenantId;
+    const created = app.repos.pairing.create({
+      tenantId,
+      role: body.role,
+      ttlMs: body.ttlMs,
+    });
+    return {
+      code: created.code,
+      role: created.role,
+      expiresAt: created.expiresAt,
+    };
+  });
 };
 
 export default devicesRoutes;

@@ -10,6 +10,7 @@ on:
     paths:
       - "apps/hub/src/**"
       - "apps/hub/Dockerfile"
+      - "apps/hub/.dockerignore"
       - "apps/hub/package.json"
       - "apps/hub/tsconfig.json"
       - "apps/hub/seeds/**"
@@ -17,10 +18,9 @@ on:
       - "packages/schemas/package.json"
       - "packages/types/src/**"
       - "packages/types/package.json"
-      - "pnpm-lock.yaml"
       - ".github/workflows/hub-image.yml"
-    tags:
-      - "v*"
+    tags-ignore:
+      - "**"
   workflow_dispatch:
     inputs:
       tag:

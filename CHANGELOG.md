@@ -7,6 +7,31 @@ Versionamento: `vX.Y-faseN` no fim de cada fase.
 
 ---
 
+## [Unreleased] — Fase 1 em andamento
+
+### Adicionado
+
+- **Schemas Zod completos** em `packages/schemas/src/`:
+  - `ids.ts` — branded IDs (Tenant/Device/Table/Order/...) com validacao UUID v1-v8.
+  - `money.ts` — PriceCents, Bps, formatBRL, applyBps.
+  - `vertical.ts` — Vertical enum + VerticalConfig discriminated union (pizza/lanche/prato/salgado/bebida/sobremesa/simples).
+  - `tenant.ts`, `device.ts` (+ PairingCode), `table.ts`, `employee.ts`.
+  - `catalog.ts` — Category, Product, ProductVariant, ModifierGroup, Modifier, CatalogSnapshot.
+  - `order.ts` — Order, OrderItem, ItemCustomization (pizza meio-a-meio, ponto da carne).
+  - `preparo.ts` — Preparo + helpers `computeRemainingSec`/`isReady` (timer authoritative).
+  - `waiter.ts` — WaiterCall com escalonamento.
+- **Contrato WebSocket** em `events.ts` — 15 eventos como discriminated union por `type`, com envelope `eventId` (idempotency UUID v7) + `tenantId` + `causedBy?`.
+- 24 testes vitest cobrindo round-trip, branded types, edge cases, eventos.
+- `docs/01-data-model.md` — entidades + tabela completa dos 15 eventos + secoes de idempotencia/reconexao/heartbeat.
+
+### Configuracao
+
+- GitHub Actions write permission habilitado (preparacao Fase 2 GHCR push).
+- Default `GH_OWNER` em `docker-compose.yml` atualizado para `douglazfigueiredo`.
+- Image name padronizado para `totem-mesa-inteligente-hub`.
+
+---
+
 ## [v0.1-fase0] — 2026-05-06
 
 ### Fase 0: Fundacao

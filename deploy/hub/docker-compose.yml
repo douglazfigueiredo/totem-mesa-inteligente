@@ -2,7 +2,7 @@ name: totemmesa-hub
 
 services:
   hub:
-    image: ghcr.io/${GH_OWNER:-totemmesa}/hub:${HUB_TAG:-stable}
+    image: ghcr.io/${GH_OWNER:-douglazfigueiredo}/totem-mesa-inteligente-hub:${HUB_TAG:-stable}
     container_name: tm-hub
     restart: unless-stopped
     ports:

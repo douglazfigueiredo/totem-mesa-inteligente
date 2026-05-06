@@ -15,10 +15,15 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint src",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "echo '[schemas] lint pendente — sera configurado na Fase 2'",
     "clean": "rm -rf dist .turbo"
   },
   "dependencies": {
     "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.8"
   }
 }

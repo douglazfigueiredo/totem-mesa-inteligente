@@ -16,7 +16,7 @@ Indice de docs do projeto. Cada fase de desenvolvimento fecha com um doc novo aq
 | Fase | Doc | Status |
 |---|---|---|
 | 0 — Fundacao | [`00-arquitetura.md`](./00-arquitetura.md) | ✅ |
-| 1 — Schemas e WebSocket | `01-data-model.md`, `02-websocket-contract.md` | ⏳ |
+| 1 — Schemas e WebSocket | [`01-data-model.md`](./01-data-model.md) (entidades + eventos) | ⏳ Drizzle DSL na Fase 2 |
 | 2 — Hub local | `03-hub-local.md`, `04-deploy-hub.md` | ⏳ |
 | 3 — Totem | `05-totem-app.md` | ⏳ |
 | 4 — KDS | `06-kds.md` | ⏳ |

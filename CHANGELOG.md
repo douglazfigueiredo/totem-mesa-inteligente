@@ -7,7 +7,32 @@ Versionamento: `vX.Y-faseN` no fim de cada fase.
 
 ---
 
-## [Unreleased] — Fase 1 em andamento
+## [Unreleased] — Fase 2A concluida
+
+### Adicionado (Fase 2A — Hub local: persistencia)
+
+- **Drizzle schema SQLite** (`apps/hub/src/db/schema.ts`) — 12 tabelas: tenants, tables, devices, pairing_codes, employees, catalog_snapshots, orders, preparos, waiter_calls, event_outbox, processed_events, heartbeats. UUID v7 ids, money em centavos, JSON via Drizzle, PRAGMAs WAL+foreign_keys.
+- **Migrations** auto-aplicadas no boot via `createDB({ applyMigrations: true })`. Initial migration `0000_many_odin.sql` gerada via drizzle-kit.
+- **6 repositories** com pattern uniforme (factory + clock injection):
+  - `DeviceRepo` — pair (sha256 da api key), findByApiKey, updateLastSeen, deactivate.
+  - `OrderRepo` — create, getById, listActive, updateStatus (sentAt automatico), cancel.
+  - `PreparoRepo` — start (guard de unicidade), markReady (atomic), listDue (timer expirado).
+  - `OutboxRepo` — enqueue idempotente, listPending, markSent, markFailed (backoff exponencial 1/2/4/8/16/30s).
+  - `IdempotencyRepo` — get/has/record/pruneBefore (LRU persistente para event_ids).
+  - `PairingRepo` — codigo 6 digitos com TTL, atomic consume.
+- **Lib helpers**: ids.ts (UUID v7 via `uuidv7`), clock.ts (system + fixed para tests), errors.ts (DomainError tipados com httpStatus).
+- **29 tests vitest** (in-memory SQLite isolado por suite, ~800ms total).
+- Hub Dockerfile atualizado: pre-cria `/data` com ownership do user `node`, copia migrations para `dist/db/migrations` no build.
+- Doc `docs/03-hub-local.md` (~280 linhas) com arquitetura + schema + repo patterns + timer authoritative + resiliencia.
+
+### Validado
+
+- `pnpm test` em `apps/hub` — 29/29 passando.
+- Docker compose dev — hub healthy, DB persistido em volume, migrations aplicadas no boot, `/health` retorna `{ db: {...}, outbox: { pending: 0 } }`.
+
+---
+
+## [Unreleased] — Fase 1 concluida
 
 ### Adicionado
 

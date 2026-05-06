@@ -27,15 +27,19 @@ COPY --from=build /repo ./
 RUN pnpm deploy --filter @app/hub --prod /deploy
 
 FROM node:${NODE_VERSION}-alpine AS runtime
-RUN apk add --no-cache tini wget
+RUN apk add --no-cache tini wget \
+ && mkdir -p /data \
+ && chown -R node:node /data
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
+ENV DATABASE_PATH=/data/hub.db
 
-COPY --from=deploy /deploy ./
+COPY --from=deploy --chown=node:node /deploy ./
 
 EXPOSE 4000
 USER node
+VOLUME ["/data"]
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
   CMD wget -qO- http://127.0.0.1:4000/health || exit 1
 

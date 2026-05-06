@@ -104,6 +104,8 @@ export const WaiterCallCreateEvent = z.object({
     tableId: TableId,
     reason: WaiterCallReason,
     obs: z.string().max(200).optional(),
+    callId: WaiterCallId.optional(),
+    createdAt: TimestampMs.optional(),
   }),
 });
 

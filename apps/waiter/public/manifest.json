@@ -1,0 +1,11 @@
+{
+  "name": "TotemMesa Garçom",
+  "short_name": "Garçom",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fafaf6",
+  "theme_color": "#d96d4a",
+  "start_url": "/",
+  "scope": "/",
+  "icons": []
+}

@@ -96,6 +96,25 @@ export const createSocketServer = (opts: CreateSocketServerOptions): SocketIOSer
           return;
         }
 
+        if (device.role === 'waiter') {
+          const allOrders = repos.orders.listActiveByTenant(device.tenantId);
+          const activeOrders = allOrders.filter(
+            (o) => o.status === 'pronto' || o.destino === 'garcom' || o.destino === 'ambos',
+          );
+          const tablesList = repos.tables.list(device.tenantId);
+          const pendingWaiterCalls = repos.waiter.listPending(device.tenantId);
+
+          ack({
+            scope: 'tenant',
+            serverTime: Date.now(),
+            activeOrders,
+            activePreparos: [],
+            tables: tablesList,
+            pendingWaiterCalls,
+          });
+          return;
+        }
+
         if (!tableId) {
           ack({ error: 'tableId required for state:sync' });
           return;

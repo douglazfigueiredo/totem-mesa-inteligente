@@ -25,6 +25,8 @@ const waiterRoutes: FastifyPluginAsync = async (app) => {
       tableId: call.tableId,
       reason: call.reason,
       obs: call.obs,
+      callId: call.id,
+      createdAt: call.createdAt,
     });
     return reply.code(201).send(call);
   });

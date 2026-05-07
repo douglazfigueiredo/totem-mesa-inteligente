@@ -6,6 +6,7 @@ import { isPaired, useAuthStore } from '@/lib/auth-store';
 import { useCartStore, cartSubtotalCents } from '@/lib/cart-store';
 import { useSocketStore } from '@/lib/socket-client';
 import { hubFetch, HubError } from '@/lib/hub-client';
+import { enqueue } from '@/lib/outbox';
 import { formatBRL } from '@/lib/format';
 import { MenuLayout } from '@/components/MenuLayout';
 import { QtyStepper } from '@/components/QtyStepper';
@@ -24,6 +25,7 @@ export default function CartPage() {
   const [taxaServicoOn, setTaxaServicoOn] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [queued, setQueued] = useState(false);
 
   useEffect(() => {
     setHydrated(true);
@@ -44,31 +46,51 @@ export default function CartPage() {
     if (!auth.apiKey || !auth.tableId || items.length === 0) return;
     setError(null);
     setSubmitting(true);
+    const eventId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+    const body = {
+      tableId: auth.tableId,
+      items: items.map((i) => ({
+        productId: i.productId,
+        nome: i.nome,
+        destino: i.destino,
+        qty: i.qty,
+        unitPriceCents: i.unitPriceCents,
+        totalPriceCents: i.totalPriceCents,
+        tempoEstimadoSec: i.tempoEstimadoSec,
+        customization: i.customization,
+      })),
+      taxaServicoBps: taxaBps,
+    };
     try {
-      const eventId = globalThis.crypto?.randomUUID?.();
       type OrderResp = { id: string; createdAt: number };
       const order = await hubFetch<OrderResp>('/orders', {
         method: 'POST',
         apiKey: auth.apiKey,
         eventId,
-        body: {
-          tableId: auth.tableId,
-          items: items.map((i) => ({
-            productId: i.productId,
-            nome: i.nome,
-            destino: i.destino,
-            qty: i.qty,
-            unitPriceCents: i.unitPriceCents,
-            totalPriceCents: i.totalPriceCents,
-            tempoEstimadoSec: i.tempoEstimadoSec,
-            customization: i.customization,
-          })),
-          taxaServicoBps: taxaBps,
-        },
+        body,
       });
       clearCart();
       router.replace(`/order/${order.id}`);
     } catch (err) {
+      const isNetwork = !(err instanceof HubError) || err.status >= 500;
+      if (isNetwork && auth.apiKey) {
+        try {
+          await enqueue({
+            id: eventId,
+            type: 'order',
+            path: '/orders',
+            method: 'POST',
+            body,
+            apiKey: auth.apiKey,
+            eventId,
+          });
+          clearCart();
+          setQueued(true);
+          return;
+        } catch {
+          // fallthrough
+        }
+      }
       setError(err instanceof HubError ? `${err.code}: ${err.message}` : String(err));
     } finally {
       setSubmitting(false);
@@ -76,6 +98,24 @@ export default function CartPage() {
   };
 
   const isOffline = connectionState !== 'connected' && connectionState !== 'idle';
+
+  if (queued) {
+    return (
+      <MenuLayout>
+        <div className={styles.empty}>
+          <span className={styles.emptyEmoji}>📡</span>
+          <h1 className={styles.emptyTitle}>pedido em fila</h1>
+          <p className={styles.emptySubtitle}>
+            sem conexão com o hub agora. seu pedido foi salvo e será enviado automaticamente assim
+            que reconectar.
+          </p>
+          <button className="btn btn-primary" onClick={() => router.push('/menu')}>
+            voltar ao cardápio →
+          </button>
+        </div>
+      </MenuLayout>
+    );
+  }
 
   if (items.length === 0) {
     return (

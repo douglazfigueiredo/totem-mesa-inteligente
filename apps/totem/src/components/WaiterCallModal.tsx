@@ -3,10 +3,11 @@
 import { useState } from 'react';
 import { useAuthStore } from '@/lib/auth-store';
 import { hubFetch, HubError } from '@/lib/hub-client';
+import { enqueue } from '@/lib/outbox';
 import styles from './WaiterCallModal.module.css';
 
 type Reason = 'talheres' | 'agua' | 'ajuda_pedido' | 'fechar_conta' | 'outros';
-type Status = 'form' | 'submitting' | 'pending' | 'error';
+type Status = 'form' | 'submitting' | 'pending' | 'queued' | 'error';
 
 const REASONS: { id: Reason; emoji: string; label: string }[] = [
   { id: 'talheres', emoji: '🍴', label: 'talheres' },
@@ -28,18 +29,36 @@ export const WaiterCallModal = ({ onClose }: Props) => {
     if (!auth.apiKey || !auth.tableId || !selected) return;
     setError(null);
     setStatus('submitting');
+    const eventId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+    const body = { tableId: auth.tableId, reason: selected, obs: obs || undefined };
     try {
       await hubFetch('/waiter/calls', {
         method: 'POST',
         apiKey: auth.apiKey,
-        body: {
-          tableId: auth.tableId,
-          reason: selected,
-          obs: obs || undefined,
-        },
+        eventId,
+        body,
       });
       setStatus('pending');
     } catch (err) {
+      // Erro de rede / hub fora — enfileira pra retentar
+      const isNetwork = !(err instanceof HubError) || err.status >= 500;
+      if (isNetwork && auth.apiKey) {
+        try {
+          await enqueue({
+            id: eventId,
+            type: 'waiter-call',
+            path: '/waiter/calls',
+            method: 'POST',
+            body,
+            apiKey: auth.apiKey,
+            eventId,
+          });
+          setStatus('queued');
+          return;
+        } catch {
+          // fallthrough pra mostrar erro original
+        }
+      }
       setError(err instanceof HubError ? `${err.code}: ${err.message}` : String(err));
       setStatus('error');
     }
@@ -97,6 +116,19 @@ export const WaiterCallModal = ({ onClose }: Props) => {
             <h2 className={styles.title}>garçom a caminho...</h2>
             <p className={styles.subtitle}>
               {selected && REASONS.find((r) => r.id === selected)?.label}
+            </p>
+            <button className="btn btn-secondary" onClick={onClose}>
+              fechar
+            </button>
+          </div>
+        )}
+
+        {status === 'queued' && (
+          <div className={styles.success}>
+            <div className={styles.bell}>📡</div>
+            <h2 className={styles.title}>em fila — sem conexão</h2>
+            <p className={styles.subtitle}>
+              o chamado será enviado assim que o totem reconectar.
             </p>
             <button className="btn btn-secondary" onClick={onClose}>
               fechar

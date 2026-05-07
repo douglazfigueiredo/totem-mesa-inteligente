@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
+    "vercel-build": "pnpm db:migrate && next build",
     "start": "next start -p 3000",
     "test": "echo '[cloud] testes E2E na Fase 9 (Playwright)'",
     "lint": "echo '[cloud] lint pendente'",

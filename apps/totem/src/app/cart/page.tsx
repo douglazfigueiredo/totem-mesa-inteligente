@@ -18,6 +18,7 @@ export default function CartPage() {
   const setQty = useCartStore((s) => s.setQty);
   const remove = useCartStore((s) => s.remove);
   const clearCart = useCartStore((s) => s.clear);
+  const connectionState = useSocketStore((s) => s.state);
 
   const [hydrated, setHydrated] = useState(false);
   const [taxaServicoOn, setTaxaServicoOn] = useState(true);
@@ -74,7 +75,6 @@ export default function CartPage() {
     }
   };
 
-  const connectionState = useSocketStore((s) => s.state);
   const isOffline = connectionState !== 'connected' && connectionState !== 'idle';
 
   if (items.length === 0) {

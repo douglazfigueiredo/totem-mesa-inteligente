@@ -57,7 +57,9 @@ export const TimerRing = ({ preparo, size = 320, strokeWidth = 16 }: Props) => {
       </svg>
       <div className={styles.label}>
         <span className={styles.time}>{isReady ? '00:00' : formatTime(remaining)}</span>
-        <span className={styles.status}>{isReady ? 'pronto!' : 'preparando...'}</span>
+        <span className={isReady ? styles.statusReady : styles.status}>
+          {isReady ? 'pronto!' : 'restantes'}
+        </span>
       </div>
     </div>
   );

@@ -39,3 +39,20 @@
 .pill:active {
   transform: scale(0.97);
 }
+
+.text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: transparent;
+  color: var(--ink-soft);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.text:hover {
+  background: var(--bg-warm);
+  color: var(--ink);
+}

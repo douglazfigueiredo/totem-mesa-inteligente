@@ -8,6 +8,7 @@ import {
   integer,
   boolean,
   jsonb,
+  uniqueIndex,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -306,6 +307,29 @@ export const orders = pgTable(
   }),
 );
 
+/**
+ * tables — mesas físicas da loja. Sincronizadas pra hub via /api/tables.
+ * Status (livre/ocupada) é runtime e fica só no hub.
+ */
+export const tables = pgTable(
+  'tables',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    numero: integer('numero').notNull(),
+    capacidade: integer('capacidade').notNull().default(4),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    tenantIdx: index('tables_tenant_ix').on(t.tenantId),
+    tenantNumeroUx: uniqueIndex('tables_tenant_numero_ux').on(t.tenantId, t.numero),
+  }),
+);
+
 /* ── NextAuth tables (drizzle adapter) ─────────────────────────────────── */
 /* Prop names em snake_case nas auth-tables são exigidos pelo DrizzleAdapter */
 
@@ -382,3 +406,5 @@ export type ModifierGroup = typeof modifierGroups.$inferSelect;
 export type Modifier = typeof modifiers.$inferSelect;
 export type OrderEvent = typeof orderEvents.$inferSelect;
 export type Order = typeof orders.$inferSelect;
+export type Table = typeof tables.$inferSelect;
+export type NewTable = typeof tables.$inferInsert;

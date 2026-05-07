@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { count, eq } from 'drizzle-orm';
 import { db, schema } from '@/db';
 import { requireOwner } from '@/lib/tenant';
+import { ToastForm } from '@/components/ToastForm';
 import {
   createCategoryAction,
   renameCategoryAction,
@@ -48,7 +49,7 @@ export default async function CardapioPage() {
         </p>
       </div>
 
-      <form
+      <ToastForm
         action={createCategoryAction}
         className="flex gap-2 rounded-2xl border border-[var(--color-line)] bg-[var(--color-paper)] p-4 shadow-[var(--shadow-card)]"
       >
@@ -65,7 +66,7 @@ export default async function CardapioPage() {
         >
           + adicionar
         </button>
-      </form>
+      </ToastForm>
 
       {categories.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--color-line)] bg-[var(--color-soft)] p-8 text-center text-sm text-[var(--color-ink-soft)]">
@@ -114,7 +115,7 @@ function CategoryRow({
       }`}
     >
       <div className="flex flex-col">
-        <form action={moveCategoryAction}>
+        <ToastForm action={moveCategoryAction}>
           <input type="hidden" name="id" value={cat.id} />
           <input type="hidden" name="direction" value="up" />
           <button
@@ -125,8 +126,8 @@ function CategoryRow({
           >
             ▲
           </button>
-        </form>
-        <form action={moveCategoryAction}>
+        </ToastForm>
+        <ToastForm action={moveCategoryAction}>
           <input type="hidden" name="id" value={cat.id} />
           <input type="hidden" name="direction" value="down" />
           <button
@@ -137,10 +138,10 @@ function CategoryRow({
           >
             ▼
           </button>
-        </form>
+        </ToastForm>
       </div>
 
-      <form action={renameCategoryAction} className="flex flex-1 items-center gap-2">
+      <ToastForm action={renameCategoryAction} className="flex flex-1 items-center gap-2">
         <input type="hidden" name="id" value={cat.id} />
         <input
           name="nome"
@@ -155,7 +156,7 @@ function CategoryRow({
         >
           salvar
         </button>
-      </form>
+      </ToastForm>
 
       <Link
         href={`/admin/cardapio/${cat.id}`}
@@ -164,7 +165,7 @@ function CategoryRow({
         {cat.productCount} {cat.productCount === 1 ? 'produto' : 'produtos'} →
       </Link>
 
-      <form action={toggleCategoryActiveAction}>
+      <ToastForm action={toggleCategoryActiveAction}>
         <input type="hidden" name="id" value={cat.id} />
         <button
           type="submit"
@@ -172,9 +173,9 @@ function CategoryRow({
         >
           {cat.isActive ? 'desativar' : 'ativar'}
         </button>
-      </form>
+      </ToastForm>
 
-      <form action={deleteCategoryAction}>
+      <ToastForm action={deleteCategoryAction}>
         <input type="hidden" name="id" value={cat.id} />
         <button
           type="submit"
@@ -183,7 +184,7 @@ function CategoryRow({
         >
           excluir
         </button>
-      </form>
+      </ToastForm>
     </li>
   );
 }

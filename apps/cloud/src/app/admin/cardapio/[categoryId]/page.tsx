@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { and, eq, inArray } from 'drizzle-orm';
 import { db, schema } from '@/db';
 import { requireOwner } from '@/lib/tenant';
+import { ToastForm } from '@/components/ToastForm';
 import {
   createProductAction,
   updateProductAction,
@@ -137,7 +138,7 @@ export default async function CategoryProductsPage({ params }: { params: Params 
         </p>
       </div>
 
-      <form
+      <ToastForm
         action={createProductAction}
         className="flex flex-wrap gap-2 rounded-2xl border border-[var(--color-line)] bg-[var(--color-paper)] p-4 shadow-[var(--shadow-card)]"
       >
@@ -162,7 +163,7 @@ export default async function CategoryProductsPage({ params }: { params: Params 
         >
           + adicionar
         </button>
-      </form>
+      </ToastForm>
 
       {products.length === 0 ? (
         <div className="rounded-xl border border-dashed border-[var(--color-line)] bg-[var(--color-soft)] p-8 text-center text-sm text-[var(--color-ink-soft)]">
@@ -211,7 +212,7 @@ function ProductRow({
     >
       <div className="flex items-center gap-3 border-b border-[var(--color-line)] p-3">
         <div className="flex flex-col">
-          <form action={moveProductAction}>
+          <ToastForm action={moveProductAction}>
             <input type="hidden" name="categoryId" value={categoryId} />
             <input type="hidden" name="id" value={product.id} />
             <input type="hidden" name="direction" value="up" />
@@ -223,8 +224,8 @@ function ProductRow({
             >
               ▲
             </button>
-          </form>
-          <form action={moveProductAction}>
+          </ToastForm>
+          <ToastForm action={moveProductAction}>
             <input type="hidden" name="categoryId" value={categoryId} />
             <input type="hidden" name="id" value={product.id} />
             <input type="hidden" name="direction" value="down" />
@@ -236,7 +237,7 @@ function ProductRow({
             >
               ▼
             </button>
-          </form>
+          </ToastForm>
         </div>
 
         {product.imageUrl ? (
@@ -258,7 +259,7 @@ function ProductRow({
           </p>
         </div>
 
-        <form action={toggleProductAvailableAction}>
+        <ToastForm action={toggleProductAvailableAction}>
           <input type="hidden" name="categoryId" value={categoryId} />
           <input type="hidden" name="id" value={product.id} />
           <button
@@ -267,9 +268,9 @@ function ProductRow({
           >
             {product.isAvailable ? 'pausar' : 'ativar'}
           </button>
-        </form>
+        </ToastForm>
 
-        <form action={deleteProductAction}>
+        <ToastForm action={deleteProductAction}>
           <input type="hidden" name="categoryId" value={categoryId} />
           <input type="hidden" name="id" value={product.id} />
           <button
@@ -279,7 +280,7 @@ function ProductRow({
           >
             excluir
           </button>
-        </form>
+        </ToastForm>
       </div>
 
       <details className="group border-b border-[var(--color-line)] last:border-b-0">
@@ -362,7 +363,7 @@ function ProductEditForm({
   categoryId: string;
 }) {
   return (
-    <form action={updateProductAction} className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
+    <ToastForm action={updateProductAction} className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
       <input type="hidden" name="categoryId" value={categoryId} />
       <input type="hidden" name="id" value={product.id} />
       <Field label="nome">
@@ -424,7 +425,7 @@ function ProductEditForm({
           salvar alterações
         </button>
       </div>
-    </form>
+    </ToastForm>
   );
 }
 
@@ -436,7 +437,7 @@ function VariantsSection({ product }: { product: EnrichedProduct }) {
       <p className="text-xs text-[var(--color-ink-soft)]">
         variações (P/M/G, 350ml/600ml…). quando o produto tem variantes, o totem força o cliente a escolher uma — o preço base vira fallback.
       </p>
-      <form action={createVariantAction} className="flex flex-wrap gap-2">
+      <ToastForm action={createVariantAction} className="flex flex-wrap gap-2">
         <input type="hidden" name="productId" value={product.id} />
         <input
           name="nome"
@@ -458,7 +459,7 @@ function VariantsSection({ product }: { product: EnrichedProduct }) {
         >
           + variante
         </button>
-      </form>
+      </ToastForm>
 
       {product.variants.length === 0 ? (
         <p className="mono py-2 text-center text-[10px] uppercase tracking-widest text-[var(--color-ink-mute)]">
@@ -499,7 +500,7 @@ function VariantRow({
       }`}
     >
       <div className="flex flex-col">
-        <form action={moveVariantAction}>
+        <ToastForm action={moveVariantAction}>
           <input type="hidden" name="productId" value={productId} />
           <input type="hidden" name="id" value={variant.id} />
           <input type="hidden" name="direction" value="up" />
@@ -510,8 +511,8 @@ function VariantRow({
           >
             ▲
           </button>
-        </form>
-        <form action={moveVariantAction}>
+        </ToastForm>
+        <ToastForm action={moveVariantAction}>
           <input type="hidden" name="productId" value={productId} />
           <input type="hidden" name="id" value={variant.id} />
           <input type="hidden" name="direction" value="down" />
@@ -522,10 +523,10 @@ function VariantRow({
           >
             ▼
           </button>
-        </form>
+        </ToastForm>
       </div>
 
-      <form action={updateVariantAction} className="flex flex-1 items-center gap-2">
+      <ToastForm action={updateVariantAction} className="flex flex-1 items-center gap-2">
         <input type="hidden" name="productId" value={productId} />
         <input type="hidden" name="id" value={variant.id} />
         <input
@@ -548,14 +549,14 @@ function VariantRow({
         >
           salvar
         </button>
-      </form>
+      </ToastForm>
 
       {variant.isDefault ? (
         <span className="mono rounded bg-[var(--color-warm)] px-2 py-0.5 text-[9px] uppercase tracking-widest text-[var(--color-ink)]">
           padrão
         </span>
       ) : (
-        <form action={setDefaultVariantAction}>
+        <ToastForm action={setDefaultVariantAction}>
           <input type="hidden" name="productId" value={productId} />
           <input type="hidden" name="id" value={variant.id} />
           <button
@@ -564,10 +565,10 @@ function VariantRow({
           >
             tornar padrão
           </button>
-        </form>
+        </ToastForm>
       )}
 
-      <form action={toggleVariantAvailableAction}>
+      <ToastForm action={toggleVariantAvailableAction}>
         <input type="hidden" name="productId" value={productId} />
         <input type="hidden" name="id" value={variant.id} />
         <button
@@ -576,9 +577,9 @@ function VariantRow({
         >
           {variant.isAvailable ? 'pausar' : 'ativar'}
         </button>
-      </form>
+      </ToastForm>
 
-      <form action={deleteVariantAction}>
+      <ToastForm action={deleteVariantAction}>
         <input type="hidden" name="productId" value={productId} />
         <input type="hidden" name="id" value={variant.id} />
         <button
@@ -587,7 +588,7 @@ function VariantRow({
         >
           excluir
         </button>
-      </form>
+      </ToastForm>
     </li>
   );
 }
@@ -600,7 +601,7 @@ function ModifiersSection({ product }: { product: EnrichedProduct }) {
       <p className="text-xs text-[var(--color-ink-soft)]">
         grupos de modificadores: ex. &quot;escolha 2 sabores&quot; (multi, min/max=2), &quot;adicionais&quot; (multi, opcional), &quot;borda&quot; (single).
       </p>
-      <form action={createGroupAction} className="flex flex-wrap gap-2">
+      <ToastForm action={createGroupAction} className="flex flex-wrap gap-2">
         <input type="hidden" name="productId" value={product.id} />
         <input
           name="nome"
@@ -615,7 +616,7 @@ function ModifiersSection({ product }: { product: EnrichedProduct }) {
         >
           + grupo
         </button>
-      </form>
+      </ToastForm>
 
       {product.groups.length === 0 ? (
         <p className="mono py-2 text-center text-[10px] uppercase tracking-widest text-[var(--color-ink-mute)]">
@@ -653,7 +654,7 @@ function GroupCard({
     <li className="rounded-lg border border-[var(--color-line)] bg-[var(--color-soft)]">
       <div className="flex items-center gap-2 border-b border-[var(--color-line)] p-2">
         <div className="flex flex-col">
-          <form action={moveGroupAction}>
+          <ToastForm action={moveGroupAction}>
             <input type="hidden" name="productId" value={productId} />
             <input type="hidden" name="groupId" value={group.id} />
             <input type="hidden" name="direction" value="up" />
@@ -664,8 +665,8 @@ function GroupCard({
             >
               ▲
             </button>
-          </form>
-          <form action={moveGroupAction}>
+          </ToastForm>
+          <ToastForm action={moveGroupAction}>
             <input type="hidden" name="productId" value={productId} />
             <input type="hidden" name="groupId" value={group.id} />
             <input type="hidden" name="direction" value="down" />
@@ -676,7 +677,7 @@ function GroupCard({
             >
               ▼
             </button>
-          </form>
+          </ToastForm>
         </div>
 
         <p className="flex-1 text-sm font-semibold">{group.nome}</p>
@@ -686,7 +687,7 @@ function GroupCard({
           {group.minSelect > 0 && ` · min ${group.minSelect}`}
           {group.maxSelect != null && ` · max ${group.maxSelect}`}
         </span>
-        <form action={deleteGroupAction}>
+        <ToastForm action={deleteGroupAction}>
           <input type="hidden" name="productId" value={productId} />
           <input type="hidden" name="groupId" value={group.id} />
           <button
@@ -695,14 +696,14 @@ function GroupCard({
           >
             excluir grupo
           </button>
-        </form>
+        </ToastForm>
       </div>
 
       <details>
         <summary className="mono cursor-pointer list-none px-2 py-1.5 text-[10px] uppercase tracking-widest text-[var(--color-ink-mute)] hover:bg-[var(--color-warm)]">
           ▸ config do grupo
         </summary>
-        <form
+        <ToastForm
           action={updateGroupAction}
           className="grid grid-cols-1 gap-2 border-t border-[var(--color-line)] bg-white p-3 md:grid-cols-2"
         >
@@ -748,11 +749,11 @@ function GroupCard({
               salvar grupo
             </button>
           </div>
-        </form>
+        </ToastForm>
       </details>
 
       <div className="border-t border-[var(--color-line)] bg-white p-3">
-        <form action={createModifierAction} className="mb-2 flex flex-wrap gap-2">
+        <ToastForm action={createModifierAction} className="mb-2 flex flex-wrap gap-2">
           <input type="hidden" name="productId" value={productId} />
           <input type="hidden" name="groupId" value={group.id} />
           <input
@@ -775,7 +776,7 @@ function GroupCard({
           >
             + item
           </button>
-        </form>
+        </ToastForm>
 
         {group.modifiers.length === 0 ? (
           <p className="mono py-1 text-center text-[10px] uppercase tracking-widest text-[var(--color-ink-mute)]">
@@ -820,7 +821,7 @@ function ModifierRow({
       }`}
     >
       <div className="flex flex-col">
-        <form action={moveModifierAction}>
+        <ToastForm action={moveModifierAction}>
           <input type="hidden" name="productId" value={productId} />
           <input type="hidden" name="groupId" value={groupId} />
           <input type="hidden" name="id" value={modifier.id} />
@@ -832,8 +833,8 @@ function ModifierRow({
           >
             ▲
           </button>
-        </form>
-        <form action={moveModifierAction}>
+        </ToastForm>
+        <ToastForm action={moveModifierAction}>
           <input type="hidden" name="productId" value={productId} />
           <input type="hidden" name="groupId" value={groupId} />
           <input type="hidden" name="id" value={modifier.id} />
@@ -845,10 +846,10 @@ function ModifierRow({
           >
             ▼
           </button>
-        </form>
+        </ToastForm>
       </div>
 
-      <form action={updateModifierAction} className="flex flex-1 items-center gap-2">
+      <ToastForm action={updateModifierAction} className="flex flex-1 items-center gap-2">
         <input type="hidden" name="productId" value={productId} />
         <input type="hidden" name="groupId" value={groupId} />
         <input type="hidden" name="id" value={modifier.id} />
@@ -871,9 +872,9 @@ function ModifierRow({
         >
           ok
         </button>
-      </form>
+      </ToastForm>
 
-      <form action={toggleModifierAvailableAction}>
+      <ToastForm action={toggleModifierAvailableAction}>
         <input type="hidden" name="productId" value={productId} />
         <input type="hidden" name="groupId" value={groupId} />
         <input type="hidden" name="id" value={modifier.id} />
@@ -883,9 +884,9 @@ function ModifierRow({
         >
           {modifier.isAvailable ? 'pausar' : 'ativar'}
         </button>
-      </form>
+      </ToastForm>
 
-      <form action={deleteModifierAction}>
+      <ToastForm action={deleteModifierAction}>
         <input type="hidden" name="productId" value={productId} />
         <input type="hidden" name="groupId" value={groupId} />
         <input type="hidden" name="id" value={modifier.id} />
@@ -895,7 +896,7 @@ function ModifierRow({
         >
           x
         </button>
-      </form>
+      </ToastForm>
     </li>
   );
 }

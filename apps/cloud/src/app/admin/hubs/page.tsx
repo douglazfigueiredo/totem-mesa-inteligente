@@ -1,6 +1,7 @@
 import { and, eq, gt, isNull } from 'drizzle-orm';
 import { db, schema } from '@/db';
 import { requireOwner } from '@/lib/tenant';
+import { ToastForm } from '@/components/ToastForm';
 import {
   generatePairingCodeAction,
   revokePairingCodeAction,
@@ -64,14 +65,14 @@ export default async function HubsPage() {
           gere um código de 6 dígitos e digite no hub local em <code>/admin/cloud/pair</code>. ele
           troca o código por uma chave permanente.
         </p>
-        <form action={generatePairingCodeAction}>
+        <ToastForm action={generatePairingCodeAction}>
           <button
             type="submit"
             className="rounded-lg bg-[var(--color-accent)] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[var(--color-accent-deep)]"
           >
             gerar código
           </button>
-        </form>
+        </ToastForm>
 
         {activeCodes.length > 0 && (
           <ul className="flex flex-col gap-2 pt-2">
@@ -115,7 +116,7 @@ function PairingCodeRow({ code }: { code: typeof schema.hubPairings.$inferSelect
       <span className="mono flex-1 text-[10px] uppercase tracking-widest text-[var(--color-ink-mute)]">
         expira em {minsLeft}min
       </span>
-      <form action={revokePairingCodeAction}>
+      <ToastForm action={revokePairingCodeAction}>
         <input type="hidden" name="id" value={code.id} />
         <button
           type="submit"
@@ -123,7 +124,7 @@ function PairingCodeRow({ code }: { code: typeof schema.hubPairings.$inferSelect
         >
           revogar
         </button>
-      </form>
+      </ToastForm>
     </li>
   );
 }
@@ -150,7 +151,7 @@ function HubRow({ hub }: { hub: typeof schema.hubs.$inferSelect }) {
           {hub.version && ` · v${hub.version}`} · pareado há {formatRelative(hub.pairedAt)}
         </p>
       </div>
-      <form action={unpairHubAction}>
+      <ToastForm action={unpairHubAction}>
         <input type="hidden" name="id" value={hub.id} />
         <button
           type="submit"
@@ -158,7 +159,7 @@ function HubRow({ hub }: { hub: typeof schema.hubs.$inferSelect }) {
         >
           desparear
         </button>
-      </form>
+      </ToastForm>
     </li>
   );
 }

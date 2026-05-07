@@ -1,9 +1,8 @@
 'use client';
 
-import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
-import { useToastOnResult } from '@/components/Toaster';
-import { updateTenantConfigAction, type ConfigActionState } from './actions';
+import { ToastForm } from '@/components/ToastForm';
+import { updateTenantConfigAction } from './actions';
 
 export type ConfigInitial = {
   nome: string;
@@ -19,15 +18,9 @@ const inputCls =
   'w-full rounded-md border border-[var(--color-line)] bg-white px-3 py-2 text-sm outline-none focus:border-[var(--color-accent)] focus:ring-2 focus:ring-[var(--color-accent)]/20';
 
 export function ConfigForm({ initial }: { initial: ConfigInitial }) {
-  const [state, action] = useActionState<ConfigActionState, FormData>(
-    updateTenantConfigAction,
-    null,
-  );
-  useToastOnResult(state);
-
   return (
-    <form
-      action={action}
+    <ToastForm
+      action={updateTenantConfigAction}
       className="grid grid-cols-1 gap-4 rounded-2xl border border-[var(--color-line)] bg-[var(--color-paper)] p-6 shadow-[var(--shadow-card)] md:grid-cols-2"
     >
       <Field label="nome da loja" full>
@@ -107,7 +100,7 @@ export function ConfigForm({ initial }: { initial: ConfigInitial }) {
       <div className="col-span-full flex justify-end">
         <SubmitButton />
       </div>
-    </form>
+    </ToastForm>
   );
 }
 

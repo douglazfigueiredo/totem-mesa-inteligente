@@ -17,6 +17,12 @@ export type OutboxWorkerOptions = {
   intervalMs?: number;
   batchSize?: number;
   logger?: LoggerLike;
+  /**
+   * Predicado opcional checado antes de cada tick. Quando retorna false,
+   * o worker pula a iteração inteira (não chama push, não markFailed).
+   * Usado pra pausar o outbox quando o hub não está pareado com cloud.
+   */
+  shouldRun?: () => boolean;
 };
 
 export type OutboxHandle = {
@@ -32,6 +38,7 @@ export const startOutboxWorker = (opts: OutboxWorkerOptions): OutboxHandle => {
 
   const tick = async (): Promise<void> => {
     if (stopped || inFlight) return;
+    if (opts.shouldRun && !opts.shouldRun()) return;
     inFlight = true;
     try {
       const pending = opts.repos.outbox.listPending(batchSize);
@@ -65,6 +72,41 @@ export const startOutboxWorker = (opts: OutboxWorkerOptions): OutboxHandle => {
 
 export const noopCloudPusher: CloudPusher = async () => {};
 
+/**
+ * Pusher que lê `cloud_link` a cada chamada — autoaplica novas credenciais
+ * após pair/unpair sem precisar reiniciar o hub. Usar com `shouldRun` no
+ * worker pra evitar tentar quando não há link.
+ */
+export const makeCloudLinkPusher = (repos: Repos): CloudPusher => {
+  return async (entry) => {
+    const link = repos.cloudLink.get();
+    if (!link) throw new Error('NO_CLOUD_LINK');
+
+    const url = new URL('/api/hub/events', link.cloudBaseUrl).toString();
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        authorization: `Bearer ${link.apiKey}`,
+      },
+      body: JSON.stringify({
+        eventId: entry.eventId,
+        tenantId: entry.tenantId,
+        type: entry.type,
+        payload: entry.payload,
+        ts: Date.now(),
+      }),
+    });
+    if (!res.ok) {
+      throw new Error(`cloud push HTTP ${res.status}: ${await res.text().catch(() => '')}`);
+    }
+  };
+};
+
+/**
+ * @deprecated Usar `makeCloudLinkPusher` que lê credenciais do cloud_link
+ * (pareamento dinâmico). Mantido temporariamente pra retrocompat.
+ */
 export const makeHttpCloudPusher = (cloudBaseUrl: string, tenantId: string): CloudPusher => {
   return async (entry) => {
     const res = await fetch(`${cloudBaseUrl}/api/hub/events`, {

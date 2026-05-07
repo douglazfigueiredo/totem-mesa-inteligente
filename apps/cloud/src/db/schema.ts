@@ -7,6 +7,7 @@ import {
   index,
   integer,
   boolean,
+  jsonb,
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -244,6 +245,67 @@ export const modifiers = pgTable(
   }),
 );
 
+/**
+ * order_events — log append-only de eventos vindos do hub local
+ * (POST /api/hub/events). Source of truth pra analytics; nunca alterado.
+ * dedupe por event_id (PK).
+ */
+export const orderEvents = pgTable(
+  'order_events',
+  {
+    eventId: text('event_id').primaryKey(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    hubId: uuid('hub_id').references(() => hubs.id, { onDelete: 'set null' }),
+    type: text('type').notNull(),
+    payload: jsonb('payload').notNull(),
+    causedBy: text('caused_by'),
+    eventTs: timestamp('event_ts', { withTimezone: true }).notNull(),
+    receivedAt: timestamp('received_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    tenantTsIdx: index('order_events_tenant_ts_ix').on(t.tenantId, t.eventTs),
+    tenantTypeIdx: index('order_events_tenant_type_ix').on(t.tenantId, t.type),
+  }),
+);
+
+/**
+ * orders — view materializada derivada de order_events. Atualizada a cada
+ * evento de status (criado/iniciado/pronto/entregue/cancelado). Usada pra
+ * timeline e métricas de analytics. Pode ser regenerada do log se preciso.
+ */
+export const orders = pgTable(
+  'orders',
+  {
+    id: text('id').primaryKey(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    tableId: text('table_id').notNull(),
+    status: text('status').notNull(),
+    destino: text('destino').notNull(),
+    items: jsonb('items').notNull(),
+    subtotalCents: integer('subtotal_cents').notNull(),
+    taxaServicoBps: integer('taxa_servico_bps').notNull(),
+    taxaServicoCents: integer('taxa_servico_cents').notNull(),
+    totalCents: integer('total_cents').notNull(),
+    obs: text('obs'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull(),
+    sentAt: timestamp('sent_at', { withTimezone: true }),
+    preparoStartedAt: timestamp('preparo_started_at', { withTimezone: true }),
+    readyAt: timestamp('ready_at', { withTimezone: true }),
+    deliveredAt: timestamp('delivered_at', { withTimezone: true }),
+    cancelledAt: timestamp('cancelled_at', { withTimezone: true }),
+    cancelReason: text('cancel_reason'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    tenantCreatedIdx: index('orders_tenant_created_ix').on(t.tenantId, t.createdAt),
+    tenantStatusIdx: index('orders_tenant_status_ix').on(t.tenantId, t.status),
+  }),
+);
+
 /* ── NextAuth tables (drizzle adapter) ─────────────────────────────────── */
 /* Prop names em snake_case nas auth-tables são exigidos pelo DrizzleAdapter */
 
@@ -318,3 +380,5 @@ export type NewProduct = typeof products.$inferInsert;
 export type ProductVariant = typeof productVariants.$inferSelect;
 export type ModifierGroup = typeof modifierGroups.$inferSelect;
 export type Modifier = typeof modifiers.$inferSelect;
+export type OrderEvent = typeof orderEvents.$inferSelect;
+export type Order = typeof orders.$inferSelect;

@@ -1,6 +1,6 @@
 # 08 — Cloud SaaS (Painel)
 
-> Status: 6A ✅ · 6B ✅ · 6C ✅ · 6D ✅ · 6F ✅ (config UI + sync). 6E pendente.
+> Status: 6A ✅ · 6B ✅ · 6C ✅ · 6D ✅ · 6E.1 ✅ (ingestão de eventos) · 6F ✅. 6E.2 pendente (dashboard).
 
 App Next.js 15 hospedado na Vercel. Painel multi-tenant para gerentes/donos de loja
 gerenciarem cardápio, mesas, hubs locais, pedidos e config.
@@ -367,11 +367,37 @@ Owner edita → cloud → hub puxa em ≤60s → totem renderiza.
 - `Welcome.tsx` e `MenuLayout.tsx` lêem do `useTenantConfig()` — sem mais constantes
   globais lendo `process.env.NEXT_PUBLIC_*` no topo do arquivo
 
-## 11. Próximas fases gerais
+## 11. Fase 6E — Histórico/analytics
 
-| Fase   | Escopo                                                                              |
-| ------ | ----------------------------------------------------------------------------------- |
-| **6E** | Histórico/analytics: timeline de pedidos, ticket médio, prato campeão, hora de pico |
+Pedidos vivem no SQLite do hub local. Pra ter analytics multi-loja, hub envia eventos
+pro cloud via outbox; cloud persiste num log + materializa estado atual.
+
+### 6E.1 ✅ — Ingestão
+
+**Cloud (migration 0004):**
+- `order_events`: log append-only (eventId pk, tenantId, hubId, type, payload jsonb, eventTs, receivedAt). Indexed em (tenant, ts) e (tenant, type).
+- `orders`: view materializada (id pk, tenantId, tableId, status, items, totais, timestamps de cada transição). Indexed em (tenant, createdAt) e (tenant, status).
+
+**`POST /api/hub/events`**: Bearer hub apiKey, aceita single WSEvent ou array (max 500).
+Valida com `WSEvent` Zod do `@app/schemas`. Rejeita 403 se `event.tenantId !== hub.tenantId`.
+Insere em `order_events` com `onConflictDoNothing(eventId)` (idempotente). Materializa
+em `orders` para `order:created`/`prep:started`/`prep:ready`/`order:delivered`/`order:cancel`.
+Outros eventos (heartbeat, state:sync, waiter:*, etc) ficam só no log. Atualiza
+`hubs.last_seen_at` em fire-and-forget.
+
+Resposta: `{received, inserted, duplicates, materialized}`. Logging estruturado.
+
+**Hub:**
+- novo `makeCloudLinkPusher(repos)` em `workers/outbox.ts` — lê `cloud_link` a cada
+  push (autoaplica novo apiKey após repair)
+- worker `outbox` aceita `shouldRun` predicado opcional; servidor passa
+  `() => repos.cloudLink.get() !== null` pra evitar tentar quando despareado
+- removido env `CLOUD_BASE_URL` do server.ts (toda config vem do `cloud_link`)
+- `makeHttpCloudPusher` legado mantido como `@deprecated` (sem uso)
+
+### 6E.2 — Dashboard (próxima)
+
+Tela `/admin/pedidos` com timeline + métricas (ticket médio, prato campeão, hora de pico).
 
 ## 10. Validação
 
@@ -418,3 +444,9 @@ Owner edita → cloud → hub puxa em ≤60s → totem renderiza.
 - ✅ Totem typecheck + build
 - ✅ Migration hub `0002_real_the_phantom.sql`
 - ⏳ E2E: editar config no painel → ver atualizar no totem em ≤60s
+
+### 6E.1
+- ✅ Cloud typecheck + build (`/api/hub/events` no manifest)
+- ✅ Migration `0004` gerada e aplicada no Neon
+- ✅ Hub typecheck + 80 testes verdes
+- ⏳ E2E: criar pedido no totem → ver chegar em `orders` no cloud em ≤2s

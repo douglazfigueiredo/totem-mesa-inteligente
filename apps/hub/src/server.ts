@@ -13,12 +13,11 @@ import { makeMemoryBroadcaster, makeSocketBroadcaster } from './lib/broadcaster.
 import { createSocketServer } from './sockets/server.js';
 import { startTimerWorker } from './workers/timer.js';
 import { startCatalogPoller } from './workers/catalog-poller.js';
-import { makeHttpCloudPusher, noopCloudPusher, startOutboxWorker } from './workers/outbox.js';
+import { makeCloudLinkPusher, startOutboxWorker } from './workers/outbox.js';
 
 const HOST = process.env.HOST ?? '0.0.0.0';
 const PORT = Number(process.env.PORT ?? 4000);
 const DATABASE_PATH = process.env.DATABASE_PATH ?? './data/hub.db';
-const CLOUD_BASE_URL = process.env.CLOUD_BASE_URL;
 
 async function main() {
   mkdirSync(dirname(DATABASE_PATH), { recursive: true });
@@ -83,14 +82,13 @@ async function main() {
   });
   timerWorkerStop = timerWorker.stop;
 
-  const cloudPusher = CLOUD_BASE_URL
-    ? makeHttpCloudPusher(CLOUD_BASE_URL, tenantId)
-    : noopCloudPusher;
+  const cloudPusher = makeCloudLinkPusher(repos);
   const outboxWorker = startOutboxWorker({
     repos,
     push: cloudPusher,
     intervalMs: 2000,
     logger: app.log,
+    shouldRun: () => repos.cloudLink.get() !== null,
   });
   outboxWorkerStop = outboxWorker.stop;
 
@@ -102,12 +100,13 @@ async function main() {
   });
   pollerStop = poller.stop;
 
+  const cloudLinkAtBoot = repos.cloudLink.get();
   app.log.info(
     {
       tenantId,
       dbPath: DATABASE_PATH,
       bootstrapped: created,
-      cloudPush: CLOUD_BASE_URL ?? 'noop',
+      cloudPush: cloudLinkAtBoot ? cloudLinkAtBoot.cloudBaseUrl : 'unpaired',
     },
     'hub ready',
   );

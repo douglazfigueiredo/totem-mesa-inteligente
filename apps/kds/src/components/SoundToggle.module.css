@@ -1,0 +1,24 @@
+.btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--bg-elev);
+  color: var(--text-soft);
+  border: 1px solid transparent;
+  font-size: 16px;
+  line-height: 1;
+  transition: background 0.15s ease, opacity 0.15s ease;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: rgba(212, 161, 59, 0.18);
+  border-color: rgba(212, 161, 59, 0.35);
+}
+
+.off {
+  opacity: 0.5;
+}

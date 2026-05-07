@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuthStore } from '@/lib/auth-store';
 import { useSocketStore } from '@/lib/socket-client';
+import { SoundToggle } from './SoundToggle';
 import styles from './TopBar.module.css';
 
 const formatClock = (d: Date) =>
@@ -34,6 +35,7 @@ export const TopBar = () => {
         {driftMs !== null && Math.abs(driftMs) > 2000 && (
           <span className={styles.drift}>drift {Math.round(driftMs / 1000)}s</span>
         )}
+        <SoundToggle />
         {employeeNome && (
           <>
             <span className={styles.user}>{employeeNome}</span>

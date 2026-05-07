@@ -1,0 +1,23 @@
+.btn {
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--bg-paper);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  font-size: 16px;
+  line-height: 1;
+  transition: background 0.15s ease, opacity 0.15s ease;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.off {
+  opacity: 0.5;
+}

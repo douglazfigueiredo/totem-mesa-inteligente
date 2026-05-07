@@ -2,6 +2,7 @@
 
 import { useAuthStore } from '@/lib/auth-store';
 import { useWaiterStore } from '@/lib/waiter-store';
+import { SoundToggle } from './SoundToggle';
 import styles from './TopBar.module.css';
 
 export const TopBar = () => {
@@ -21,6 +22,7 @@ export const TopBar = () => {
 
       <div className={styles.right}>
         {pendingCount > 0 && <span className={styles.pendingBadge}>{pendingCount} chamado(s)</span>}
+        <SoundToggle />
         <button type="button" className={styles.logout} onClick={logout}>
           sair
         </button>

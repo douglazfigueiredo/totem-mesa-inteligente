@@ -13,21 +13,24 @@ type Toast = {
 
 type State = {
   toasts: Toast[];
-  push: (tone: Tone, message: string) => void;
+  push: (tone: Tone, message: string, durationMs?: number) => void;
   dismiss: (id: number) => void;
 };
 
 let nextId = 1;
-const AUTO_DISMISS_MS = 4000;
+const DEFAULT_DISMISS_MS = 4000;
+// Mensagens com PIN/credencial ficam mais tempo pra dar tempo de copiar.
+const SECRET_KEYWORDS = /(PIN|código|senha)\s*:/i;
 
 export const useToastStore = create<State>((set) => ({
   toasts: [],
-  push: (tone, message) => {
+  push: (tone, message, durationMs) => {
     const id = nextId++;
+    const ttl = durationMs ?? (SECRET_KEYWORDS.test(message) ? 12_000 : DEFAULT_DISMISS_MS);
     set((s) => ({ toasts: [...s.toasts, { id, tone, message }] }));
     setTimeout(() => {
       set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) }));
-    }, AUTO_DISMISS_MS);
+    }, ttl);
   },
   dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }));

@@ -330,6 +330,32 @@ export const tables = pgTable(
   }),
 );
 
+/**
+ * employees — funcionários da operação (garçom/cozinheiro/caixa/gerente).
+ * Distinct de owners (donos da loja, autenticam por magic-link no admin).
+ * Aqui o login é PIN curto (4-6 dígitos) usado nos terminais (KDS/garçom).
+ * pinHash usa bcrypt — mesmo formato do hub pra sync direto sem rehash.
+ */
+export const employees = pgTable(
+  'employees',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    nome: text('nome').notNull(),
+    pinHash: text('pin_hash').notNull(),
+    roles: jsonb('roles').notNull().$type<string[]>(),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    tenantIdx: index('employees_tenant_ix').on(t.tenantId),
+    tenantActiveIdx: index('employees_tenant_active_ix').on(t.tenantId, t.isActive),
+  }),
+);
+
 /* ── NextAuth tables (drizzle adapter) ─────────────────────────────────── */
 /* Prop names em snake_case nas auth-tables são exigidos pelo DrizzleAdapter */
 
@@ -408,3 +434,5 @@ export type OrderEvent = typeof orderEvents.$inferSelect;
 export type Order = typeof orders.$inferSelect;
 export type Table = typeof tables.$inferSelect;
 export type NewTable = typeof tables.$inferInsert;
+export type Employee = typeof employees.$inferSelect;
+export type NewEmployee = typeof employees.$inferInsert;

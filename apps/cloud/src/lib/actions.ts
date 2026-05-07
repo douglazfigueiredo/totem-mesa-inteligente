@@ -19,11 +19,11 @@ export type ActionState = { ok: boolean; message: string } | null;
  */
 export async function withFeedback(
   successMessage: string,
-  fn: () => Promise<void>,
+  fn: () => Promise<string | void>,
 ): Promise<ActionState> {
   try {
-    await fn();
-    return { ok: true, message: successMessage };
+    const dynamic = await fn();
+    return { ok: true, message: dynamic ?? successMessage };
   } catch (err) {
     if (err instanceof ZodError) {
       const issue = err.issues[0];

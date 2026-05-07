@@ -43,6 +43,13 @@
       "when": 1778189606359,
       "tag": "0005_bizarre_firelord",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778190264326,
+      "tag": "0006_minor_nick_fury",
+      "breakpoints": true
     }
   ]
 }

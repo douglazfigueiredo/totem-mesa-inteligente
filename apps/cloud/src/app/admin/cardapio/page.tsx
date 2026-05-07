@@ -1,4 +1,5 @@
-import { eq } from 'drizzle-orm';
+import Link from 'next/link';
+import { eq, sql } from 'drizzle-orm';
 import { db, schema } from '@/db';
 import { requireOwner } from '@/lib/tenant';
 import {
@@ -17,7 +18,16 @@ export default async function CardapioPage() {
   if (!tenant) return null;
 
   const categories = await db
-    .select()
+    .select({
+      id: schema.categories.id,
+      nome: schema.categories.nome,
+      ordem: schema.categories.ordem,
+      isActive: schema.categories.isActive,
+      productCount: sql<number>`(
+        SELECT COUNT(*)::int FROM ${schema.products}
+        WHERE ${schema.products.categoryId} = ${schema.categories.id}
+      )`,
+    })
     .from(schema.categories)
     .where(eq(schema.categories.tenantId, tenant.id))
     .orderBy(schema.categories.ordem);
@@ -81,12 +91,20 @@ export default async function CardapioPage() {
   );
 }
 
+type CategoryRowData = {
+  id: string;
+  nome: string;
+  ordem: number;
+  isActive: boolean;
+  productCount: number;
+};
+
 function CategoryRow({
   cat,
   isFirst,
   isLast,
 }: {
-  cat: typeof schema.categories.$inferSelect;
+  cat: CategoryRowData;
   isFirst: boolean;
   isLast: boolean;
 }) {
@@ -139,6 +157,13 @@ function CategoryRow({
           salvar
         </button>
       </form>
+
+      <Link
+        href={`/admin/cardapio/${cat.id}`}
+        className="mono rounded px-2 py-1 text-[9px] uppercase tracking-widest text-[var(--color-ink-soft)] hover:bg-[var(--color-warm)] hover:text-[var(--color-ink)]"
+      >
+        {cat.productCount} {cat.productCount === 1 ? 'produto' : 'produtos'} →
+      </Link>
 
       <form action={toggleCategoryActiveAction}>
         <input type="hidden" name="id" value={cat.id} />

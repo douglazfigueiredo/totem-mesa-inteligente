@@ -15,6 +15,13 @@
       "when": 1778170209628,
       "tag": "0001_loose_falcon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778170627429,
+      "tag": "0002_clean_mongu",
+      "breakpoints": true
     }
   ]
 }

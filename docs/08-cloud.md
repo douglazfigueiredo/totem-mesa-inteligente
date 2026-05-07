@@ -1,6 +1,6 @@
 # 08 — Cloud SaaS (Painel)
 
-> Status: 6A ✅ (foundation) · 6B ✅ (auth real) · 6C.1 ✅ (categorias). 6C.2–6F nas próximas sessões.
+> Status: 6A ✅ · 6B ✅ · 6C.1 ✅ · 6C.2 ✅ (produtos). 6C.3–6F nas próximas sessões.
 
 App Next.js 15 hospedado na Vercel. Painel multi-tenant para gerentes/donos de loja
 gerenciarem cardápio, mesas, hubs locais, pedidos e config.
@@ -204,11 +204,32 @@ Server actions em `src/app/admin/cardapio/actions.ts`, validação Zod (nome 1�
 id uuid). Reorder usa swap de `ordem` em duas updates sequenciais (neon-http não suporta
 transactions; sem unique constraint em `ordem` o swap é seguro).
 
-### 6C.2–6C.4 (próximas)
+### 6C.2 ✅ — Produtos
+
+Tabela `products(id, tenant_id, category_id, nome, descricao?, image_url?,
+base_price_cents, destino, tempo_estimado_sec, is_available, is_vegetarian,
+is_gluten_free, ordem, ...)` com index `(category_id, ordem)`.
+
+UI em `/admin/cardapio/[categoryId]`:
+
+- breadcrumb pra voltar pro cardápio
+- formulário inline pra criar (nome + preço em R$)
+- lista com row colapsado (foto, nome, preço, destino, tempo) + `<details>` pra editar
+- editor expandido: nome, preço, descrição, URL da foto, destino (cozinha/garçom),
+  tempo estimado, flags vegetariano/sem glúten
+- pausar (toggle isAvailable), reorder ↑/↓, excluir
+- contador de produtos por categoria na lista de categorias (subquery)
+
+Foto via **URL externa** (campo `image_url` validado). Upload via Vercel Blob fica
+pra fase posterior (provavelmente 6C.5 ou config da loja).
+
+Server actions em `[categoryId]/actions.ts` validam tudo com Zod e parse de preço
+em reais → cents (aceita vírgula ou ponto).
+
+### 6C.3–6C.4 (próximas)
 
 | Fase     | Escopo                                                                              |
 | -------- | ----------------------------------------------------------------------------------- |
-| **6C.2** | CRUD de Produtos (campos base + foto por URL externa)                               |
 | **6C.3** | Variants + Modifier groups + Modifiers aninhados no edit do produto                 |
 | **6C.4** | `GET /api/catalog/snapshot` autenticado por hub apiKey (pré-requisito da 6D)        |
 
@@ -237,3 +258,8 @@ transactions; sem unique constraint em `ordem` o swap é seguro).
 - ✅ Typecheck + Build
 - ✅ Migration `0001` gerada
 - ⏳ Smoke test (criar/renomear/reorder/excluir) depende de DB local
+
+### 6C.2
+- ✅ Typecheck + Build
+- ✅ Migration `0002` gerada
+- ⏳ Smoke test (criar produto, editar campos, pausar, reorder, excluir)

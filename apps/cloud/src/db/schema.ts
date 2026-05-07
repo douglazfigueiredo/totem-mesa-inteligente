@@ -141,6 +141,40 @@ export const categories = pgTable(
   }),
 );
 
+/**
+ * products — itens vendáveis do cardápio.
+ * `destino` decide se vai pro KDS ('cozinha') ou aparece direto no app
+ * do garçom ('garcom'). Variants e modifierGroups chegam na 6C.3.
+ */
+export const products = pgTable(
+  'products',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    categoryId: uuid('category_id')
+      .notNull()
+      .references(() => categories.id, { onDelete: 'cascade' }),
+    nome: text('nome').notNull(),
+    descricao: text('descricao'),
+    imageUrl: text('image_url'),
+    basePriceCents: integer('base_price_cents').notNull(),
+    destino: text('destino').notNull().default('cozinha'),
+    tempoEstimadoSec: integer('tempo_estimado_sec').notNull().default(0),
+    isAvailable: boolean('is_available').notNull().default(true),
+    isVegetarian: boolean('is_vegetarian').notNull().default(false),
+    isGlutenFree: boolean('is_gluten_free').notNull().default(false),
+    ordem: integer('ordem').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    tenantIdx: index('products_tenant_ix').on(t.tenantId),
+    categoryOrdemIdx: index('products_category_ordem_ix').on(t.categoryId, t.ordem),
+  }),
+);
+
 /* ── NextAuth tables (drizzle adapter) ─────────────────────────────────── */
 /* Prop names em snake_case nas auth-tables são exigidos pelo DrizzleAdapter */
 
@@ -210,3 +244,5 @@ export type Hub = typeof hubs.$inferSelect;
 export type HubPairing = typeof hubPairings.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;
+export type Product = typeof products.$inferSelect;
+export type NewProduct = typeof products.$inferInsert;

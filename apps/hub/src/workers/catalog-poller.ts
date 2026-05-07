@@ -1,4 +1,4 @@
-import { CatalogSnapshot, TenantConfig, type TenantId } from '@app/schemas';
+import { CatalogSnapshot, TablesSnapshot, TenantConfig, type TenantId } from '@app/schemas';
 import type { Repos } from '../repositories/index.js';
 import type { Broadcaster } from '../lib/broadcaster.js';
 import { makeEvent } from '../lib/events.js';
@@ -72,6 +72,40 @@ export const startCatalogPoller = (opts: CatalogPollerOptions): PollerHandle => 
     return { kind: 'ok' as const };
   };
 
+  let lastTablesUpdatedAt: number | null = null;
+  const fetchTables = async (cloudBaseUrl: string, apiKey: string) => {
+    const url = new URL('/api/tables', cloudBaseUrl).toString();
+    const res = await fetchImpl(url, { headers: { authorization: `Bearer ${apiKey}` } });
+    if (res.status === 401) {
+      log?.error({ status: 401, target: 'tables' }, '[catalog-poller] cloud rejeitou apiKey');
+      return { kind: 'auth-error' as const };
+    }
+    if (!res.ok) {
+      log?.warn({ status: res.status, target: 'tables' }, '[catalog-poller] resposta não-ok');
+      return { kind: 'http-error' as const };
+    }
+    const json = await res.json();
+    const parsed = TablesSnapshot.safeParse(json);
+    if (!parsed.success) {
+      log?.error(
+        { target: 'tables', issues: parsed.error.issues },
+        '[catalog-poller] tables snapshot inválido',
+      );
+      return { kind: 'parse-error' as const };
+    }
+    if (lastTablesUpdatedAt === parsed.data.updatedAt) return { kind: 'unchanged' as const };
+    const result = opts.repos.tables.upsertFromCloud(
+      parsed.data.tenantId as TenantId,
+      parsed.data.tables,
+    );
+    lastTablesUpdatedAt = parsed.data.updatedAt;
+    log?.info(
+      { tenantId: parsed.data.tenantId, ...result },
+      '[catalog-poller] tables sincronizadas',
+    );
+    return { kind: 'ok' as const };
+  };
+
   const fetchTenantConfig = async (cloudBaseUrl: string, apiKey: string) => {
     const url = new URL('/api/tenant/config', cloudBaseUrl).toString();
     const res = await fetchImpl(url, { headers: { authorization: `Bearer ${apiKey}` } });
@@ -116,12 +150,13 @@ export const startCatalogPoller = (opts: CatalogPollerOptions): PollerHandle => 
     if (!link) return;
 
     try {
-      const [snapshotResult, configResult] = await Promise.all([
+      const [snapshotResult, configResult, tablesResult] = await Promise.all([
         fetchSnapshot(link.cloudBaseUrl, link.apiKey, link.lastSyncVersion ?? null),
         fetchTenantConfig(link.cloudBaseUrl, link.apiKey),
+        fetchTables(link.cloudBaseUrl, link.apiKey),
       ]);
 
-      const hadError = [snapshotResult.kind, configResult.kind].some(
+      const hadError = [snapshotResult.kind, configResult.kind, tablesResult.kind].some(
         (k) => k === 'auth-error' || k === 'http-error' || k === 'parse-error',
       );
       if (hadError) bumpBackoff();

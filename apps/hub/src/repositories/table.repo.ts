@@ -2,7 +2,7 @@ import { asc, eq } from 'drizzle-orm';
 import { tables } from '../db/schema.js';
 import type { DBClient } from '../db/index.js';
 import type { Clock } from '../lib/clock.js';
-import { Table, type TableId, type TenantId } from '@app/schemas';
+import { Table, type TableConfig, type TableId, type TenantId } from '@app/schemas';
 
 export const makeTableRepo = (db: DBClient, _clock: Clock) => ({
   list(tenantId: TenantId): Table[] {
@@ -24,6 +24,48 @@ export const makeTableRepo = (db: DBClient, _clock: Clock) => ({
     const row = db.select().from(tables).where(eq(tables.id, id)).get();
     if (!row) return null;
     return Table.parse({ ...row, sessionStartedAt: row.sessionStartedAt ?? undefined });
+  },
+
+  /**
+   * Sincroniza a lista de mesas vinda do cloud. Para cada TableConfig:
+   * - se já existe (mesmo id), atualiza numero/capacidade/isActive
+   * - se não existe, insere (status default 'livre')
+   *
+   * Não remove mesas locais ausentes do snapshot — FKs com orders/devices
+   * impediriam o DELETE. Gerente deve desativar (isActive=false) no cloud
+   * pra "remover" da operação.
+   */
+  upsertFromCloud(
+    tenantId: TenantId,
+    snapshot: TableConfig[],
+  ): { inserted: number; updated: number } {
+    let inserted = 0;
+    let updated = 0;
+    db.transaction((tx) => {
+      for (const t of snapshot) {
+        const existing = tx.select().from(tables).where(eq(tables.id, t.id)).get();
+        if (existing) {
+          tx.update(tables)
+            .set({ numero: t.numero, capacidade: t.capacidade, isActive: t.isActive })
+            .where(eq(tables.id, t.id))
+            .run();
+          updated++;
+        } else {
+          tx.insert(tables)
+            .values({
+              id: t.id,
+              tenantId,
+              numero: t.numero,
+              capacidade: t.capacidade,
+              isActive: t.isActive,
+              status: 'livre',
+            })
+            .run();
+          inserted++;
+        }
+      }
+    });
+    return { inserted, updated };
   },
 });
 

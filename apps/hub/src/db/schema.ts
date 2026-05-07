@@ -48,6 +48,7 @@ export const tables = sqliteTable(
     capacidade: integer('capacidade').notNull().default(4),
     status: text('status').$type<TableStatus>().notNull().default('livre'),
     sessionStartedAt: ts('session_started_at'),
+    isActive: integer('is_active', { mode: 'boolean' }).notNull().default(true),
   },
   (t) => ({
     tenantNumeroUx: uniqueIndex('tables_tenant_numero_ux').on(t.tenantId, t.numero),

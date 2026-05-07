@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { eq, sql } from 'drizzle-orm';
+import { count, eq } from 'drizzle-orm';
 import { db, schema } from '@/db';
 import { requireOwner } from '@/lib/tenant';
 import {
@@ -23,13 +23,12 @@ export default async function CardapioPage() {
       nome: schema.categories.nome,
       ordem: schema.categories.ordem,
       isActive: schema.categories.isActive,
-      productCount: sql<number>`(
-        SELECT COUNT(*)::int FROM ${schema.products}
-        WHERE ${schema.products.categoryId} = ${schema.categories.id}
-      )`,
+      productCount: count(schema.products.id),
     })
     .from(schema.categories)
+    .leftJoin(schema.products, eq(schema.products.categoryId, schema.categories.id))
     .where(eq(schema.categories.tenantId, tenant.id))
+    .groupBy(schema.categories.id)
     .orderBy(schema.categories.ordem);
 
   return (

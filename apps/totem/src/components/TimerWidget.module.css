@@ -1,7 +1,7 @@
 .pill {
   position: fixed;
-  bottom: 24px;
-  left: 24px;
+  bottom: 88px;
+  right: 24px;
   display: flex;
   align-items: center;
   gap: 12px;

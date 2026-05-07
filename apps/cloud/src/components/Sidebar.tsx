@@ -49,7 +49,7 @@ export const Sidebar = () => {
 
       <div className="border-t border-[var(--color-line)] p-4">
         <p className="mono text-[10px] uppercase tracking-widest text-[var(--color-ink-mute)]">
-          fase 6H ✓ · funcionários
+          fase 9B ✓ · deploy
         </p>
       </div>
     </aside>

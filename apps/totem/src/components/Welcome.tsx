@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
-import { ActiveOrders } from './ActiveOrders';
+import { useOrdersStore } from '@/lib/orders-store';
 import { WaiterCallModal } from './WaiterCallModal';
 import styles from './Welcome.module.css';
 
@@ -25,11 +25,30 @@ export const Welcome = () => {
   const router = useRouter();
   const tableNumero = useAuthStore((s) => s.tableNumero);
   const clear = useAuthStore((s) => s.clear);
+  const ordersMap = useOrdersStore((s) => s.orders);
   const [waiterOpen, setWaiterOpen] = useState(false);
 
   const mesaLabel = `mesa ${String(tableNumero ?? '?').padStart(2, '0')}`;
   const greet = greeting();
   const greetParts = greet.split(' ');
+
+  const { activeCount, latestActiveId, latestStatus } = useMemo(() => {
+    let n = 0;
+    let latestId: string | null = null;
+    let latestAt = 0;
+    let status = '';
+    for (const o of ordersMap.values()) {
+      if (['criado', 'enviado', 'preparando', 'pronto'].includes(o.status)) {
+        n++;
+        if (o.createdAt > latestAt) {
+          latestAt = o.createdAt;
+          latestId = o.id;
+          status = o.status;
+        }
+      }
+    }
+    return { activeCount: n, latestActiveId: latestId, latestStatus: status };
+  }, [ordersMap]);
 
   return (
     <main className={`${styles.wrap} fade-up`}>
@@ -38,6 +57,22 @@ export const Welcome = () => {
           <span className={styles.brand}>{TENANT_BRAND}</span>
           <span className={styles.tag}>{mesaLabel}</span>
         </div>
+
+        {activeCount > 0 && latestActiveId && (
+          <button
+            className={`${styles.activeBadge} ${latestStatus === 'pronto' ? styles.activeBadgeReady : ''}`}
+            onClick={() => router.push(`/track/${latestActiveId}`)}
+          >
+            <span className={styles.activeDot} />
+            <span className={styles.activeText}>
+              {activeCount} pedido{activeCount > 1 ? 's' : ''}{' '}
+              {latestStatus === 'pronto' ? 'pronto' : 'em preparo'}
+            </span>
+            <span className={styles.activeArrow} aria-hidden>
+              →
+            </span>
+          </button>
+        )}
       </header>
 
       <section className={styles.grid}>
@@ -78,7 +113,6 @@ export const Welcome = () => {
           </div>
 
           <div className={styles.footer}>
-            <ActiveOrders />
             <p className={styles.wifi}>
               WiFi · {WIFI_SSID} <span className={styles.wifiSep}>·</span> senha · {WIFI_PASS}
             </p>

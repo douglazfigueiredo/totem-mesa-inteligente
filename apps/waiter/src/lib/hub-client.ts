@@ -1,6 +1,28 @@
 'use client';
 
-const HUB_URL = process.env.NEXT_PUBLIC_HUB_URL ?? 'http://localhost:4000';
+/**
+ * Resolve a URL do hub: query string `?hub=...` (salva em localStorage)
+ * → localStorage.hubUrl → NEXT_PUBLIC_HUB_URL.
+ */
+const resolveHubUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const fromQuery = params.get('hub');
+      if (fromQuery) {
+        localStorage.setItem('hubUrl', fromQuery);
+        return fromQuery;
+      }
+      const stored = localStorage.getItem('hubUrl');
+      if (stored) return stored;
+    } catch {
+      // localStorage indisponível
+    }
+  }
+  return process.env.NEXT_PUBLIC_HUB_URL ?? 'http://localhost:4000';
+};
+
+const HUB_URL = resolveHubUrl();
 
 export class HubError extends Error {
   readonly status: number;

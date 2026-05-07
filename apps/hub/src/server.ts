@@ -96,6 +96,7 @@ async function main() {
 
   const poller = startCatalogPoller({
     repos,
+    broadcaster: realBroadcaster,
     intervalMs: Number(process.env.CATALOG_POLL_INTERVAL_MS ?? 60_000),
     logger: app.log,
   });

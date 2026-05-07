@@ -241,8 +241,8 @@ describe('WSEvent (discriminated union)', () => {
     expect(aOrderCreate().type).toBe('order:create');
   });
 
-  it('WSEvent reconhece todos os 16 tipos', () => {
-    expect(WS_EVENT_TYPES).toHaveLength(16);
+  it('WSEvent reconhece todos os 17 tipos', () => {
+    expect(WS_EVENT_TYPES).toHaveLength(17);
   });
 
   it('WSEvent rejeita tipo desconhecido', () => {

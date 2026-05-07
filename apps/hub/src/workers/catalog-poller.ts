@@ -1,5 +1,7 @@
-import { CatalogSnapshot, TenantConfig } from '@app/schemas';
+import { CatalogSnapshot, TenantConfig, type TenantId } from '@app/schemas';
 import type { Repos } from '../repositories/index.js';
+import type { Broadcaster } from '../lib/broadcaster.js';
+import { makeEvent } from '../lib/events.js';
 
 type LoggerLike = {
   info: (obj: object, msg?: string) => void;
@@ -9,6 +11,7 @@ type LoggerLike = {
 
 export type CatalogPollerOptions = {
   repos: Repos;
+  broadcaster?: Broadcaster;
   intervalMs?: number;
   logger?: LoggerLike;
   fetchImpl?: typeof fetch;
@@ -96,6 +99,14 @@ export const startCatalogPoller = (opts: CatalogPollerOptions): PollerHandle => 
       { tenantId: parsed.data.tenantId, updatedAt: parsed.data.updatedAt },
       '[catalog-poller] tenant config atualizada',
     );
+    if (opts.broadcaster) {
+      const event = makeEvent(
+        'tenant:config-updated',
+        parsed.data.tenantId as TenantId,
+        { updatedAt: parsed.data.updatedAt },
+      );
+      opts.broadcaster.broadcast(event);
+    }
     return { kind: 'ok' as const };
   };
 

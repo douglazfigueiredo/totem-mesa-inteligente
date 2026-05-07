@@ -191,6 +191,19 @@ export const HeartbeatEvent = z.object({
   }),
 });
 
+/**
+ * Hub broadcasta esse evento quando o catalog-poller detecta config nova
+ * vinda da cloud. Devices (totem) reagem fazendo refetch de /tenant/config.
+ * Payload mínimo — clients buscam state via REST (não confiam no payload).
+ */
+export const TenantConfigUpdatedEvent = z.object({
+  ...baseEnvelope,
+  type: z.literal('tenant:config-updated'),
+  payload: z.object({
+    updatedAt: TimestampMs,
+  }),
+});
+
 export const WSEvent = z.discriminatedUnion('type', [
   OrderCreateEvent,
   OrderCreatedEvent,
@@ -208,6 +221,7 @@ export const WSEvent = z.discriminatedUnion('type', [
   PaymentConfirmedEvent,
   StateSyncEvent,
   HeartbeatEvent,
+  TenantConfigUpdatedEvent,
 ]);
 export type WSEvent = z.infer<typeof WSEvent>;
 
@@ -232,6 +246,7 @@ export const WS_EVENT_TYPES = [
   'payment:confirmed',
   'state:sync',
   'heartbeat',
+  'tenant:config-updated',
 ] as const satisfies ReadonlyArray<WSEventType>;
 
 export type ItemDestinoType = z.infer<typeof ItemDestino>;

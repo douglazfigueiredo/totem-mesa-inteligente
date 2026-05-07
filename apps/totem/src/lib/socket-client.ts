@@ -7,6 +7,7 @@ import type { Order, Preparo, WSEvent } from '@app/schemas';
 import { HUB_URL } from './hub-client';
 import { useAuthStore } from './auth-store';
 import { useOrdersStore } from './orders-store';
+import { useTenantConfigStore } from './tenant-config-store';
 
 export type ConnectionState = 'idle' | 'connecting' | 'connected' | 'reconnecting' | 'offline';
 
@@ -92,6 +93,10 @@ export const useSocketLifecycle = () => {
     socket.on('event', (raw: unknown) => {
       try {
         const ev = raw as WSEvent;
+        if (ev.type === 'tenant:config-updated') {
+          useTenantConfigStore.getState().load(apiKey);
+          return;
+        }
         useOrdersStore.getState().applyEvent(ev);
       } catch {
         // silent — invalid event

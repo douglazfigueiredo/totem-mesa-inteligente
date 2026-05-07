@@ -12,7 +12,7 @@ type State = {
   load: (apiKey: string) => Promise<void>;
 };
 
-const useStore = create<State>((set, get) => ({
+export const useTenantConfigStore = create<State>((set, get) => ({
   config: null,
   hydratedAt: null,
   load: async (apiKey: string) => {
@@ -52,7 +52,7 @@ export type ResolvedTenantConfig = {
  * Sempre retorna strings prontas pra renderizar (sem null).
  */
 export function useTenantConfig(): ResolvedTenantConfig {
-  const config = useStore((s) => s.config);
+  const config = useTenantConfigStore((s) => s.config);
   return {
     brand: config?.brand?.trim() || config?.nome?.trim() || ENV.brand,
     area: config?.area?.trim() || ENV.area,
@@ -69,7 +69,7 @@ export function useTenantConfig(): ResolvedTenantConfig {
  */
 export function useTenantConfigLoader() {
   const apiKey = useAuthStore((s) => s.apiKey);
-  const load = useStore((s) => s.load);
+  const load = useTenantConfigStore((s) => s.load);
 
   useEffect(() => {
     if (!apiKey) return;

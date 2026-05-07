@@ -4,7 +4,7 @@
   grid-template-columns: 1.3fr 1fr;
   gap: 24px;
   padding: 28px;
-  align-items: start;
+  align-items: stretch;
   min-height: 0;
 }
 
@@ -22,7 +22,6 @@
   align-items: center;
   justify-content: center;
   gap: 14px;
-  padding: 24px 12px;
 }
 
 .right {

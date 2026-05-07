@@ -29,7 +29,6 @@ export default function TrackPage({ params }: { params: Promise<{ orderId: strin
   if (!hydrated || !isPaired(auth)) return <main style={{ flex: 1 }} />;
 
   const orderShort = orderId.slice(-4).toUpperCase();
-  const itemsLine = order ? order.items.map((i) => i.nome).join(', ') : '';
 
   const statusForCard = (s: string): { label: string; cls: string } => {
     if (s === 'pronto') return { label: 'pronto ✓', cls: styles.dotReady };
@@ -56,8 +55,7 @@ export default function TrackPage({ params }: { params: Promise<{ orderId: strin
               <span className={styles.headLabel}>
                 {preparo.status === 'pronto' ? 'pronto' : 'preparando'} · pedido #{orderShort}
               </span>
-              <TimerRing preparo={preparo} size={180} strokeWidth={10} />
-              {itemsLine && <p className={styles.itemsLine}>{itemsLine}</p>}
+              <TimerRing preparo={preparo} size={240} strokeWidth={12} />
               <button className={styles.ghostLink} onClick={() => router.push('/menu')}>
                 + pedir mais
               </button>

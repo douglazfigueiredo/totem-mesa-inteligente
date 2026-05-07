@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+    <title>TotemMesa — sem conexão</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { margin: 0; padding: 0; height: 100%; }
+      body {
+        font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+        background: #ebe2ce;
+        color: #2a1f17;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+      }
+      .card {
+        max-width: 480px;
+        text-align: center;
+      }
+      .emoji {
+        font-size: 72px;
+        display: block;
+        margin-bottom: 12px;
+      }
+      .meta {
+        font-family: ui-monospace, "JetBrains Mono", monospace;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        opacity: 0.55;
+        margin-bottom: 12px;
+      }
+      h1 {
+        font-size: 32px;
+        font-weight: 700;
+        margin: 0 0 12px;
+      }
+      p {
+        font-size: 15px;
+        opacity: 0.8;
+        margin: 0 0 24px;
+      }
+      button {
+        padding: 14px 28px;
+        border-radius: 12px;
+        background: #c14a26;
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      button:hover { opacity: 0.92; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <span class="emoji">📡</span>
+      <p class="meta">sem conexão</p>
+      <h1>totem fora do ar</h1>
+      <p>
+        verifique se o WiFi está conectado e o hub da loja está ligado. tentaremos
+        reconectar automaticamente.
+      </p>
+      <button type="button" onclick="window.location.reload()">recarregar</button>
+    </div>
+  </body>
+</html>

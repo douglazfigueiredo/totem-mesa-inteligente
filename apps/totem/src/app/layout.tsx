@@ -6,6 +6,7 @@ import { ConnectionBadge } from '@/components/ConnectionBadge';
 import { TimerWidget } from '@/components/TimerWidget';
 import { ReadyOverlay } from '@/components/ReadyOverlay';
 import { UnavailableModal } from '@/components/UnavailableModal';
+import { SwRegister } from '@/components/SwRegister';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -52,6 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <TimerWidget />
           <ReadyOverlay />
           <UnavailableModal />
+          <SwRegister />
         </SocketProvider>
       </body>
     </html>

@@ -34,3 +34,8 @@ apps/hub/*.db-shm
 
 deploy/hub/.env
 deploy/hub/data/
+
+# Playwright
+playwright-report/
+test-results/
+playwright/.cache/

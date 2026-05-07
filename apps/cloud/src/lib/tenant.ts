@@ -19,6 +19,27 @@ export type CurrentOwner = {
 const ACTIVE_TENANT_COOKIE = 'active_tenant_slug';
 
 export async function getCurrentOwner(): Promise<CurrentOwner | null> {
+  // Bypass pra E2E — só funciona em ambientes não-produção. Pega o
+  // primeiro owner do DB (seed de E2E garante que há exatamente um).
+  if (process.env.E2E_BYPASS_AUTH === 'true' && process.env.NODE_ENV !== 'production') {
+    const [first] = await db.select().from(schema.owners).limit(1);
+    if (!first) return null;
+    const rows = await db
+      .select({ tenant: schema.tenants, role: schema.tenantOwners.role })
+      .from(schema.tenantOwners)
+      .innerJoin(schema.tenants, eq(schema.tenantOwners.tenantId, schema.tenants.id))
+      .where(eq(schema.tenantOwners.ownerId, first.id));
+    const tenants: OwnerTenant[] = rows.map((r) => ({ ...r.tenant, role: r.role }));
+    return {
+      ownerId: first.id,
+      email: first.email ?? '',
+      name: first.name ?? null,
+      image: first.image ?? null,
+      tenants,
+      activeTenant: tenants[0] ?? null,
+    };
+  }
+
   const session = await auth();
   if (!session?.user) return null;
 

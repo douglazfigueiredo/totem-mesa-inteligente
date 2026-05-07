@@ -1,6 +1,6 @@
 # 08 — Cloud SaaS (Painel)
 
-> Status: 6A ✅ · 6B ✅ · 6C ✅ · 6D ✅ · 6E.1 ✅ (ingestão de eventos) · 6F ✅. 6E.2 pendente (dashboard).
+> Status: **fase 6 completa** ✅ — 6A foundation, 6B auth, 6C cardápio, 6D pareamento, 6E analytics, 6F config. Próxima: fase 7 (pagamento).
 
 App Next.js 15 hospedado na Vercel. Painel multi-tenant para gerentes/donos de loja
 gerenciarem cardápio, mesas, hubs locais, pedidos e config.
@@ -395,9 +395,17 @@ Resposta: `{received, inserted, duplicates, materialized}`. Logging estruturado.
 - removido env `CLOUD_BASE_URL` do server.ts (toda config vem do `cloud_link`)
 - `makeHttpCloudPusher` legado mantido como `@deprecated` (sem uso)
 
-### 6E.2 — Dashboard (próxima)
+### 6E.2 ✅ — Dashboard `/admin/pedidos`
 
-Tela `/admin/pedidos` com timeline + métricas (ticket médio, prato campeão, hora de pico).
+Server-rendered usando Drizzle aggregates direto na view materializada `orders`.
+
+- **Filtros de período**: tabs `hoje / 7 dias / 30 dias` via `?period=` searchParam
+- **3 metric cards**: total no período (com count de cancelados), ticket médio (R$ — exclui cancelados), prato campeão (nome + qty)
+- **Hora de pico**: bar chart CSS-only de 24 barras com altura proporcional, label nas horas múltiplas de 4. Header mostra "pico às NNh"
+- **Timeline**: lista dos últimos 50 pedidos com data/hora, resumo dos itens, status badge tonal (preparando/pronto/entregue/cancelado em cores diferentes), valor total
+- **Prato campeão**: agregado em JS a partir do `items` (jsonb) — soma `qty` por `productId`, escolhe o top. `OrderItem.nome` é snapshot no pedido, então não precisa JOIN com products
+
+Queries em paralelo via `Promise.all` — 5 queries separadas (count, avg, hour buckets, status breakdown, recent orders).
 
 ## 10. Validação
 
@@ -449,4 +457,9 @@ Tela `/admin/pedidos` com timeline + métricas (ticket médio, prato campeão, h
 - ✅ Cloud typecheck + build (`/api/hub/events` no manifest)
 - ✅ Migration `0004` gerada e aplicada no Neon
 - ✅ Hub typecheck + 80 testes verdes
-- ⏳ E2E: criar pedido no totem → ver chegar em `orders` no cloud em ≤2s
+- ✅ E2E validado: pedido no totem → `orders` materializada no Neon em ~2s
+
+### 6E.2
+- ✅ Cloud typecheck + build (`/admin/pedidos` no manifest)
+- ✅ 5 queries em paralelo (count, avg, hour buckets, status breakdown, recent)
+- ⏳ Smoke test no painel — gerar pedido e ver as métricas atualizarem

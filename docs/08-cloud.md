@@ -1,6 +1,6 @@
 # 08 — Cloud SaaS (Painel)
 
-> Status: 6A ✅ · 6B ✅ · 6C ✅ (cardápio completo). 6D–6F nas próximas sessões.
+> Status: 6A ✅ · 6B ✅ · 6C ✅ · 6D ✅ (pareamento hub↔cloud + poller). 6E–6F nas próximas sessões.
 
 App Next.js 15 hospedado na Vercel. Painel multi-tenant para gerentes/donos de loja
 gerenciarem cardápio, mesas, hubs locais, pedidos e config.
@@ -288,11 +288,58 @@ pnpm --filter @app/cloud db:seed
 curl -H "Authorization: Bearer <DEV_HUB_API_KEY>" \
   http://localhost:3000/api/catalog/snapshot | jq
 
-## 9. Próximas fases gerais
+## 9. Fase 6D — Pareamento hub ↔ cloud
+
+Fluxo completo de "ligar um hub local na cloud" + sync periódico do cardápio.
+
+### Cloud
+
+- **UI `/admin/hubs`**: gera código de 6 dígitos (TTL 10min), lista códigos ativos com countdown,
+  lista hubs pareados com indicador online/offline (last_seen_at < 2min = verde), permite revogar
+  códigos e desparear hubs.
+- **Server actions** em `app/admin/hubs/actions.ts`:
+  - `generatePairingCodeAction`: insere `hub_pairings` row, expira em 10min
+  - `revokePairingCodeAction`: deleta código não-consumido
+  - `unpairHubAction`: deleta hub (cascade na FK)
+- **`POST /api/hub/pair`**: público, valida `{code, hubName?}`, busca pairing
+  ativo (não consumido, não expirado), gera `apiKey = randomBytes(32).hex`, cria
+  `hubs` row, marca pairing como consumed. Logging estruturado (start/done/error
+  com requestId + ms). Retorna `{apiKey, tenantId, tenantSlug, tenantNome, hubId, hubNome, pairedAt}`.
+
+### Hub
+
+- **Tabela `cloud_link`** (singleton com `id='singleton'`): `cloudBaseUrl, tenantId,
+  tenantNome, hubId, hubNome, apiKey, pairedAt, lastSyncAt?, lastSyncVersion?`
+  (migration `0001_nostalgic_shadowcat.sql`).
+- **Repo `cloudLink`**: `get()`, `set(link)`, `markSynced(version)`, `clear()`.
+- **Rotas admin** (`x-admin-secret`):
+  - `GET /admin/cloud/status`: `{paired, ...}` ou `{paired: false}`
+  - `POST /admin/cloud/pair {code, cloudBaseUrl?, hubName?}`: chama cloud `/api/hub/pair`,
+    valida resposta com Zod, persiste link
+  - `POST /admin/cloud/unpair`: limpa link
+- **Worker `catalog-poller`**: a cada 60s (configurável via `CATALOG_POLL_INTERVAL_MS`),
+  lê `cloud_link`, faz `GET /api/catalog/snapshot` com `Authorization: Bearer apiKey`,
+  valida `CatalogSnapshot`, compara `version`, chama `repos.catalog.replace()` se mudou,
+  atualiza `lastSyncAt + lastSyncVersion`. Backoff exponencial 5s→5min em erro/401.
+
+### Como parear (procedimento real)
+
+```bash
+# No painel cloud (logado): /admin/hubs → "gerar código" → copia 123456
+
+# No hub local:
+curl -X POST http://hub.local:4000/admin/cloud/pair \
+  -H "x-admin-secret: $ADMIN_SECRET" \
+  -H "content-type: application/json" \
+  -d '{"code":"123456","cloudBaseUrl":"https://cloud.totemmesa.com"}'
+
+# Hub começa a puxar /api/catalog/snapshot a cada 60s automaticamente
+```
+
+## 10. Próximas fases gerais
 
 | Fase   | Escopo                                                                                                                                                        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **6D** | Pareamento hub ↔ cloud: cloud gera token, hub `/admin/pair-with-cloud` registra-se, recebe `cloudApiKey` + `tenantId`. Cloud puxa cardápio. Hub envia outbox. |
 | **6E** | Histórico/analytics: timeline de pedidos, ticket médio, prato campeão, hora de pico                                                                           |
 | **6F** | Tenant config UI — substitui as env vars do totem (`TENANT_BRAND`, `TENANT_AREA`, `TENANT_SINCE`, `TENANT_HERO_IMG`, `WIFI_*`)                                |
 
@@ -328,3 +375,10 @@ curl -H "Authorization: Bearer <DEV_HUB_API_KEY>" \
 - ✅ Typecheck + Build (rota `/api/catalog/snapshot` aparece no manifest)
 - ✅ Validação Zod do snapshot antes de retornar
 - ⏳ Smoke test com curl + DEV_HUB_API_KEY
+
+### 6D
+- ✅ Cloud typecheck + build (`/admin/hubs`, `/api/hub/pair` no manifest)
+- ✅ Hub typecheck + 80 testes existentes verdes
+- ✅ Migration hub `0001_nostalgic_shadowcat.sql`
+- ⏳ E2E smoke: gerar código no cloud → POST `/admin/cloud/pair` no hub →
+  poller faz GET `/api/catalog/snapshot` automaticamente

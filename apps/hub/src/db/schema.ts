@@ -241,6 +241,25 @@ export const heartbeats = sqliteTable('heartbeats', {
   rttMsP95: integer('rtt_ms_p95'),
 });
 
+/**
+ * cloud_link — singleton com a credencial do hub no cloud SaaS.
+ * Após pareamento (POST /admin/cloud/pair), guarda apiKey + tenantId
+ * pra autenticar requests subsequentes (puxar cardápio, enviar outbox).
+ * Sempre 0 ou 1 row (id fixo = 'singleton').
+ */
+export const cloudLink = sqliteTable('cloud_link', {
+  id: text('id').primaryKey().default('singleton'),
+  cloudBaseUrl: text('cloud_base_url').notNull(),
+  tenantId: text('tenant_id').notNull(),
+  tenantNome: text('tenant_nome').notNull(),
+  hubId: text('hub_id').notNull(),
+  hubNome: text('hub_nome').notNull(),
+  apiKey: text('api_key').notNull(),
+  pairedAt: ts('paired_at').notNull(),
+  lastSyncAt: ts('last_sync_at'),
+  lastSyncVersion: integer('last_sync_version'),
+});
+
 export type DBSchema = {
   tenants: typeof tenants;
   tables: typeof tables;
@@ -254,6 +273,7 @@ export type DBSchema = {
   eventOutbox: typeof eventOutbox;
   processedEvents: typeof processedEvents;
   heartbeats: typeof heartbeats;
+  cloudLink: typeof cloudLink;
 };
 
 export const SCHEMA_SQL_FALLBACK = sql`PRAGMA journal_mode = WAL;`;

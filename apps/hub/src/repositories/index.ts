@@ -1,6 +1,7 @@
 import type { DBClient } from '../db/index.js';
 import type { Clock } from '../lib/clock.js';
 import { makeCatalogRepo, type CatalogRepo } from './catalog.repo.js';
+import { makeCloudLinkRepo, type CloudLinkRepo } from './cloud-link.repo.js';
 import { makeDeviceRepo, type DeviceRepo } from './device.repo.js';
 import { makeEmployeeRepo, type EmployeeRepo } from './employee.repo.js';
 import { makeIdempotencyRepo, type IdempotencyRepo } from './idempotency.repo.js';
@@ -13,6 +14,7 @@ import { makeWaiterRepo, type WaiterRepo } from './waiter.repo.js';
 
 export type Repos = {
   catalog: CatalogRepo;
+  cloudLink: CloudLinkRepo;
   devices: DeviceRepo;
   employees: EmployeeRepo;
   idempotency: IdempotencyRepo;
@@ -26,6 +28,7 @@ export type Repos = {
 
 export const makeRepos = (db: DBClient, clock: Clock): Repos => ({
   catalog: makeCatalogRepo(db, clock),
+  cloudLink: makeCloudLinkRepo(db, clock),
   devices: makeDeviceRepo(db, clock),
   employees: makeEmployeeRepo(db, clock),
   idempotency: makeIdempotencyRepo(db, clock),
@@ -39,6 +42,7 @@ export const makeRepos = (db: DBClient, clock: Clock): Repos => ({
 
 export type {
   CatalogRepo,
+  CloudLinkRepo,
   DeviceRepo,
   EmployeeRepo,
   IdempotencyRepo,

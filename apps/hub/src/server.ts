@@ -8,6 +8,7 @@ import { makeRepos } from './repositories/index.js';
 import { makeMemoryBroadcaster, makeSocketBroadcaster } from './lib/broadcaster.js';
 import { createSocketServer } from './sockets/server.js';
 import { startTimerWorker } from './workers/timer.js';
+import { startCatalogPoller } from './workers/catalog-poller.js';
 import { makeHttpCloudPusher, noopCloudPusher, startOutboxWorker } from './workers/outbox.js';
 
 const HOST = process.env.HOST ?? '0.0.0.0';
@@ -45,9 +46,11 @@ async function main() {
 
   let timerWorkerStop: (() => Promise<void>) | null = null;
   let outboxWorkerStop: (() => Promise<void>) | null = null;
+  let pollerStop: (() => Promise<void>) | null = null;
   let realBroadcasterClose: (() => Promise<void>) | null = null;
 
   app.addHook('onClose', async () => {
+    if (pollerStop) await pollerStop();
     if (timerWorkerStop) await timerWorkerStop();
     if (outboxWorkerStop) await outboxWorkerStop();
     if (realBroadcasterClose) await realBroadcasterClose();
@@ -86,6 +89,13 @@ async function main() {
     logger: app.log,
   });
   outboxWorkerStop = outboxWorker.stop;
+
+  const poller = startCatalogPoller({
+    repos,
+    intervalMs: Number(process.env.CATALOG_POLL_INTERVAL_MS ?? 60_000),
+    logger: app.log,
+  });
+  pollerStop = poller.stop;
 
   app.log.info(
     {

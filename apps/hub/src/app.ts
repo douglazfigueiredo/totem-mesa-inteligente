@@ -11,6 +11,7 @@ import waiterRoutes from './routes/waiter.js';
 import stateRoutes from './routes/state.js';
 import heartbeatRoutes from './routes/heartbeat.js';
 import catalogRoutes from './routes/catalog.js';
+import cloudRoutes from './routes/cloud.js';
 import authRoutes from './routes/auth.js';
 import type { Broadcaster } from './lib/broadcaster.js';
 import { makeEvent } from './lib/events.js';
@@ -80,6 +81,7 @@ export const buildApp = async (opts: BuildAppOptions): Promise<FastifyInstance> 
   await app.register(stateRoutes);
   await app.register(heartbeatRoutes);
   await app.register(catalogRoutes);
+  await app.register(cloudRoutes);
   await app.register(authRoutes);
 
   return app;

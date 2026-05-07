@@ -5,7 +5,7 @@ const NAV = [
   { href: '/admin/cardapio', label: 'cardápio', icon: '📋', soon: false },
   { href: '/admin/mesas', label: 'mesas', icon: '🪑', soon: true },
   { href: '/admin/funcionarios', label: 'funcionários', icon: '👥', soon: true },
-  { href: '/admin/hubs', label: 'hubs', icon: '🛰', soon: true },
+  { href: '/admin/hubs', label: 'hubs', icon: '🛰', soon: false },
   { href: '/admin/pedidos', label: 'pedidos', icon: '📦', soon: true },
   { href: '/admin/config', label: 'config', icon: '⚙', soon: true },
 ];
@@ -49,7 +49,7 @@ export const Sidebar = () => {
 
       <div className="border-t border-[var(--color-line)] p-4">
         <p className="mono text-[10px] uppercase tracking-widest text-[var(--color-ink-mute)]">
-          fase 6C ✓ · cardápio
+          fase 6D ✓ · pareamento
         </p>
       </div>
     </aside>

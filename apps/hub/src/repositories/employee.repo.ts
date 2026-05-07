@@ -6,7 +6,13 @@ import { employees } from '../db/schema.js';
 import type { DBClient } from '../db/index.js';
 import type { Clock } from '../lib/clock.js';
 import { newEmployeeId } from '../lib/ids.js';
-import { Employee, type EmployeeId, type EmployeeRole, type TenantId } from '@app/schemas';
+import {
+  Employee,
+  type EmployeeConfig,
+  type EmployeeId,
+  type EmployeeRole,
+  type TenantId,
+} from '@app/schemas';
 
 const BCRYPT_ROUNDS = 10;
 
@@ -62,6 +68,51 @@ export const makeEmployeeRepo = (db: DBClient, clock: Clock) => ({
       .where(and(eq(employees.tenantId, tenantId), eq(employees.isActive, true)))
       .all();
     return rows.map((r) => Employee.parse(r));
+  },
+
+  /**
+   * Sincroniza funcionários vindos do cloud. pinHash chega já hasheado
+   * no formato bcrypt — não rehashear. Não removemos employees ausentes
+   * do snapshot pra preservar histórico de pedidos/preparos que apontam
+   * pra essas linhas. Gerente desativa via cloud (isActive=false).
+   */
+  upsertFromCloud(
+    tenantId: TenantId,
+    snapshot: EmployeeConfig[],
+  ): { inserted: number; updated: number } {
+    let inserted = 0;
+    let updated = 0;
+    db.transaction((tx) => {
+      for (const e of snapshot) {
+        const existing = tx.select().from(employees).where(eq(employees.id, e.id)).get();
+        if (existing) {
+          tx.update(employees)
+            .set({
+              nome: e.nome,
+              pinHash: e.pinHash,
+              roles: e.roles,
+              isActive: e.isActive,
+            })
+            .where(eq(employees.id, e.id))
+            .run();
+          updated++;
+        } else {
+          tx.insert(employees)
+            .values({
+              id: e.id,
+              tenantId,
+              nome: e.nome,
+              pinHash: e.pinHash,
+              roles: e.roles,
+              isActive: e.isActive,
+              createdAt: clock.now(),
+            })
+            .run();
+          inserted++;
+        }
+      }
+    });
+    return { inserted, updated };
   },
 });
 

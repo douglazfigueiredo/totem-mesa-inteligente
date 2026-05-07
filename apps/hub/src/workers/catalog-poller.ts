@@ -1,4 +1,10 @@
-import { CatalogSnapshot, TablesSnapshot, TenantConfig, type TenantId } from '@app/schemas';
+import {
+  CatalogSnapshot,
+  EmployeesSnapshot,
+  TablesSnapshot,
+  TenantConfig,
+  type TenantId,
+} from '@app/schemas';
 import type { Repos } from '../repositories/index.js';
 import type { Broadcaster } from '../lib/broadcaster.js';
 import { makeEvent } from '../lib/events.js';
@@ -68,6 +74,40 @@ export const startCatalogPoller = (opts: CatalogPollerOptions): PollerHandle => 
         products: parsed.data.products.length,
       },
       '[catalog-poller] snapshot atualizado',
+    );
+    return { kind: 'ok' as const };
+  };
+
+  let lastEmployeesUpdatedAt: number | null = null;
+  const fetchEmployees = async (cloudBaseUrl: string, apiKey: string) => {
+    const url = new URL('/api/employees', cloudBaseUrl).toString();
+    const res = await fetchImpl(url, { headers: { authorization: `Bearer ${apiKey}` } });
+    if (res.status === 401) {
+      log?.error({ status: 401, target: 'employees' }, '[catalog-poller] cloud rejeitou apiKey');
+      return { kind: 'auth-error' as const };
+    }
+    if (!res.ok) {
+      log?.warn({ status: res.status, target: 'employees' }, '[catalog-poller] resposta não-ok');
+      return { kind: 'http-error' as const };
+    }
+    const json = await res.json();
+    const parsed = EmployeesSnapshot.safeParse(json);
+    if (!parsed.success) {
+      log?.error(
+        { target: 'employees', issues: parsed.error.issues },
+        '[catalog-poller] employees snapshot inválido',
+      );
+      return { kind: 'parse-error' as const };
+    }
+    if (lastEmployeesUpdatedAt === parsed.data.updatedAt) return { kind: 'unchanged' as const };
+    const result = opts.repos.employees.upsertFromCloud(
+      parsed.data.tenantId as TenantId,
+      parsed.data.employees,
+    );
+    lastEmployeesUpdatedAt = parsed.data.updatedAt;
+    log?.info(
+      { tenantId: parsed.data.tenantId, ...result },
+      '[catalog-poller] employees sincronizados',
     );
     return { kind: 'ok' as const };
   };
@@ -150,15 +190,19 @@ export const startCatalogPoller = (opts: CatalogPollerOptions): PollerHandle => 
     if (!link) return;
 
     try {
-      const [snapshotResult, configResult, tablesResult] = await Promise.all([
+      const [snapshotResult, configResult, tablesResult, employeesResult] = await Promise.all([
         fetchSnapshot(link.cloudBaseUrl, link.apiKey, link.lastSyncVersion ?? null),
         fetchTenantConfig(link.cloudBaseUrl, link.apiKey),
         fetchTables(link.cloudBaseUrl, link.apiKey),
+        fetchEmployees(link.cloudBaseUrl, link.apiKey),
       ]);
 
-      const hadError = [snapshotResult.kind, configResult.kind, tablesResult.kind].some(
-        (k) => k === 'auth-error' || k === 'http-error' || k === 'parse-error',
-      );
+      const hadError = [
+        snapshotResult.kind,
+        configResult.kind,
+        tablesResult.kind,
+        employeesResult.kind,
+      ].some((k) => k === 'auth-error' || k === 'http-error' || k === 'parse-error');
       if (hadError) bumpBackoff();
       else backoff = 0;
     } catch (err) {

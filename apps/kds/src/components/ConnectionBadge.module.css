@@ -2,7 +2,7 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  padding: 8px 16px;
+  padding: 10px 16px;
   text-align: center;
   font-family: var(--font-mono);
   font-size: 11px;
@@ -10,6 +10,11 @@
   text-transform: uppercase;
   font-weight: 600;
   animation: slideDown 200ms ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .connecting,
@@ -21,6 +26,29 @@
 .offline {
   background: var(--terracota);
   color: var(--text);
+}
+
+.ago {
+  opacity: 0.75;
+  font-weight: 500;
+}
+
+.retry {
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 600;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.18);
+  color: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+}
+
+.retry:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 @keyframes slideDown {

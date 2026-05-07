@@ -56,10 +56,10 @@ export default function TrackPage({ params }: { params: Promise<{ orderId: strin
               <span className={styles.headLabel}>
                 {preparo.status === 'pronto' ? 'pronto' : 'preparando'} · pedido #{orderShort}
               </span>
-              <TimerRing preparo={preparo} size={240} strokeWidth={12} />
+              <TimerRing preparo={preparo} size={180} strokeWidth={10} />
               {itemsLine && <p className={styles.itemsLine}>{itemsLine}</p>}
               <button className={styles.ghostLink} onClick={() => router.push('/menu')}>
-                + pedir mais (timer minimiza)
+                + pedir mais
               </button>
             </>
           )}

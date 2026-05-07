@@ -2,7 +2,7 @@ import Link from 'next/link';
 
 const NAV = [
   { href: '/admin', label: 'visão geral', icon: '🏠', soon: false },
-  { href: '/admin/cardapio', label: 'cardápio', icon: '📋', soon: true },
+  { href: '/admin/cardapio', label: 'cardápio', icon: '📋', soon: false },
   { href: '/admin/mesas', label: 'mesas', icon: '🪑', soon: true },
   { href: '/admin/funcionarios', label: 'funcionários', icon: '👥', soon: true },
   { href: '/admin/hubs', label: 'hubs', icon: '🛰', soon: true },
@@ -49,7 +49,7 @@ export const Sidebar = () => {
 
       <div className="border-t border-[var(--color-line)] p-4">
         <p className="mono text-[10px] uppercase tracking-widest text-[var(--color-ink-mute)]">
-          fase 6A · foundation
+          fase 6C.1 · cardápio
         </p>
       </div>
     </aside>

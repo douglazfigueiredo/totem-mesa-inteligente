@@ -1,4 +1,13 @@
-import { pgTable, text, timestamp, uuid, primaryKey, index, integer } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  primaryKey,
+  index,
+  integer,
+  boolean,
+} from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
 /**
@@ -109,6 +118,29 @@ export const hubPairings = pgTable(
   }),
 );
 
+/**
+ * categories — categorias do cardápio (Pizzas, Bebidas, Sobremesas…).
+ * Escopo por tenant; `ordem` define a posição na home do totem.
+ */
+export const categories = pgTable(
+  'categories',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    tenantId: uuid('tenant_id')
+      .notNull()
+      .references(() => tenants.id, { onDelete: 'cascade' }),
+    nome: text('nome').notNull(),
+    ordem: integer('ordem').notNull().default(0),
+    isActive: boolean('is_active').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => ({
+    tenantIdx: index('categories_tenant_ix').on(t.tenantId),
+    tenantOrdemIdx: index('categories_tenant_ordem_ix').on(t.tenantId, t.ordem),
+  }),
+);
+
 /* ── NextAuth tables (drizzle adapter) ─────────────────────────────────── */
 /* Prop names em snake_case nas auth-tables são exigidos pelo DrizzleAdapter */
 
@@ -176,3 +208,5 @@ export type NewTenant = typeof tenants.$inferInsert;
 export type Owner = typeof owners.$inferSelect;
 export type Hub = typeof hubs.$inferSelect;
 export type HubPairing = typeof hubPairings.$inferSelect;
+export type Category = typeof categories.$inferSelect;
+export type NewCategory = typeof categories.$inferInsert;

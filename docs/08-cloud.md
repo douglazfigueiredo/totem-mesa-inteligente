@@ -1,6 +1,6 @@
 # 08 — Cloud SaaS (Painel)
 
-> Status: Fase 6A ✅ (foundation) · Fase 6B ✅ (auth real). 6C–6F nas próximas sessões.
+> Status: 6A ✅ (foundation) · 6B ✅ (auth real) · 6C.1 ✅ (categorias). 6C.2–6F nas próximas sessões.
 
 App Next.js 15 hospedado na Vercel. Painel multi-tenant para gerentes/donos de loja
 gerenciarem cardápio, mesas, hubs locais, pedidos e config.
@@ -185,16 +185,42 @@ pnpm --filter @app/cloud dev
 - **Tenant ativo**: cookie `active_tenant_slug`. Se não setado, usa o primeiro tenant do owner. Switching de tenants chega quando owner com >1 loja for caso real.
 - **DrizzleAdapter exige snake_case**: as colunas em `accounts` (refresh_token, access_token, expires_at, etc) são as **JS prop names**, não só nomes de coluna SQL. Isso já está aplicado no `schema.ts`.
 
-## 8. Próximas sub-fases
+## 8. Fase 6C — Cardápio (em andamento)
+
+Cloud é o **source of truth relacional** do cardápio. Hub apenas armazena snapshot JSON
+puxado por `/api/catalog/snapshot` (chega na 6C.4). Tipos canônicos em `@app/schemas`
+(`Category`, `Product`, `ProductVariant`, `ModifierGroup`, `Modifier`, `CatalogSnapshot`).
+
+### 6C.1 ✅ — Categorias
+
+Tabela `categories(id, tenant_id, nome, ordem, is_active, created_at, updated_at)` com index
+composto `(tenant_id, ordem)`. UI em `/admin/cardapio` com:
+
+- formulário inline pra criar (auto-incrementa `ordem`)
+- lista ordenada com renomear inline, ativar/desativar, mover ↑/↓, excluir
+- escopo automático por `activeTenant` via `requireOwner()`
+
+Server actions em `src/app/admin/cardapio/actions.ts`, validação Zod (nome 1–80 chars,
+id uuid). Reorder usa swap de `ordem` em duas updates sequenciais (neon-http não suporta
+transactions; sem unique constraint em `ordem` o swap é seguro).
+
+### 6C.2–6C.4 (próximas)
+
+| Fase     | Escopo                                                                              |
+| -------- | ----------------------------------------------------------------------------------- |
+| **6C.2** | CRUD de Produtos (campos base + foto por URL externa)                               |
+| **6C.3** | Variants + Modifier groups + Modifiers aninhados no edit do produto                 |
+| **6C.4** | `GET /api/catalog/snapshot` autenticado por hub apiKey (pré-requisito da 6D)        |
+
+## 9. Próximas fases gerais
 
 | Fase   | Escopo                                                                                                                                                        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **6C** | CRUD cardápio (categorias / produtos / variantes / modificadores / fotos) — source-of-truth do menu                                                           |
 | **6D** | Pareamento hub ↔ cloud: cloud gera token, hub `/admin/pair-with-cloud` registra-se, recebe `cloudApiKey` + `tenantId`. Cloud puxa cardápio. Hub envia outbox. |
 | **6E** | Histórico/analytics: timeline de pedidos, ticket médio, prato campeão, hora de pico                                                                           |
 | **6F** | Tenant config UI — substitui as env vars do totem (`TENANT_BRAND`, `TENANT_AREA`, `TENANT_SINCE`, `TENANT_HERO_IMG`, `WIFI_*`)                                |
 
-## 9. Validação
+## 10. Validação
 
 ### 6A
 - ✅ Typecheck (`pnpm typecheck`)
@@ -206,3 +232,8 @@ pnpm --filter @app/cloud dev
 - ✅ Login flow estruturado (server action + redirect → check-email)
 - ✅ Middleware gating ativo
 - ⏳ Smoke test E2E (login real → admin) depende de SMTP config no `.env.local`
+
+### 6C.1
+- ✅ Typecheck + Build
+- ✅ Migration `0001` gerada
+- ⏳ Smoke test (criar/renomear/reorder/excluir) depende de DB local

@@ -21,7 +21,8 @@ type FetchOpts = {
 };
 
 export const hubFetch = async <T>(path: string, opts: FetchOpts = {}): Promise<T> => {
-  const headers: Record<string, string> = { 'content-type': 'application/json' };
+  const headers: Record<string, string> = {};
+  if (opts.body !== undefined) headers['content-type'] = 'application/json';
   if (opts.apiKey) headers['x-device-api-key'] = opts.apiKey;
   if (opts.eventId) headers['x-event-id'] = opts.eventId;
   if (opts.ifNoneMatch) headers['if-none-match'] = opts.ifNoneMatch;
@@ -29,7 +30,7 @@ export const hubFetch = async <T>(path: string, opts: FetchOpts = {}): Promise<T
   const res = await fetch(`${HUB_URL}${path}`, {
     method: opts.method ?? 'GET',
     headers,
-    body: opts.body ? JSON.stringify(opts.body) : undefined,
+    body: opts.body !== undefined ? JSON.stringify(opts.body) : undefined,
     credentials: 'omit',
     cache: 'no-store',
   });

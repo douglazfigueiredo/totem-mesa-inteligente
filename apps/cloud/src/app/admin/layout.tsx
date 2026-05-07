@@ -1,5 +1,6 @@
 import { Sidebar } from '@/components/Sidebar';
 import { AdminHeader } from '@/components/AdminHeader';
+import { Toaster } from '@/components/Toaster';
 import { requireOwner } from '@/lib/tenant';
 import Link from 'next/link';
 
@@ -43,6 +44,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <AdminHeader tenantName={owner.activeTenant.nome} ownerEmail={owner.email} />
         <main className="flex-1 overflow-y-auto bg-[var(--color-bg)] p-6">{children}</main>
       </div>
+      <Toaster />
     </div>
   );
 }

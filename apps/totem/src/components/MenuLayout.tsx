@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { useCartStore, cartItemCount } from '@/lib/cart-store';
 import { useOrdersStore } from '@/lib/orders-store';
@@ -12,6 +12,7 @@ const TENANT_BRAND = process.env.NEXT_PUBLIC_TENANT_BRAND ?? 'Pizzaria Dev';
 
 export const MenuLayout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
+  const pathname = usePathname();
   const tableNumero = useAuthStore((s) => s.tableNumero);
   const items = useCartStore((s) => s.items);
   const count = cartItemCount(items);
@@ -39,7 +40,7 @@ export const MenuLayout = ({ children }: { children: React.ReactNode }) => {
         <div className={styles.left}>
           <button
             className={styles.backBtn}
-            onClick={() => router.push('/menu')}
+            onClick={() => router.push(pathname === '/menu' ? '/' : '/menu')}
             aria-label="voltar"
           >
             ←

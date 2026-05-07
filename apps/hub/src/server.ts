@@ -1,3 +1,7 @@
+import { config as loadEnv } from 'dotenv';
+loadEnv({ path: '.env.local' });
+loadEnv({ path: '.env' });
+
 import { mkdirSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { buildApp } from './app.js';

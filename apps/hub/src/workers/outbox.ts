@@ -76,6 +76,12 @@ export const noopCloudPusher: CloudPusher = async () => {};
  * Pusher que lê `cloud_link` a cada chamada — autoaplica novas credenciais
  * após pair/unpair sem precisar reiniciar o hub. Usar com `shouldRun` no
  * worker pra evitar tentar quando não há link.
+ *
+ * IMPORTANTE: o `tenantId` no payload é reescrito pra `link.tenantId` (o
+ * tenantId do hub no CLOUD), não o tenantId local. O hub local tem seu
+ * próprio UUID gerado no bootstrap, que não bate com o tenantId do cloud
+ * — então o cloud rejeitaria com 403 "tenant mismatch" se a gente
+ * mandasse o local.
  */
 export const makeCloudLinkPusher = (repos: Repos): CloudPusher => {
   return async (entry) => {
@@ -91,7 +97,7 @@ export const makeCloudLinkPusher = (repos: Repos): CloudPusher => {
       },
       body: JSON.stringify({
         eventId: entry.eventId,
-        tenantId: entry.tenantId,
+        tenantId: link.tenantId,
         type: entry.type,
         payload: entry.payload,
         ts: Date.now(),

@@ -1,6 +1,6 @@
 # 08 — Cloud SaaS (Painel)
 
-> Status: 6A ✅ · 6B ✅ · 6C.1 ✅ · 6C.2 ✅ · 6C.3 ✅ (variants/modifiers). 6C.4–6F nas próximas sessões.
+> Status: 6A ✅ · 6B ✅ · 6C ✅ (cardápio completo). 6D–6F nas próximas sessões.
 
 App Next.js 15 hospedado na Vercel. Painel multi-tenant para gerentes/donos de loja
 gerenciarem cardápio, mesas, hubs locais, pedidos e config.
@@ -252,11 +252,41 @@ UI por nível:
 - 3 `<details>` siblings: editar detalhes, variantes, modificadores
 - Cada modifier group é um sub-card com sua própria config colapsável + lista de modifiers
 
-### 6C.4 (próxima)
+### 6C.4 ✅ — Endpoint `GET /api/catalog/snapshot`
 
-| Fase     | Escopo                                                                              |
-| -------- | ----------------------------------------------------------------------------------- |
-| **6C.4** | `GET /api/catalog/snapshot` autenticado por hub apiKey (pré-requisito da 6D)        |
+Endpoint público autenticado por `Authorization: Bearer <apiKey>` que devolve o `CatalogSnapshot`
+no formato canônico do `@app/schemas` (mesmo shape consumido pelo hub local).
+
+**Auth**: lookup direto em `hubs.api_key`. Retorna 401 se não casar.
+
+**Side effect**: atualiza `hubs.last_seen_at` em paralelo (fire-and-forget — não bloqueia a resposta).
+
+**Carregamento** (5 queries):
+1. Categorias do tenant
+2. Produtos do tenant (em paralelo com 1)
+3. Variants `WHERE product_id IN (productIds)` (em paralelo com 4)
+4. Modifier groups `WHERE product_id IN (productIds)`
+5. Modifiers `WHERE group_id IN (groupIds)` (sequencial — depende de 4)
+
+**Validação**: passa o objeto montado por `CatalogSnapshot.safeParse()` antes de devolver.
+Se o shape do cloud divergir do `@app/schemas`, retorna 500 com `issues` ao invés de
+mandar lixo pro hub.
+
+**Headers**: `Cache-Control: no-store` + `X-Catalog-Version: <epoch>` (versão = `Date.now()`
+no momento da geração — invalidação proper chega quando o hub passar a cachear).
+
+**Testar localmente**:
+
+```bash
+# 1) gerar uma apiKey de dev
+echo "DEV_HUB_API_KEY=\"$(openssl rand -hex 32)\"" >> apps/cloud/.env.local
+
+# 2) seed cria/atualiza o hub
+pnpm --filter @app/cloud db:seed
+
+# 3) curl com a chave
+curl -H "Authorization: Bearer <DEV_HUB_API_KEY>" \
+  http://localhost:3000/api/catalog/snapshot | jq
 
 ## 9. Próximas fases gerais
 
@@ -293,3 +323,8 @@ UI por nível:
 - ✅ Typecheck + Build
 - ✅ Migration `0003` gerada e aplicada no Neon
 - ⏳ Smoke test (variants P/M/G, grupo "adicionais" com modifiers)
+
+### 6C.4
+- ✅ Typecheck + Build (rota `/api/catalog/snapshot` aparece no manifest)
+- ✅ Validação Zod do snapshot antes de retornar
+- ⏳ Smoke test com curl + DEV_HUB_API_KEY

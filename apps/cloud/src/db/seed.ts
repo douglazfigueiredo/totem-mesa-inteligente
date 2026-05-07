@@ -59,6 +59,26 @@ async function main() {
     console.log('[seed] = owner já vinculado, ok');
   }
 
+  // Hub dev (opt-in via env DEV_HUB_API_KEY) — útil pra testar
+  // o endpoint /api/catalog/snapshot antes da fase 6D estar pronta.
+  const devHubKey = process.env.DEV_HUB_API_KEY?.trim();
+  if (devHubKey && devHubKey.length >= 16) {
+    await db
+      .insert(schema.hubs)
+      .values({
+        tenantId: tenant.id,
+        nome: 'hub-dev',
+        apiKey: devHubKey,
+      })
+      .onConflictDoUpdate({
+        target: schema.hubs.apiKey,
+        set: { tenantId: tenant.id, nome: 'hub-dev' },
+      });
+    console.log('[seed] ✓ hub dev pareado (apiKey: %s…)', devHubKey.slice(0, 8));
+  } else {
+    console.log('[seed] = DEV_HUB_API_KEY não setado, pulando hub dev');
+  }
+
   console.log('[seed] ✓ pronto. tenant=%s owner=%s', tenant.id, owner.id);
 }
 

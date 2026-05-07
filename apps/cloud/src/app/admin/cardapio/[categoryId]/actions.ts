@@ -63,6 +63,7 @@ export async function createProductAction(formData: FormData) {
   });
 
   revalidatePath(`/admin/cardapio/${category.id}`);
+  revalidatePath('/admin/cardapio');
 }
 
 export async function updateProductAction(formData: FormData) {
@@ -159,4 +160,5 @@ export async function deleteProductAction(formData: FormData) {
     .where(and(eq(schema.products.id, id), eq(schema.products.tenantId, tenant.id)));
 
   revalidatePath(`/admin/cardapio/${category.id}`);
+  revalidatePath('/admin/cardapio');
 }

@@ -99,6 +99,30 @@ const ordersRoutes: FastifyPluginAsync = async (app) => {
       return cancelled;
     },
   );
+
+  app.post(
+    '/orders/:id/deliver',
+    { preHandler: app.requireRole(['waiter', 'admin']) },
+    async (request) => {
+      const { id } = z.object({ id: OrderId }).parse(request.params);
+      const { employeeId } = z
+        .object({ employeeId: z.string().min(1) })
+        .parse(request.body);
+      const current = app.repos.orders.getByIdOrThrow(id);
+      if (current.status === 'entregue') return current;
+      if (current.status === 'cancelado') {
+        throw new ValidationError('cannot deliver cancelled order', { id });
+      }
+      const delivered = app.repos.orders.updateStatus(id, 'entregue');
+      const deliveredAt = Date.now();
+      app.publishAndEnqueue('order:delivered', delivered.tenantId, {
+        orderId: delivered.id,
+        deliveredBy: employeeId as never,
+        deliveredAt,
+      });
+      return delivered;
+    },
+  );
 };
 
 export default ordersRoutes;

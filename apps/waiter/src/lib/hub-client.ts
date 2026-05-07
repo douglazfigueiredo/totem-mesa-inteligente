@@ -81,4 +81,11 @@ export const resolveWaiterCall = (apiKey: string, callId: string, employeeId: st
     body: { employeeId },
   });
 
+export const deliverOrder = (apiKey: string, orderId: string, employeeId: string) =>
+  hubFetch(`/orders/${orderId}/deliver`, {
+    method: 'POST',
+    apiKey,
+    body: { employeeId },
+  });
+
 export { HUB_URL };

@@ -77,6 +77,12 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       const order = orders.get(orderId);
       if (order) orders.set(orderId, { ...order, status: 'cancelado' });
       set({ orders });
+    } else if (event.type === 'order:delivered') {
+      const { orderId } = event.payload;
+      const orders = new Map(cur.orders);
+      const order = orders.get(orderId);
+      if (order) orders.set(orderId, { ...order, status: 'entregue' });
+      set({ orders });
     }
   },
 

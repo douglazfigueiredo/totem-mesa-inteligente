@@ -122,6 +122,16 @@ export const useWaiterStore = create<WaiterState>((set, get) => ({
       set({ orders: next });
       return;
     }
+
+    if (event.type === 'order:delivered') {
+      const { orderId } = event.payload;
+      const order = cur.orders.get(orderId);
+      if (!order) return;
+      const next = new Map(cur.orders);
+      next.set(orderId, { ...order, status: 'entregue' });
+      set({ orders: next });
+      return;
+    }
   },
 
   markDelivered(orderId) {

@@ -92,6 +92,14 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
         orders.set(orderId, { ...order, status: 'cancelado' });
       }
       set({ orders });
+    } else if (event.type === 'order:delivered') {
+      const { orderId } = event.payload;
+      const orders = new Map(cur.orders);
+      const order = orders.get(orderId);
+      if (order) {
+        orders.set(orderId, { ...order, status: 'entregue' });
+      }
+      set({ orders });
     } else if (event.type === 'item:unavailable') {
       const { productId, suggestedSubstitutes } = event.payload;
       const already = cur.unavailableQueue.some((u) => u.productId === productId);

@@ -87,6 +87,16 @@ export const OrderCancelEvent = z.object({
   }),
 });
 
+export const OrderDeliveredEvent = z.object({
+  ...baseEnvelope,
+  type: z.literal('order:delivered'),
+  payload: z.object({
+    orderId: OrderId,
+    deliveredBy: EmployeeId,
+    deliveredAt: TimestampMs,
+  }),
+});
+
 export const ItemUnavailableEvent = z.object({
   ...baseEnvelope,
   type: z.literal('item:unavailable'),
@@ -188,6 +198,7 @@ export const WSEvent = z.discriminatedUnion('type', [
   PrepStartedEvent,
   PrepReadyEvent,
   OrderCancelEvent,
+  OrderDeliveredEvent,
   ItemUnavailableEvent,
   WaiterCallCreateEvent,
   WaiterAckEvent,
@@ -211,6 +222,7 @@ export const WS_EVENT_TYPES = [
   'prep:started',
   'prep:ready',
   'order:cancel',
+  'order:delivered',
   'item:unavailable',
   'waiter:call',
   'waiter:ack',

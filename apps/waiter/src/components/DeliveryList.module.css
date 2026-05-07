@@ -4,6 +4,15 @@
   gap: 10px;
 }
 
+.errorBar {
+  margin-bottom: 10px;
+  padding: 10px 12px;
+  background: rgba(217, 109, 74, 0.15);
+  color: var(--terracota);
+  border-radius: 8px;
+  font-size: 13px;
+}
+
 .empty {
   display: flex;
   flex-direction: column;

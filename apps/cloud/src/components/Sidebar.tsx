@@ -7,6 +7,7 @@ const NAV = [
   { href: '/admin/funcionarios', label: 'funcionários', icon: '👥', soon: false },
   { href: '/admin/hubs', label: 'hubs', icon: '🛰', soon: false },
   { href: '/admin/pedidos', label: 'pedidos', icon: '📦', soon: false },
+  { href: '/admin/observability', label: 'saúde', icon: '📈', soon: false },
   { href: '/admin/config', label: 'config', icon: '⚙', soon: false },
 ];
 
@@ -49,7 +50,7 @@ export const Sidebar = () => {
 
       <div className="border-t border-[var(--color-line)] p-4">
         <p className="mono text-[10px] uppercase tracking-widest text-[var(--color-ink-mute)]">
-          fase 9B ✓ · deploy
+          fase 9A ✓ · observabilidade
         </p>
       </div>
     </aside>

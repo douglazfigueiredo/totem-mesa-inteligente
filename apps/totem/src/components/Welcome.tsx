@@ -75,17 +75,17 @@ export const Welcome = () => {
                 </span>
               </button>
             </div>
+          </div>
 
+          <div className={styles.footer}>
             <ActiveOrders />
-
             <p className={styles.wifi}>
               WiFi · {WIFI_SSID} <span className={styles.wifiSep}>·</span> senha · {WIFI_PASS}
             </p>
+            <button className={styles.debugBtn} onClick={clear}>
+              desemparelhar (debug)
+            </button>
           </div>
-
-          <button className={styles.debugBtn} onClick={clear}>
-            desemparelhar (debug)
-          </button>
         </div>
 
         <aside

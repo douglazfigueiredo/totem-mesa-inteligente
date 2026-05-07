@@ -30,8 +30,22 @@ export const TimerRing = ({ preparo, size = 320, strokeWidth = 16 }: Props) => {
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - progress);
 
+  // Texto proporcional ao diâmetro do anel (≈30% pra "00:00", 6.5% para o status)
+  const timeFontPx = Math.round(size * 0.28);
+  const statusFontPx = Math.max(10, Math.round(size * 0.065));
+
   return (
-    <div className={styles.wrap} style={{ width: size, height: size }}>
+    <div
+      className={styles.wrap}
+      style={
+        {
+          width: size,
+          height: size,
+          '--ring-time-size': `${timeFontPx}px`,
+          '--ring-status-size': `${statusFontPx}px`,
+        } as React.CSSProperties
+      }
+    >
       <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} className={styles.svg}>
         <circle
           cx={size / 2}

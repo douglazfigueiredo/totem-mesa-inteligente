@@ -3,10 +3,39 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "echo '[cloud] scaffolded na Fase 6 (Cloud SaaS) — usar create-next-app dentro deste diretorio'",
-    "build": "echo '[cloud] scaffold pendente (Fase 6)'",
-    "test": "echo '[cloud] scaffold pendente (Fase 6)'",
-    "lint": "echo '[cloud] scaffold pendente (Fase 6)'",
-    "typecheck": "echo '[cloud] scaffold pendente (Fase 6)'"
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "test": "echo '[cloud] testes E2E na Fase 9 (Playwright)'",
+    "lint": "echo '[cloud] lint pendente'",
+    "typecheck": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:studio": "drizzle-kit studio",
+    "clean": "rm -rf .next .turbo"
+  },
+  "dependencies": {
+    "@app/schemas": "workspace:*",
+    "@app/types": "workspace:*",
+    "@auth/drizzle-adapter": "1.7.4",
+    "@neondatabase/serverless": "^0.10.4",
+    "drizzle-orm": "^0.36.4",
+    "next": "^15.1.0",
+    "next-auth": "5.0.0-beta.25",
+    "nodemailer": "^6.9.16",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.0.0",
+    "@types/node": "^22.9.0",
+    "@types/nodemailer": "^6.4.16",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "drizzle-kit": "^0.28.1",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^4.0.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.7.2"
   }
 }

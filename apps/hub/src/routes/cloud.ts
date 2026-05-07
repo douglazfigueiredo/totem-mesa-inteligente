@@ -100,8 +100,20 @@ const cloudRoutes: FastifyPluginAsync = async (app) => {
 
   app.post('/admin/cloud/unpair', { preHandler: app.requireAdmin }, async () => {
     app.repos.cloudLink.clear();
+    app.repos.tenantConfig.clear();
     app.log.info('hub despareado do cloud');
     return { paired: false };
+  });
+
+  // Acessível por qualquer device autenticado — totem usa pra renderizar
+  // brand/area/wifi sem depender de envs.
+  app.get('/tenant/config', { preHandler: app.requireDevice }, async (_request, reply) => {
+    const config = app.repos.tenantConfig.asPublic();
+    if (!config) {
+      // hub ainda não puxou — totem cai no fallback de envs
+      return reply.code(204).send();
+    }
+    return config;
   });
 };
 

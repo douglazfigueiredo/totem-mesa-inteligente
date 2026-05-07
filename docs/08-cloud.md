@@ -1,6 +1,6 @@
 # 08 — Cloud SaaS (Painel)
 
-> Status: 6A ✅ · 6B ✅ · 6C ✅ · 6D ✅ (pareamento hub↔cloud + poller). 6E–6F nas próximas sessões.
+> Status: 6A ✅ · 6B ✅ · 6C ✅ · 6D ✅ · 6F ✅ (config UI + sync). 6E pendente.
 
 App Next.js 15 hospedado na Vercel. Painel multi-tenant para gerentes/donos de loja
 gerenciarem cardápio, mesas, hubs locais, pedidos e config.
@@ -336,12 +336,42 @@ curl -X POST http://hub.local:4000/admin/cloud/pair \
 # Hub começa a puxar /api/catalog/snapshot a cada 60s automaticamente
 ```
 
-## 10. Próximas fases gerais
+## 10. Fase 6F — Tenant config
 
-| Fase   | Escopo                                                                                                                                                        |
-| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **6E** | Histórico/analytics: timeline de pedidos, ticket médio, prato campeão, hora de pico                                                                           |
-| **6F** | Tenant config UI — substitui as env vars do totem (`TENANT_BRAND`, `TENANT_AREA`, `TENANT_SINCE`, `TENANT_HERO_IMG`, `WIFI_*`)                                |
+Substitui as envs `NEXT_PUBLIC_TENANT_*` e `NEXT_PUBLIC_WIFI_*` por config editável no painel.
+Owner edita → cloud → hub puxa em ≤60s → totem renderiza.
+
+### Schemas (`@app/schemas`)
+- `TenantConfig`: tenantId, nome, brand?, area?, sinceLabel?, heroImageUrl?, wifiSsid?, wifiPass?, updatedAt
+
+### Cloud
+- `/admin/config` UI: form com nome, brand, area, sinceLabel, heroImageUrl, wifiSsid, wifiPass.
+  Server action grava direto em `tenants` (colunas já existem desde a 6A)
+- `GET /api/tenant/config` autenticado por hub apiKey (mesmo padrão de `/api/catalog/snapshot`)
+
+### Hub
+- Tabela singleton `tenant_config` (migration `0002_real_the_phantom.sql`) com cópia
+  espelhada do cloud + `synced_at` local
+- Repo `tenantConfig` (`get`, `asPublic`, `replace`, `clear`)
+- `catalog-poller` agora puxa **dois endpoints em paralelo** (`/api/catalog/snapshot`
+  e `/api/tenant/config`); só vai pra backoff se algum dos dois falhar
+- `GET /tenant/config` (auth: device key) pra totem ler. Retorna `204` quando hub ainda
+  não recebeu config — totem cai no fallback de envs sem erro
+- `unpair` agora limpa `tenant_config` também
+
+### Totem
+- `lib/tenant-config-store.ts`: Zustand store + hook `useTenantConfigLoader` (hidrata após
+  pareamento, revalida em `visibilitychange` + interval 5min) + selector `useTenantConfig()`
+  com fallback **por campo** nas envs (defesa em profundidade — primeiro paint sempre funciona)
+- `SocketProvider` chama o loader (mesmo lifecycle do socket)
+- `Welcome.tsx` e `MenuLayout.tsx` lêem do `useTenantConfig()` — sem mais constantes
+  globais lendo `process.env.NEXT_PUBLIC_*` no topo do arquivo
+
+## 11. Próximas fases gerais
+
+| Fase   | Escopo                                                                              |
+| ------ | ----------------------------------------------------------------------------------- |
+| **6E** | Histórico/analytics: timeline de pedidos, ticket médio, prato campeão, hora de pico |
 
 ## 10. Validação
 
@@ -380,5 +410,11 @@ curl -X POST http://hub.local:4000/admin/cloud/pair \
 - ✅ Cloud typecheck + build (`/admin/hubs`, `/api/hub/pair` no manifest)
 - ✅ Hub typecheck + 80 testes existentes verdes
 - ✅ Migration hub `0001_nostalgic_shadowcat.sql`
-- ⏳ E2E smoke: gerar código no cloud → POST `/admin/cloud/pair` no hub →
-  poller faz GET `/api/catalog/snapshot` automaticamente
+- ✅ E2E smoke confirmado: pareamento real testado, snapshot puxado pelo poller
+
+### 6F
+- ✅ Cloud typecheck + build (`/admin/config`, `/api/tenant/config` no manifest)
+- ✅ Hub typecheck + 80 testes verdes
+- ✅ Totem typecheck + build
+- ✅ Migration hub `0002_real_the_phantom.sql`
+- ⏳ E2E: editar config no painel → ver atualizar no totem em ≤60s

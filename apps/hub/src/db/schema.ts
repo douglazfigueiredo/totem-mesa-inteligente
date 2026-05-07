@@ -242,6 +242,25 @@ export const heartbeats = sqliteTable('heartbeats', {
 });
 
 /**
+ * tenant_config — singleton com config visível ao cliente (totem):
+ * brand, area, since, hero, wifi. Substitui as envs NEXT_PUBLIC_TENANT_*
+ * e NEXT_PUBLIC_WIFI_*. Atualizada pelo catalog-poller a cada 60s.
+ */
+export const tenantConfig = sqliteTable('tenant_config', {
+  id: text('id').primaryKey().default('singleton'),
+  tenantId: text('tenant_id').notNull(),
+  nome: text('nome').notNull(),
+  brand: text('brand'),
+  area: text('area'),
+  sinceLabel: text('since_label'),
+  heroImageUrl: text('hero_image_url'),
+  wifiSsid: text('wifi_ssid'),
+  wifiPass: text('wifi_pass'),
+  updatedAt: ts('updated_at').notNull(),
+  syncedAt: ts('synced_at').notNull(),
+});
+
+/**
  * cloud_link — singleton com a credencial do hub no cloud SaaS.
  * Após pareamento (POST /admin/cloud/pair), guarda apiKey + tenantId
  * pra autenticar requests subsequentes (puxar cardápio, enviar outbox).
@@ -274,6 +293,7 @@ export type DBSchema = {
   processedEvents: typeof processedEvents;
   heartbeats: typeof heartbeats;
   cloudLink: typeof cloudLink;
+  tenantConfig: typeof tenantConfig;
 };
 
 export const SCHEMA_SQL_FALLBACK = sql`PRAGMA journal_mode = WAL;`;

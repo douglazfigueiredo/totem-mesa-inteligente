@@ -4,15 +4,9 @@ import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { useOrdersStore } from '@/lib/orders-store';
+import { useTenantConfig } from '@/lib/tenant-config-store';
 import { WaiterCallModal } from './WaiterCallModal';
 import styles from './Welcome.module.css';
-
-const TENANT_BRAND = process.env.NEXT_PUBLIC_TENANT_BRAND ?? 'Pizzaria Dev';
-const TENANT_AREA = process.env.NEXT_PUBLIC_TENANT_AREA ?? 'salão principal';
-const TENANT_SINCE = process.env.NEXT_PUBLIC_TENANT_SINCE ?? 'desde 2026';
-const TENANT_HERO_IMG = process.env.NEXT_PUBLIC_TENANT_HERO_IMG ?? '';
-const WIFI_SSID = process.env.NEXT_PUBLIC_WIFI_SSID ?? 'pizzaria-livre';
-const WIFI_PASS = process.env.NEXT_PUBLIC_WIFI_PASS ?? 'margherita';
 
 const greeting = (date = new Date()) => {
   const h = date.getHours();
@@ -26,6 +20,7 @@ export const Welcome = () => {
   const tableNumero = useAuthStore((s) => s.tableNumero);
   const clear = useAuthStore((s) => s.clear);
   const ordersMap = useOrdersStore((s) => s.orders);
+  const cfg = useTenantConfig();
   const [waiterOpen, setWaiterOpen] = useState(false);
 
   const mesaLabel = `mesa ${String(tableNumero ?? '?').padStart(2, '0')}`;
@@ -54,7 +49,7 @@ export const Welcome = () => {
     <main className={`${styles.wrap} fade-up`}>
       <header className={styles.topbar}>
         <div className={styles.brandRow}>
-          <span className={styles.brand}>{TENANT_BRAND}</span>
+          <span className={styles.brand}>{cfg.brand}</span>
           <span className={styles.tag}>{mesaLabel}</span>
         </div>
 
@@ -79,7 +74,7 @@ export const Welcome = () => {
         <div className={styles.left}>
           <div className={styles.copy}>
             <span className={styles.locLabel}>
-              {mesaLabel} · {TENANT_AREA}
+              {mesaLabel} · {cfg.area}
             </span>
             <h1 className={styles.headline}>
               <em>{greetParts[0]}</em> {greetParts.slice(1).join(' ')},<br />o que vai ser?
@@ -114,7 +109,7 @@ export const Welcome = () => {
 
           <div className={styles.footer}>
             <p className={styles.wifi}>
-              WiFi · {WIFI_SSID} <span className={styles.wifiSep}>·</span> senha · {WIFI_PASS}
+              WiFi · {cfg.wifiSsid} <span className={styles.wifiSep}>·</span> senha · {cfg.wifiPass}
             </p>
             <button className={styles.debugBtn} onClick={clear}>
               desemparelhar (debug)
@@ -124,10 +119,10 @@ export const Welcome = () => {
 
         <aside
           className={styles.hero}
-          style={TENANT_HERO_IMG ? { backgroundImage: `url(${TENANT_HERO_IMG})` } : undefined}
+          style={cfg.heroImageUrl ? { backgroundImage: `url(${cfg.heroImageUrl})` } : undefined}
         >
-          {!TENANT_HERO_IMG && <span className={styles.heroPlaceholder}>🍕</span>}
-          <span className={styles.sinceTag}>{TENANT_SINCE}</span>
+          {!cfg.heroImageUrl && <span className={styles.heroPlaceholder}>🍕</span>}
+          <span className={styles.sinceTag}>{cfg.sinceLabel}</span>
         </aside>
       </section>
 

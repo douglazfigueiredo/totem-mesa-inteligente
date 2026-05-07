@@ -5,10 +5,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useAuthStore } from '@/lib/auth-store';
 import { useCartStore, cartItemCount } from '@/lib/cart-store';
 import { useOrdersStore } from '@/lib/orders-store';
+import { useTenantConfig } from '@/lib/tenant-config-store';
 import { WaiterCallButton } from './WaiterCallButton';
 import styles from './MenuLayout.module.css';
-
-const TENANT_BRAND = process.env.NEXT_PUBLIC_TENANT_BRAND ?? 'Pizzaria Dev';
 
 export const MenuLayout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
@@ -17,6 +16,7 @@ export const MenuLayout = ({ children }: { children: React.ReactNode }) => {
   const items = useCartStore((s) => s.items);
   const count = cartItemCount(items);
   const ordersMap = useOrdersStore((s) => s.orders);
+  const cfg = useTenantConfig();
 
   const { activeCount, latestActiveId } = useMemo(() => {
     let n = 0;
@@ -45,7 +45,7 @@ export const MenuLayout = ({ children }: { children: React.ReactNode }) => {
           >
             ←
           </button>
-          <span className={styles.brand}>{TENANT_BRAND}</span>
+          <span className={styles.brand}>{cfg.brand}</span>
           <span className={styles.tag}>mesa {String(tableNumero ?? '?').padStart(2, '0')}</span>
         </div>
         <div className={styles.right}>

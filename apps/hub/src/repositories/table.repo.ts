@@ -1,4 +1,4 @@
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { tables } from '../db/schema.js';
 import type { DBClient } from '../db/index.js';
 import type { Clock } from '../lib/clock.js';
@@ -10,6 +10,27 @@ export const makeTableRepo = (db: DBClient, _clock: Clock) => ({
       .select()
       .from(tables)
       .where(eq(tables.tenantId, tenantId))
+      .orderBy(asc(tables.numero))
+      .all();
+    return rows.map((r) =>
+      Table.parse({
+        ...r,
+        sessionStartedAt: r.sessionStartedAt ?? undefined,
+      }),
+    );
+  },
+
+  /**
+   * Lista apenas mesas ativas — usado em fluxos onde o usuário escolhe
+   * uma mesa (ex: pareamento de totem). Mesas desativadas no cloud
+   * continuam na tabela pra preservar FK em pedidos antigos, mas não
+   * devem aparecer pra novas operações.
+   */
+  listActive(tenantId: TenantId): Table[] {
+    const rows = db
+      .select()
+      .from(tables)
+      .where(and(eq(tables.tenantId, tenantId), eq(tables.isActive, true)))
       .orderBy(asc(tables.numero))
       .all();
     return rows.map((r) =>

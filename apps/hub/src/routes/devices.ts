@@ -64,7 +64,7 @@ const devicesRoutes: FastifyPluginAsync = async (app) => {
   });
 
   app.get('/pairing/tables', async () => {
-    const tables = app.repos.tables.list(app.tenantId);
+    const tables = app.repos.tables.listActive(app.tenantId);
     return {
       tables: tables.map((t) => ({
         id: t.id,

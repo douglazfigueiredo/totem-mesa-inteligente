@@ -1,5 +1,8 @@
 name: totemmesa-hub-dev
 
+# Versão dev — builda a imagem local a partir do Dockerfile.
+# Útil pra validar mudanças antes de comitar / publicar no GHCR.
+
 services:
   hub:
     build:
@@ -19,25 +22,9 @@ services:
       TENANT_NAME: Pizzaria Dev
       TENANT_VERTICAL: pizzaria
       TENANT_TABLES: 10
-      CLOUD_BASE_URL: http://host.docker.internal:3000
       DATABASE_PATH: /data/hub.db
     volumes:
       - hub-dev-data:/data
-    networks:
-      - tm-dev-net
-
-  redis:
-    image: redis:7-alpine
-    container_name: tm-redis-dev
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    networks:
-      - tm-dev-net
 
 volumes:
   hub-dev-data:
-
-networks:
-  tm-dev-net:
-    driver: bridge

@@ -1,5 +1,10 @@
 name: totemmesa-hub
 
+# Hub local da loja. O pareamento com o cloud é feito via UI admin
+# (http://<ip>:4000/admin/cloud/pair) digitando o código gerado em
+# /admin/hubs no cloud — não precisa mais de TENANT_ID/DEVICE_API_KEY
+# em variáveis de ambiente.
+
 services:
   hub:
     image: ghcr.io/${GH_OWNER:-douglazfigueiredo}/totem-mesa-inteligente-hub:${HUB_TAG:-stable}
@@ -11,10 +16,9 @@ services:
       NODE_ENV: production
       PORT: 4000
       LOG_LEVEL: ${LOG_LEVEL:-info}
-      TENANT_ID: ${TENANT_ID:?TENANT_ID nao definido — rode install.sh ou edite .env}
-      DEVICE_API_KEY: ${DEVICE_API_KEY:?DEVICE_API_KEY nao definido}
-      CLOUD_BASE_URL: ${CLOUD_BASE_URL:-https://app.totemmesa.com}
       DATABASE_PATH: /data/hub.db
+      ADMIN_SECRET: ${ADMIN_SECRET:?ADMIN_SECRET nao definido — rode install.sh ou edite .env}
+      CATALOG_POLL_INTERVAL_MS: ${CATALOG_POLL_INTERVAL_MS:-60000}
     volumes:
       - hub-data:/data
     healthcheck:
@@ -23,37 +27,22 @@ services:
       timeout: 5s
       retries: 3
       start_period: 20s
-    networks:
-      - tm-net
+    labels:
+      com.centurylinklabs.watchtower.enable: ${ENABLE_AUTO_UPDATE:-false}
 
-  redis:
-    image: redis:7-alpine
-    container_name: tm-redis
-    restart: unless-stopped
-    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
-    volumes:
-      - redis-data:/data
-    networks:
-      - tm-net
-
+  # Auto-update opcional (desligado por default — ativar com ENABLE_AUTO_UPDATE=true).
+  # Em loja real é mais seguro atualizar manualmente via update.sh durante manutenção.
   watchtower:
     image: containrrr/watchtower:latest
     container_name: tm-watchtower
     restart: unless-stopped
+    profiles: ["auto-update"]
     environment:
       WATCHTOWER_CLEANUP: "true"
       WATCHTOWER_POLL_INTERVAL: "300"
       WATCHTOWER_LABEL_ENABLE: "true"
-      WATCHTOWER_INCLUDE_RESTARTING: "true"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    labels:
-      com.centurylinklabs.watchtower.enable: "false"
 
 volumes:
   hub-data:
-  redis-data:
-
-networks:
-  tm-net:
-    driver: bridge

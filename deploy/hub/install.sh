@@ -4,6 +4,10 @@
 #   curl -fsSL https://install.totemmesa.app | bash
 # Ou local:
 #   bash deploy/hub/install.sh
+#
+# Este script só sobe o hub e gera ADMIN_SECRET. O pareamento com
+# o cloud é feito DEPOIS via UI: abra http://<ip-do-hub>:4000/admin/cloud/pair
+# e cole o código gerado em /admin/hubs no painel cloud.
 
 set -euo pipefail
 
@@ -63,25 +67,13 @@ if [[ ! -f "${INSTALL_DIR}/.env" ]]; then
   curl -fsSL "${ENV_EXAMPLE_URL}" -o "${INSTALL_DIR}/.env.example"
   cp "${INSTALL_DIR}/.env.example" "${INSTALL_DIR}/.env"
 
-  echo
-  cyan "==> Pareamento — informe os dados gerados no painel cloud:"
-  read -r -p "TENANT_ID (slug da loja): " TENANT_ID_INPUT
-  read -r -p "DEVICE_API_KEY: " DEVICE_API_KEY_INPUT
-  read -r -p "CLOUD_BASE_URL [https://app.totemmesa.com]: " CLOUD_BASE_INPUT
-  CLOUD_BASE_INPUT="${CLOUD_BASE_INPUT:-https://app.totemmesa.com}"
-
-  if [[ -z "${TENANT_ID_INPUT}" || -z "${DEVICE_API_KEY_INPUT}" ]]; then
-    red "TENANT_ID e DEVICE_API_KEY sao obrigatorios."
-    exit 1
-  fi
-
+  ADMIN_SECRET_GEN="$(openssl rand -hex 32)"
   sed -i.bak \
-    -e "s|^TENANT_ID=.*$|TENANT_ID=${TENANT_ID_INPUT}|" \
-    -e "s|^DEVICE_API_KEY=.*$|DEVICE_API_KEY=${DEVICE_API_KEY_INPUT}|" \
-    -e "s|^CLOUD_BASE_URL=.*$|CLOUD_BASE_URL=${CLOUD_BASE_INPUT}|" \
+    -e "s|^ADMIN_SECRET=.*$|ADMIN_SECRET=${ADMIN_SECRET_GEN}|" \
     "${INSTALL_DIR}/.env"
   rm -f "${INSTALL_DIR}/.env.bak"
   chmod 600 "${INSTALL_DIR}/.env"
+  green "==> ADMIN_SECRET gerado e salvo em ${INSTALL_DIR}/.env"
 else
   yellow "==> .env ja existe em ${INSTALL_DIR}/.env — preservando."
 fi
@@ -106,13 +98,33 @@ for i in 1 2 3 4 5 6 7 8 9 10; do
   fi
 done
 
+# Detectar IP local pra exibir nas instruções
+LOCAL_IP="$(hostname -I 2>/dev/null | awk '{print $1}' || echo '<ip-do-hub>')"
+ADMIN_SECRET_VAL="$(grep '^ADMIN_SECRET=' "${INSTALL_DIR}/.env" | cut -d= -f2-)"
+
 green "==> Instalacao concluida."
 cat <<EOF
 
-Proximos passos:
-  - Configurar IP fixo do hub no roteador da loja.
-  - Apontar totens / KDS / app garcom para o IP do hub.
-  - Logs:    docker compose -f ${INSTALL_DIR}/docker-compose.yml logs -f
-  - Status:  docker compose -f ${INSTALL_DIR}/docker-compose.yml ps
-  - Update:  bash ${INSTALL_DIR}/update.sh   (ou Watchtower roda a cada 5min)
+═══════════════════════════════════════════════════════════════════
+ PROXIMOS PASSOS — pareamento com cloud:
+
+  1. No painel cloud, vá em /admin/hubs e clique em "gerar código".
+  2. Acesse a UI admin do hub:
+       http://${LOCAL_IP}:4000/admin/cloud/pair
+  3. Use ADMIN_SECRET pra autenticar:
+       ${ADMIN_SECRET_VAL}
+  4. Cole o código de 6 dígitos. O hub puxa cardápio, mesas e
+     funcionários automaticamente em até 60s.
+
+ Apontar tablets (totem/KDS/garçom) pro hub:
+       https://totem.totemmesa.app/?hub=http://${LOCAL_IP}:4000
+       https://kds.totemmesa.app/?hub=http://${LOCAL_IP}:4000
+       https://waiter.totemmesa.app/?hub=http://${LOCAL_IP}:4000
+   (a URL fica salva no localStorage do tablet — só precisa abrir
+    com ?hub=... uma vez)
+
+ Logs:    docker compose -f ${INSTALL_DIR}/docker-compose.yml logs -f
+ Status:  docker compose -f ${INSTALL_DIR}/docker-compose.yml ps
+ Update:  bash ${INSTALL_DIR}/update.sh
+═══════════════════════════════════════════════════════════════════
 EOF

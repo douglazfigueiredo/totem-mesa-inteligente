@@ -1,14 +1,9 @@
 import NextAuth from 'next-auth';
+import Nodemailer from 'next-auth/providers/nodemailer';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { db, schema } from '@/db';
+import { sendMagicLinkEmail } from './email/magic-link';
 
-/**
- * NextAuth v5 configurado com Drizzle adapter.
- *
- * Stub na Fase 6A: providers vazios — login real (Email magic-link) chega
- * na Fase 6B. Adapter já mapeia owners/accounts/sessions/verificationTokens
- * pra Drizzle, e a callback de session anexa `ownerId` ao session.user.
- */
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: DrizzleAdapter(db, {
     usersTable: schema.owners,
@@ -17,12 +12,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     verificationTokensTable: schema.verificationTokens,
   }),
   session: { strategy: 'database' },
+  trustHost: true,
   providers: [
-    // Email({ ... }) — wire-up na Fase 6B
+    Nodemailer({
+      server: {
+        host: process.env.EMAIL_SERVER_HOST,
+        port: Number(process.env.EMAIL_SERVER_PORT),
+        auth: {
+          user: process.env.EMAIL_SERVER_USER,
+          pass: process.env.EMAIL_SERVER_PASSWORD,
+        },
+      },
+      from: process.env.EMAIL_FROM,
+      sendVerificationRequest: sendMagicLinkEmail,
+    }),
   ],
   pages: {
     signIn: '/login',
     verifyRequest: '/login/check-email',
+    error: '/login',
   },
   callbacks: {
     session({ session, user }) {

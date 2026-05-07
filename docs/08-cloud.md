@@ -1,6 +1,6 @@
 # 08 — Cloud SaaS (Painel)
 
-> Status: Fase 6A ✅ (foundation). 6B–6F nas próximas sessões.
+> Status: Fase 6A ✅ (foundation) · Fase 6B ✅ (auth real). 6C–6F nas próximas sessões.
 
 App Next.js 15 hospedado na Vercel. Painel multi-tenant para gerentes/donos de loja
 gerenciarem cardápio, mesas, hubs locais, pedidos e config.
@@ -135,19 +135,74 @@ Em prod (Vercel):
 | `pnpm db:migrate`  | aplica migrations pendentes no Neon                      |
 | `pnpm db:studio`   | UI Drizzle Studio (visualizador)                         |
 
-## 7. Próximas sub-fases
+## 7. Fase 6B — Auth real
+
+Magic-link por e-mail (NextAuth/Auth.js v5 + Nodemailer + Drizzle adapter).
+
+### Fluxo
+
+1. usuário entra em `/login`, digita e-mail
+2. server action chama `signIn('nodemailer', { email, redirectTo: '/login/check-email' })`
+3. Auth.js gera token, grava em `verification_tokens`, dispara e-mail via SMTP (Mailtrap em dev)
+4. usuário clica no link → Auth.js valida, cria/recupera `owner` e abre `session`
+5. middleware (`/admin/:path*`) checa cookie `authjs.session-token`; sem cookie → `/login?callbackUrl=…`
+6. layout `/admin` chama `requireOwner()` que junta owner + tenants. Se sem tenant linkado, mostra "conta sem acesso"
+
+### Arquivos novos / atualizados
+
+| Arquivo                            | Papel                                                |
+| ---------------------------------- | ---------------------------------------------------- |
+| `src/lib/auth.ts`                  | NextAuth com Nodemailer provider                     |
+| `src/lib/email/magic-link.ts`      | template HTML/texto + envio via SMTP                 |
+| `src/lib/tenant.ts`                | `getCurrentOwner()` / `requireOwner()` server-side   |
+| `src/app/login/page.tsx`           | tela de login (server action)                        |
+| `src/app/login/check-email/page.tsx` | confirmação "link enviado"                         |
+| `src/middleware.ts`                | gate por cookie de sessão                            |
+| `src/components/AdminHeader.tsx`   | mostra e-mail do owner + botão sair                  |
+| `src/app/admin/layout.tsx`         | usa `requireOwner` + estado "sem loja vinculada"     |
+| `src/db/seed.ts`                   | cria tenant `dev` + linka `EMAIL_DEV_OWNER`          |
+
+### Setup inicial (dev)
+
+```bash
+# 1) configurar .env.local (DATABASE_URL Neon, AUTH_SECRET, EMAIL_SERVER_*)
+cp apps/cloud/.env.example apps/cloud/.env.local
+
+# 2) aplicar schema no Neon
+pnpm --filter @app/cloud db:migrate
+
+# 3) seed: cria tenant 'dev' + linka douglasarts@gmail.com (ou EMAIL_DEV_OWNER)
+pnpm --filter @app/cloud db:seed
+
+# 4) subir
+pnpm --filter @app/cloud dev
+```
+
+### Notas técnicas
+
+- **Session strategy**: `database` (não JWT) — cada login persiste em `sessions`. Logout via `signOut()` apaga a row.
+- **Middleware Edge-friendly**: não valida sessão no banco (Drizzle não roda em Edge), só checa presença do cookie. Validação real acontece no `requireOwner()` do layout. Worst case: cookie zumbi ⇒ extra round-trip pra `/login`.
+- **Tenant ativo**: cookie `active_tenant_slug`. Se não setado, usa o primeiro tenant do owner. Switching de tenants chega quando owner com >1 loja for caso real.
+- **DrizzleAdapter exige snake_case**: as colunas em `accounts` (refresh_token, access_token, expires_at, etc) são as **JS prop names**, não só nomes de coluna SQL. Isso já está aplicado no `schema.ts`.
+
+## 8. Próximas sub-fases
 
 | Fase   | Escopo                                                                                                                                                        |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **6B** | NextAuth Email provider real, login funcional, tenant context server-side                                                                                     |
 | **6C** | CRUD cardápio (categorias / produtos / variantes / modificadores / fotos) — source-of-truth do menu                                                           |
 | **6D** | Pareamento hub ↔ cloud: cloud gera token, hub `/admin/pair-with-cloud` registra-se, recebe `cloudApiKey` + `tenantId`. Cloud puxa cardápio. Hub envia outbox. |
 | **6E** | Histórico/analytics: timeline de pedidos, ticket médio, prato campeão, hora de pico                                                                           |
 | **6F** | Tenant config UI — substitui as env vars do totem (`TENANT_BRAND`, `TENANT_AREA`, `TENANT_SINCE`, `TENANT_HERO_IMG`, `WIFI_*`)                                |
 
-## 8. Validação 6A
+## 9. Validação
 
+### 6A
 - ✅ Typecheck (`pnpm typecheck`)
 - ✅ Build (`pnpm build`) — passa mesmo sem `DATABASE_URL`
-- ⏳ Migrations aplicadas — depende do user configurar `.env.local` com Neon
-- ⏳ Login real — Fase 6B
+- ✅ Migrations geradas e committadas
+
+### 6B
+- ✅ Typecheck (`pnpm typecheck`)
+- ✅ Login flow estruturado (server action + redirect → check-email)
+- ✅ Middleware gating ativo
+- ⏳ Smoke test E2E (login real → admin) depende de SMTP config no `.env.local`

@@ -49,7 +49,7 @@ export const buildApp = async (opts: BuildAppOptions): Promise<FastifyInstance> 
   app.decorate('broadcaster', opts.broadcaster);
   app.decorate('publishAndEnqueue', function publishAndEnqueue(type, tenantId, payload) {
     const event = makeEvent(type, tenantId, payload);
-    opts.broadcaster.broadcast(event);
+    app.broadcaster.broadcast(event);
     opts.repos.outbox.enqueue({
       eventId: event.eventId,
       tenantId,

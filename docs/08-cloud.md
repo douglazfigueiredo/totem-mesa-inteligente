@@ -1,6 +1,6 @@
 # 08 — Cloud SaaS (Painel)
 
-> Status: 6A ✅ · 6B ✅ · 6C.1 ✅ · 6C.2 ✅ (produtos). 6C.3–6F nas próximas sessões.
+> Status: 6A ✅ · 6B ✅ · 6C.1 ✅ · 6C.2 ✅ · 6C.3 ✅ (variants/modifiers). 6C.4–6F nas próximas sessões.
 
 App Next.js 15 hospedado na Vercel. Painel multi-tenant para gerentes/donos de loja
 gerenciarem cardápio, mesas, hubs locais, pedidos e config.
@@ -226,11 +226,36 @@ pra fase posterior (provavelmente 6C.5 ou config da loja).
 Server actions em `[categoryId]/actions.ts` validam tudo com Zod e parse de preço
 em reais → cents (aceita vírgula ou ponto).
 
-### 6C.3–6C.4 (próximas)
+### 6C.3 ✅ — Variants + Modifier groups + Modifiers
+
+3 tabelas relacionais (migration `0003`):
+
+- `product_variants(id, product_id, nome, price_cents, is_default, is_available, ordem)`
+- `modifier_groups(id, product_id, nome, selection_type 'single'|'multi', required, min_select, max_select?, ordem)`
+- `modifiers(id, group_id, nome, price_delta_cents ≥0, is_available, ordem)`
+
+Tudo aninhado dentro do `<details>` do produto. Carregamento eficiente: 3 queries em paralelo
+(`Promise.all`) + agrupamento em JS por `productId`/`groupId`. Server actions em arquivos
+separados:
+
+- `actions.ts` (produto)
+- `variant-actions.ts` (variants)
+- `modifier-actions.ts` (groups + modifiers)
+
+**Decisões aplicadas:**
+- `priceDeltaCents` em modifier sempre **≥ 0** (sem desconto via modifier — produto é responsável pelo preço)
+- `basePriceCents` continua editável quando há variants — vira label "preço base (fallback)"
+- `isDefault` por variant: server action limpa `isDefault` das outras antes de marcar a nova (sem unique constraint)
+
+UI por nível:
+- Linha do produto exibe sumário: `R$ X · destino · Nmin · K var · M grp`
+- 3 `<details>` siblings: editar detalhes, variantes, modificadores
+- Cada modifier group é um sub-card com sua própria config colapsável + lista de modifiers
+
+### 6C.4 (próxima)
 
 | Fase     | Escopo                                                                              |
 | -------- | ----------------------------------------------------------------------------------- |
-| **6C.3** | Variants + Modifier groups + Modifiers aninhados no edit do produto                 |
 | **6C.4** | `GET /api/catalog/snapshot` autenticado por hub apiKey (pré-requisito da 6D)        |
 
 ## 9. Próximas fases gerais
@@ -263,3 +288,8 @@ em reais → cents (aceita vírgula ou ponto).
 - ✅ Typecheck + Build
 - ✅ Migration `0002` gerada
 - ⏳ Smoke test (criar produto, editar campos, pausar, reorder, excluir)
+
+### 6C.3
+- ✅ Typecheck + Build
+- ✅ Migration `0003` gerada e aplicada no Neon
+- ⏳ Smoke test (variants P/M/G, grupo "adicionais" com modifiers)

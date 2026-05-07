@@ -175,6 +175,75 @@ export const products = pgTable(
   }),
 );
 
+/**
+ * product_variants — variações de um produto (P/M/G, 350ml/600ml).
+ * Quando o produto tem variants, o totem força o cliente a escolher uma.
+ * `isDefault` marca a sugerida; o app garante que no máximo uma variant
+ * por produto seja default (server action revoga as outras).
+ */
+export const productVariants = pgTable(
+  'product_variants',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    productId: uuid('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    nome: text('nome').notNull(),
+    priceCents: integer('price_cents').notNull(),
+    isDefault: boolean('is_default').notNull().default(false),
+    isAvailable: boolean('is_available').notNull().default(true),
+    ordem: integer('ordem').notNull().default(0),
+  },
+  (t) => ({
+    productOrdemIdx: index('product_variants_product_ordem_ix').on(t.productId, t.ordem),
+  }),
+);
+
+/**
+ * modifier_groups — agrupamento de modificadores por produto.
+ * `selectionType: single` = radio (escolha 1). `multi` = checkboxes.
+ * `required` força escolher pelo menos um. `min/maxSelect` limitam escolhas.
+ */
+export const modifierGroups = pgTable(
+  'modifier_groups',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    productId: uuid('product_id')
+      .notNull()
+      .references(() => products.id, { onDelete: 'cascade' }),
+    nome: text('nome').notNull(),
+    selectionType: text('selection_type').notNull().default('single'),
+    required: boolean('required').notNull().default(false),
+    minSelect: integer('min_select').notNull().default(0),
+    maxSelect: integer('max_select'),
+    ordem: integer('ordem').notNull().default(0),
+  },
+  (t) => ({
+    productOrdemIdx: index('modifier_groups_product_ordem_ix').on(t.productId, t.ordem),
+  }),
+);
+
+/**
+ * modifiers — itens individuais dentro de um group.
+ * `priceDeltaCents` é sempre >= 0 (decisão do produto: sem desconto via modifier).
+ */
+export const modifiers = pgTable(
+  'modifiers',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    groupId: uuid('group_id')
+      .notNull()
+      .references(() => modifierGroups.id, { onDelete: 'cascade' }),
+    nome: text('nome').notNull(),
+    priceDeltaCents: integer('price_delta_cents').notNull().default(0),
+    isAvailable: boolean('is_available').notNull().default(true),
+    ordem: integer('ordem').notNull().default(0),
+  },
+  (t) => ({
+    groupOrdemIdx: index('modifiers_group_ordem_ix').on(t.groupId, t.ordem),
+  }),
+);
+
 /* ── NextAuth tables (drizzle adapter) ─────────────────────────────────── */
 /* Prop names em snake_case nas auth-tables são exigidos pelo DrizzleAdapter */
 
@@ -246,3 +315,6 @@ export type Category = typeof categories.$inferSelect;
 export type NewCategory = typeof categories.$inferInsert;
 export type Product = typeof products.$inferSelect;
 export type NewProduct = typeof products.$inferInsert;
+export type ProductVariant = typeof productVariants.$inferSelect;
+export type ModifierGroup = typeof modifierGroups.$inferSelect;
+export type Modifier = typeof modifiers.$inferSelect;

@@ -65,14 +65,28 @@ export const buildApp = async (opts: BuildAppOptions): Promise<FastifyInstance> 
   await app.register(cors, { origin: true });
   await app.register(authPlugin, { adminSecret: opts.adminSecret });
 
-  app.get('/health', async () => ({
-    status: 'ok',
-    service: 'hub',
-    version: process.env.APP_VERSION ?? 'dev',
-    timestamp: Date.now(),
-    db: { ordersCount: opts.repos.orders.count() },
-    outbox: { pending: opts.repos.outbox.pendingCount() },
-  }));
+  app.get('/health', async () => {
+    const link = opts.repos.cloudLink.get();
+    return {
+      status: 'ok',
+      service: 'hub',
+      version: process.env.APP_VERSION ?? 'dev',
+      timestamp: Date.now(),
+      uptimeSec: Math.round(process.uptime()),
+      db: { ordersCount: opts.repos.orders.count() },
+      outbox: { pending: opts.repos.outbox.pendingCount() },
+      cloud: link
+        ? {
+            paired: true,
+            tenantId: link.tenantId,
+            tenantNome: link.tenantNome,
+            cloudBaseUrl: link.cloudBaseUrl,
+            lastSyncAt: link.lastSyncAt,
+            lastSyncVersion: link.lastSyncVersion,
+          }
+        : { paired: false },
+    };
+  });
 
   await app.register(devicesRoutes);
   await app.register(ordersRoutes);

@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { WSEvent, type WSEvent as WSEventType } from '@app/schemas';
 import { db, schema } from '@/db';
+import { rateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +35,24 @@ export async function POST(req: Request) {
     .from(schema.hubs)
     .where(eq(schema.hubs.apiKey, apiKey));
   if (!hub) return unauthorized();
+
+  // Rate limit por hub: 200 reqs/min. Cada outbox tick envia até 25
+  // eventos por request (batchSize), então 200/min cobre fluxo
+  // saudável de uma loja agitada. Anti-spam de hubs comprometidos.
+  const rl = rateLimit({ key: `events:${hub.id}`, windowMs: 60_000, max: 200 });
+  if (!rl.allowed) {
+    log('warn', 'rate limited', { requestId, hubId: hub.id });
+    return NextResponse.json(
+      { error: 'rate limited' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)),
+          'X-RateLimit-Reset': String(rl.resetAt),
+        },
+      },
+    );
+  }
 
   let body: unknown;
   try {

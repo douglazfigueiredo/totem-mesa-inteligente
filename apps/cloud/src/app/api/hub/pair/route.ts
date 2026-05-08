@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { and, eq, gt, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { db, schema } from '@/db';
+import { clientIp, rateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,23 @@ function log(level: 'info' | 'warn' | 'error', msg: string, ctx: Record<string, 
 export async function POST(req: Request) {
   const requestId = req.headers.get('x-vercel-id') ?? crypto.randomUUID();
   const start = Date.now();
+
+  // Rate limit anti-bruteforce de códigos 6 dígitos: 4 tentativas / 5min por IP.
+  const ip = clientIp(req);
+  const rl = rateLimit({ key: `pair:${ip}`, windowMs: 5 * 60_000, max: 4 });
+  if (!rl.allowed) {
+    log('warn', 'rate limited', { requestId, ip, retryAfterMs: rl.retryAfterMs });
+    return NextResponse.json(
+      { error: 'too many attempts, try again later' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil(rl.retryAfterMs / 1000)),
+          'X-RateLimit-Reset': String(rl.resetAt),
+        },
+      },
+    );
+  }
 
   let body: unknown;
   try {

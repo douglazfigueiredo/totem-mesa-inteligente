@@ -13,5 +13,17 @@ export default function PairPage() {
     if (paired) router.replace('/');
   }, [paired, router]);
 
-  return <PairingForm />;
+  return (
+    <main
+      style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+      }}
+    >
+      <PairingForm />
+    </main>
+  );
 }

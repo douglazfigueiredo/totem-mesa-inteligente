@@ -16,5 +16,17 @@ export default function LoginPage() {
   }, [paired, logged, router]);
 
   if (!paired) return null;
-  return <PinForm />;
+  return (
+    <main
+      style={{
+        flex: 1,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 16,
+      }}
+    >
+      <PinForm />
+    </main>
+  );
 }

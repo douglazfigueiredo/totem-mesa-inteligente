@@ -110,8 +110,12 @@ export const hubPairings = pgTable(
     code: text('code').notNull(),
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     consumedAt: timestamp('consumed_at', { withTimezone: true }),
-    consumedByHubId: uuid('consumed_by_hub_id').references(() => hubs.id),
-    createdByOwnerId: uuid('created_by_owner_id').references(() => owners.id),
+    consumedByHubId: uuid('consumed_by_hub_id').references(() => hubs.id, {
+      onDelete: 'set null',
+    }),
+    createdByOwnerId: uuid('created_by_owner_id').references(() => owners.id, {
+      onDelete: 'set null',
+    }),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => ({

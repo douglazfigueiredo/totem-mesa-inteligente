@@ -14,6 +14,7 @@ import { createSocketServer } from './sockets/server.js';
 import { startTimerWorker } from './workers/timer.js';
 import { startCatalogPoller } from './workers/catalog-poller.js';
 import { makeCloudLinkPusher, startOutboxWorker } from './workers/outbox.js';
+import { startBackupWorker } from './workers/backup.js';
 
 const HOST = process.env.HOST ?? '0.0.0.0';
 const PORT = Number(process.env.PORT ?? 4000);
@@ -22,7 +23,7 @@ const DATABASE_PATH = process.env.DATABASE_PATH ?? './data/hub.db';
 async function main() {
   mkdirSync(dirname(DATABASE_PATH), { recursive: true });
 
-  const { db, close } = createDB({
+  const { db, close, backup } = createDB({
     path: DATABASE_PATH,
     applyMigrations: true,
     migrationsFolder: new URL('./db/migrations', import.meta.url).pathname,
@@ -50,12 +51,14 @@ async function main() {
   let timerWorkerStop: (() => Promise<void>) | null = null;
   let outboxWorkerStop: (() => Promise<void>) | null = null;
   let pollerStop: (() => Promise<void>) | null = null;
+  let backupWorkerStop: (() => Promise<void>) | null = null;
   let realBroadcasterClose: (() => Promise<void>) | null = null;
 
   app.addHook('onClose', async () => {
     if (pollerStop) await pollerStop();
     if (timerWorkerStop) await timerWorkerStop();
     if (outboxWorkerStop) await outboxWorkerStop();
+    if (backupWorkerStop) await backupWorkerStop();
     if (realBroadcasterClose) await realBroadcasterClose();
     close();
   });
@@ -99,6 +102,19 @@ async function main() {
     logger: app.log,
   });
   pollerStop = poller.stop;
+
+  const backupHours = Number(process.env.BACKUP_INTERVAL_HOURS ?? 24);
+  const backupKeep = Number(process.env.BACKUP_KEEP ?? 7);
+  if (backupHours > 0) {
+    const backupWorker = startBackupWorker({
+      dbPath: DATABASE_PATH,
+      backup,
+      intervalMs: backupHours * 60 * 60 * 1000,
+      keep: backupKeep,
+      logger: app.log,
+    });
+    backupWorkerStop = backupWorker.stop;
+  }
 
   const cloudLinkAtBoot = repos.cloudLink.get();
   app.log.info(

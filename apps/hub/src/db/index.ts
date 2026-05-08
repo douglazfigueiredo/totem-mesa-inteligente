@@ -12,7 +12,9 @@ export type CreateDBOptions = {
   migrationsFolder?: string;
 };
 
-export const createDB = (opts: CreateDBOptions): { db: DBClient; close: () => void } => {
+export const createDB = (
+  opts: CreateDBOptions,
+): { db: DBClient; close: () => void; backup: (destPath: string) => Promise<void> } => {
   const sqlite = new Database(opts.path, { readonly: opts.readonly ?? false });
   sqlite.pragma('journal_mode = WAL');
   sqlite.pragma('foreign_keys = ON');
@@ -29,6 +31,14 @@ export const createDB = (opts: CreateDBOptions): { db: DBClient; close: () => vo
   return {
     db,
     close: () => sqlite.close(),
+    /**
+     * Online backup — better-sqlite3 copia o DB inteiro pra outro
+     * arquivo sem bloquear escritas concorrentes (usa SQLite backup
+     * API). Retorna após o destino estar consistente.
+     */
+    backup: async (destPath) => {
+      await sqlite.backup(destPath);
+    },
   };
 };
 

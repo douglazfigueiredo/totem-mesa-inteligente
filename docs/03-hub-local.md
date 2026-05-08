@@ -171,6 +171,17 @@ pnpm dev                    # http://localhost:4000/health
 
 `./data/hub.db` e criado no diretorio do hub. Testes usam in-memory SQLite isolado por suite.
 
+### UI Admin do hub
+
+Após hub subir, abra no browser: `http://localhost:4000/admin`
+
+Funcionalidades:
+- **Login** — digite o `ADMIN_SECRET` (em `.env` ou no docker-compose env). Token fica em sessionStorage do browser.
+- **Status** — uptime, pedidos no banco, outbox pendente, vínculo com cloud (paired? lastSync?)
+- **Parear device** — escolhe role (totem/kds/waiter), gera código de 6 dígitos visível na tela. Use no app do device pra completar pareamento. Código expira em 10min.
+
+Pareamento de hub↔cloud continua via API (`POST /admin/cloud/pair`) — UI dessa parte fica pra fase futura.
+
 ### Dev com Docker
 
 ```bash
@@ -216,7 +227,12 @@ Erros padronizados via `DomainError`:
 | Metodo + Path                    | Auth             | Body / Query                                                  |
 | -------------------------------- | ---------------- | ------------------------------------------------------------- |
 | `GET  /health`                   | publico          | —                                                             |
-| `POST /admin/pairing-codes`      | admin            | `{ role, ttlMs? }`                                            |
+| `GET  /admin`                    | publico          | redirect → `/admin-ui/admin/` (UI HTML do hub)                |
+| `GET  /admin-ui/*`               | publico          | assets estáticos da UI admin                                  |
+| `POST /admin/pairing-codes`      | admin            | `{ role, ttlMs? }` — gera código pra parear device            |
+| `GET  /admin/cloud/status`       | admin            | retorna estado de pareamento com cloud SaaS                   |
+| `POST /admin/cloud/pair`         | admin            | `{ code, cloudBaseUrl, hubName? }` — pareia hub com cloud     |
+| `POST /admin/cloud/unpair`       | admin            | desfaz pareamento                                             |
 | `POST /devices/pair`             | publico          | `{ code, nome, tableId? }` → `{ device, apiKey }`             |
 | `POST /orders`                   | totem            | `{ tableId, items[], taxaServicoBps?, obs? }` + `x-event-id?` |
 | `GET  /orders/:id`               | qualquer         | —                                                             |

@@ -36,6 +36,9 @@ ENV PORT=4000
 ENV DATABASE_PATH=/data/hub.db
 
 COPY --from=deploy --chown=node:node /deploy ./
+# Admin UI estática — pnpm deploy --prod nem sempre copia public/.
+# Garantia explícita pra que /admin sirva os assets corretamente.
+COPY --from=build --chown=node:node /repo/apps/hub/public ./public
 
 EXPOSE 4000
 USER node

@@ -62,7 +62,24 @@ export const buildApp = async (opts: BuildAppOptions): Promise<FastifyInstance> 
 
   await app.register(errorHandlerPlugin);
   await app.register(helmet);
-  await app.register(cors, { origin: true });
+
+  // CORS: lista de origens permitidas via ALLOWED_ORIGINS (CSV).
+  // Em dev (NODE_ENV !== 'production') ou se não setado, aceita tudo.
+  // Em prod, sem a env, aceita só requests same-origin (sem header Origin).
+  const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  const isDev = process.env.NODE_ENV !== 'production';
+  await app.register(cors, {
+    origin:
+      isDev || allowedOrigins.length === 0
+        ? true
+        : (origin, cb) => {
+            if (!origin) return cb(null, true); // same-origin
+            cb(null, allowedOrigins.includes(origin));
+          },
+  });
   await app.register(authPlugin, { adminSecret: opts.adminSecret });
 
   app.get('/health', async () => {

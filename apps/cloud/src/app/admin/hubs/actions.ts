@@ -71,6 +71,13 @@ export async function unpairHubAction(
     if (!tenant) throw new Error('sem tenant ativo');
     const id = IdSchema.parse(formData.get('id'));
 
+    // Limpa FK em hub_pairings.consumed_by_hub_id antes de deletar o hub.
+    // Schema atual não tem ON DELETE SET NULL — fazemos manual.
+    await db
+      .update(schema.hubPairings)
+      .set({ consumedByHubId: null })
+      .where(eq(schema.hubPairings.consumedByHubId, id));
+
     await db
       .delete(schema.hubs)
       .where(and(eq(schema.hubs.id, id), eq(schema.hubs.tenantId, tenant.id)));

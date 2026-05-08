@@ -49,7 +49,15 @@ export const buildApp = async (opts: BuildAppOptions): Promise<FastifyInstance> 
   });
 
   app.decorate('repos', opts.repos);
-  app.decorate('tenantId', opts.tenantId);
+  // tenantId é dinâmico: cloud quando pareado, senão o local do bootstrap.
+  // Decorate fixo capturaria opts.tenantId (= local) e ignoraria pareamentos
+  // posteriores, fazendo pairing-codes/devices ficarem com tenant errado.
+  Object.defineProperty(app, 'tenantId', {
+    get: (): TenantId =>
+      (opts.repos.cloudLink.get()?.tenantId as TenantId | undefined) ?? opts.tenantId,
+    enumerable: true,
+    configurable: true,
+  });
   app.decorate('broadcaster', opts.broadcaster);
   app.decorate('publishAndEnqueue', function publishAndEnqueue(type, tenantId, payload) {
     const event = makeEvent(type, tenantId, payload);

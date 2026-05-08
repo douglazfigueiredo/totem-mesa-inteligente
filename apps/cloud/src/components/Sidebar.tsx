@@ -50,7 +50,7 @@ export const Sidebar = () => {
 
       <div className="border-t border-[var(--color-line)] p-4">
         <p className="mono text-[10px] uppercase tracking-widest text-[var(--color-ink-mute)]">
-          fase 10 ✓ · hardening
+          fase 11 ✓ · hub admin UI
         </p>
       </div>
     </aside>

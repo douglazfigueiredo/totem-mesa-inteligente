@@ -1,6 +1,9 @@
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import Fastify, { type FastifyInstance } from 'fastify';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
+import fastifyStatic from '@fastify/static';
 import type { Repos } from './repositories/index.js';
 import authPlugin from './plugins/auth.js';
 import errorHandlerPlugin from './plugins/error-handler.js';
@@ -81,6 +84,20 @@ export const buildApp = async (opts: BuildAppOptions): Promise<FastifyInstance> 
           },
   });
   await app.register(authPlugin, { adminSecret: opts.adminSecret });
+
+  // Admin UI estático — HTML/CSS/JS vanilla servidos do `public/`.
+  // Prefix `/admin-ui/` evita colisão com endpoints `/admin/*`
+  // (pairing-codes, cloud/pair, etc) já registrados.
+  const __dirname = dirname(fileURLToPath(import.meta.url));
+  const publicRoot = join(__dirname, '..', 'public');
+  await app.register(fastifyStatic, {
+    root: publicRoot,
+    prefix: '/admin-ui/',
+    decorateReply: false,
+  });
+  app.get('/admin', async (_req, reply) => {
+    return reply.redirect('/admin-ui/admin/', 302);
+  });
 
   app.get('/health', async () => {
     const link = opts.repos.cloudLink.get();

@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>TotemMesa · Hub Admin</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-name">TotemMesa</span>
+          <span class="brand-tag">hub admin</span>
+        </div>
+        <div class="topbar-right">
+          <span id="conn-indicator" class="conn"></span>
+          <button id="logout-btn" class="btn-ghost" hidden>sair</button>
+        </div>
+      </header>
+
+      <main class="main">
+        <!-- Tela de login -->
+        <section id="login-view" class="view">
+          <div class="card">
+            <p class="meta">acesso restrito</p>
+            <h1 class="title"><em>admin</em> do hub</h1>
+            <p class="hint">
+              cole o ADMIN_SECRET configurado em <code>deploy/hub/.env</code>.
+            </p>
+            <form id="login-form">
+              <input
+                type="password"
+                id="secret-input"
+                placeholder="admin secret"
+                autocomplete="off"
+                required
+              />
+              <button type="submit" class="btn-primary">entrar</button>
+            </form>
+            <p id="login-error" class="error" hidden></p>
+          </div>
+        </section>
+
+        <!-- Dashboard -->
+        <section id="dashboard-view" class="view" hidden>
+          <div class="grid">
+            <!-- Status -->
+            <div class="card status">
+              <div class="card-head">
+                <p class="meta">status do hub</p>
+                <button id="refresh-btn" class="btn-ghost-sm">atualizar</button>
+              </div>
+              <dl class="kv">
+                <dt>versão</dt>
+                <dd id="kv-version">—</dd>
+                <dt>uptime</dt>
+                <dd id="kv-uptime">—</dd>
+                <dt>pedidos no banco</dt>
+                <dd id="kv-orders">—</dd>
+                <dt>outbox pendente</dt>
+                <dd id="kv-outbox">—</dd>
+              </dl>
+
+              <div class="divider"></div>
+
+              <p class="meta">vínculo com cloud</p>
+              <dl class="kv">
+                <dt>pareado</dt>
+                <dd id="kv-paired" class="badge">—</dd>
+                <dt>tenant</dt>
+                <dd id="kv-tenant">—</dd>
+                <dt>cloud URL</dt>
+                <dd id="kv-cloud-url" class="mono">—</dd>
+                <dt>último sync</dt>
+                <dd id="kv-last-sync">—</dd>
+              </dl>
+            </div>
+
+            <!-- Pareamento de device -->
+            <div class="card">
+              <p class="meta">parear novo device</p>
+              <h2 class="subtitle">gerar código</h2>
+              <p class="hint">
+                escolha o tipo de estação e gere um código de 6 dígitos.
+                no tablet/PC do device, abra o app e digite o código pra
+                vincular ao hub. cada código vale por 10 minutos e é
+                consumido na primeira ligação.
+              </p>
+              <form id="pair-form">
+                <label>
+                  <span class="label">tipo</span>
+                  <select id="pair-role" required>
+                    <option value="totem">totem (mesa)</option>
+                    <option value="kds">KDS (cozinha)</option>
+                    <option value="waiter">app garçom</option>
+                  </select>
+                </label>
+                <button type="submit" class="btn-primary">gerar código</button>
+              </form>
+
+              <div id="pair-result" hidden>
+                <div class="code-display">
+                  <span id="pair-code" class="code">000000</span>
+                  <p id="pair-meta" class="meta"></p>
+                </div>
+                <p class="hint">
+                  digite esse código no device. ele expira automaticamente.
+                </p>
+              </div>
+
+              <p id="pair-error" class="error" hidden></p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

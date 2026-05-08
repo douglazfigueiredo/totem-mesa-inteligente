@@ -13,11 +13,15 @@ services:
     restart: unless-stopped
     ports:
       - "4000:4000"
+    # ADMIN_SECRET vem de apps/hub/.env (mesma fonte usada quando o hub
+    # roda fora do Docker). Copie apps/hub/.env.example e gere o secret
+    # com:  openssl rand -hex 32
+    env_file:
+      - ../../apps/hub/.env
     environment:
       NODE_ENV: development
       PORT: 4000
       LOG_LEVEL: info
-      ADMIN_SECRET: dev-admin-secret-min-20-chars-XX
       TENANT_SLUG: pizzaria-dev
       TENANT_NAME: Pizzaria Dev
       TENANT_VERTICAL: pizzaria

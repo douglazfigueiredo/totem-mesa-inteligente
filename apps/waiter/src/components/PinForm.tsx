@@ -13,6 +13,8 @@ export const PinForm = () => {
   const router = useRouter();
   const apiKey = useAuthStore((s) => s.apiKey);
   const setEmployee = useAuthStore((s) => s.setEmployee);
+  const clear = useAuthStore((s) => s.clear);
+  const deviceNome = useAuthStore((s) => s.deviceNome);
 
   const [pin, setPin] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -44,6 +46,12 @@ export const PinForm = () => {
   };
 
   const dots = Array.from({ length: MAX }, (_, i) => i < pin.length);
+
+  const handleUnpair = () => {
+    if (!confirm('desparear este garçom do hub? você precisará de um novo código.')) return;
+    clear();
+    router.replace('/pair');
+  };
 
   return (
     <div className={styles.wrap}>
@@ -80,6 +88,13 @@ export const PinForm = () => {
       </button>
 
       {error && <p className={styles.error}>{error}</p>}
+
+      <div className={styles.unpair}>
+        {deviceNome && <span className={styles.deviceNome}>{deviceNome}</span>}
+        <button type="button" className={styles.unpairBtn} onClick={handleUnpair}>
+          desparear dispositivo
+        </button>
+      </div>
     </div>
   );
 };

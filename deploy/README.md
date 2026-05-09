@@ -9,9 +9,9 @@
 ## Hub local — quickstart
 
 ```bash
-# Producao (numa loja, no RPi 5 ou Mini PC):
-curl -fsSL https://install.totemmesa.app | bash
-# (ainda nao publicado — usar copia local enquanto isso:)
+# Producao (numa loja, em mini-PC com Ubuntu Server 24.04 LTS):
+curl -fsSL https://raw.githubusercontent.com/douglazfigueiredo/totem-mesa-inteligente/main/deploy/hub/install.sh | bash
+# Ou copiando local (clone do repo):
 sudo bash deploy/hub/install.sh
 
 # Dev local (no laptop):

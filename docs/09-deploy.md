@@ -117,8 +117,8 @@ Mesmo padrão: configurar 3 domínios distintos no DNS, apontando pro Vercel.
 
 ### 4.1. Requisitos do mini-PC
 
-- Linux (Ubuntu Server 22.04+ recomendado)
-- Docker Engine 24+ com plugin compose
+- Linux (Ubuntu Server 24.04 LTS recomendado — i3/8GB/250GB roda folgado)
+- Docker Engine 24+ com plugin compose (instalado pelo script se faltar)
 - ≥ 2 GB RAM, 16 GB disco
 - IP fixo na LAN (configurar no roteador)
 
@@ -126,18 +126,31 @@ Mesmo padrão: configurar 3 domínios distintos no DNS, apontando pro Vercel.
 
 ```bash
 # Numa primeira máquina nova:
-curl -fsSL https://install.totemmesa.app | bash
+curl -fsSL https://raw.githubusercontent.com/douglazfigueiredo/totem-mesa-inteligente/main/deploy/hub/install.sh | bash
 
-# Ou copiando local:
+# Ou copiando local (clone do repo):
 sudo bash deploy/hub/install.sh
 ```
 
 O script:
-1. Instala Docker (se faltar)
-2. Cria `/opt/totemmesa/{docker-compose.yml,.env}`
-3. Gera `ADMIN_SECRET` aleatório
-4. Sobe o hub
-5. Imprime URL de pareamento + ADMIN_SECRET
+1. Verifica pré-reqs (`curl`/`sed`/`openssl`) e instala via apt se faltar
+2. Seta timezone (`America/Sao_Paulo` por default; override com `TZ=...`)
+3. Instala `unattended-upgrades` (security patches automáticos)
+4. Instala Docker (se faltar)
+5. Configura `ufw` liberando só `22/tcp` (SSH) e `4000/tcp` (hub)
+6. Verifica espaço em disco (alerta se < 5GB livre)
+7. Cria `/opt/totemmesa/{docker-compose.yml,update.sh,.env}`
+8. Gera `ADMIN_SECRET` aleatório (openssl ou fallback `/dev/urandom`)
+9. Sobe o hub e aguarda health-check
+10. Imprime URL de pareamento + ADMIN_SECRET
+
+**Flags de override** (env vars, opcionais):
+- `SKIP_TIMEZONE=1` — não tocar em `timedatectl`
+- `SKIP_AUTO_UPDATES=1` — pular `unattended-upgrades`
+- `SKIP_FIREWALL=1` — não configurar `ufw` (use se a rede já tem firewall externo)
+- `SKIP_DISK_CHECK=1` — pular alerta de espaço
+- `MIN_FREE_GB=10` — ajustar limiar do alerta de disco
+- `ADMIN_HTTP_PORT=4000` — trocar a porta exposta do hub
 
 ### 4.3. Pareamento com cloud
 

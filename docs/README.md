@@ -4,12 +4,13 @@ Indice de docs do projeto. Cada fase de desenvolvimento fecha com um doc novo aq
 
 ## Por papel
 
-| Quem voce e               | Comece por                                       |
-| ------------------------- | ------------------------------------------------ |
-| Dev novo no projeto       | [`00-arquitetura.md`](./00-arquitetura.md)       |
-| Quer entender uma decisao | [`adr/`](./adr/) — Architecture Decision Records |
-| Vai instalar hub na loja  | [`04-deploy-hub.md`](./04-deploy-hub.md)         |
-| Vai operar o painel cloud | `08-cloud-saas.md` (Fase 6)                      |
+| Quem voce e                       | Comece por                                       |
+| --------------------------------- | ------------------------------------------------ |
+| Dev novo no projeto               | [`00-arquitetura.md`](./00-arquitetura.md)       |
+| Quer entender uma decisao         | [`adr/`](./adr/) — Architecture Decision Records |
+| Vai instalar hub numa loja real   | [`10-loja-piloto.md`](./10-loja-piloto.md)       |
+| Quer o runbook geral de deploy    | [`09-deploy.md`](./09-deploy.md)                 |
+| Vai operar o painel cloud         | [`08-cloud.md`](./08-cloud.md)                   |
 
 ## Indice por fase
 

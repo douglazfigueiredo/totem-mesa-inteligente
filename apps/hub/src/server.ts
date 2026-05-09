@@ -32,6 +32,11 @@ async function main() {
   const repos = makeRepos(db, systemClock);
   const { tenantId, created } = bootstrap(db, systemClock);
 
+  // Auto-cura hubs pareados antes do mirror tenant existir: garante que
+  // o tenant do cloud está na tabela local pra sync de catálogo/mesas/employees
+  // não falhar com FK violation.
+  repos.cloudLink.ensureTenantMirror();
+
   const tempBroadcaster = makeMemoryBroadcaster();
 
   const app = await buildApp({

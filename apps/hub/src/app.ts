@@ -72,7 +72,17 @@ export const buildApp = async (opts: BuildAppOptions): Promise<FastifyInstance> 
   });
 
   await app.register(errorHandlerPlugin);
-  await app.register(helmet);
+  // Hub roda em HTTP plano numa LAN (mini-PC de loja, sem TLS). Helmet com
+  // defaults envia CSP 'upgrade-insecure-requests' que faz o browser tentar
+  // HTTPS — quebra o admin UI vanilla e qualquer fetch interno. Removemos
+  // só essa diretiva; outros defaults do helmet permanecem.
+  await app.register(helmet, {
+    contentSecurityPolicy: {
+      directives: {
+        'upgrade-insecure-requests': null,
+      },
+    },
+  });
 
   // CORS: lista de origens permitidas via ALLOWED_ORIGINS (CSV).
   // Em dev (NODE_ENV !== 'production') ou se não setado, aceita tudo.

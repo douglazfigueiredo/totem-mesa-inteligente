@@ -3,6 +3,7 @@ import { Fraunces, Inter, JetBrains_Mono } from 'next/font/google';
 import './globals.css';
 import { SocketProvider } from '@/components/SocketProvider';
 import { ConnectionBadge } from '@/components/ConnectionBadge';
+import { SwRegister } from '@/components/SwRegister';
 
 const fraunces = Fraunces({
   subsets: ['latin'],
@@ -43,6 +44,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <SocketProvider>
           <ConnectionBadge />
           <div className="app">{children}</div>
+          <SwRegister />
         </SocketProvider>
       </body>
     </html>

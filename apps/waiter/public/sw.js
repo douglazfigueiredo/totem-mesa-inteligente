@@ -1,13 +1,13 @@
-// TotemMesa service worker — offline shell
+// Waiter service worker — offline shell
 // Estratégia:
 // - assets estáticos (/_next/static/*) → cache-first
 // - imagens/fontes → stale-while-revalidate
 // - navegações HTML → network-first com fallback offline.html
-// - API/socket → sempre rede (não cacheia)
+// - hub (origem diferente) → passa direto (não cacheia)
 
 const VERSION = 'v1';
-const STATIC_CACHE = `totem-static-${VERSION}`;
-const RUNTIME_CACHE = `totem-runtime-${VERSION}`;
+const STATIC_CACHE = `waiter-static-${VERSION}`;
+const RUNTIME_CACHE = `waiter-runtime-${VERSION}`;
 const OFFLINE_URL = '/offline.html';
 
 self.addEventListener('install', (event) => {
@@ -30,13 +30,6 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-const isApiRequest = (url) =>
-  url.pathname.startsWith('/api/') ||
-  url.pathname.startsWith('/devices/') ||
-  url.pathname.startsWith('/orders') ||
-  url.pathname.startsWith('/waiter/') ||
-  url.pathname.startsWith('/socket.io/');
-
 const isStaticAsset = (url) =>
   url.pathname.startsWith('/_next/static/') ||
   url.pathname === '/manifest.json' ||
@@ -51,7 +44,6 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (isApiRequest(url)) return;
 
   if (isStaticAsset(url)) {
     event.respondWith(

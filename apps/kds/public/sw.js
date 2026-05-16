@@ -5,7 +5,7 @@
 // - navegações HTML → network-first com fallback offline.html
 // - hub (origem diferente) → passa direto (não cacheia)
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const STATIC_CACHE = `kds-static-${VERSION}`;
 const RUNTIME_CACHE = `kds-runtime-${VERSION}`;
 const OFFLINE_URL = '/offline.html';
@@ -31,9 +31,7 @@ self.addEventListener('activate', (event) => {
 });
 
 const isStaticAsset = (url) =>
-  url.pathname.startsWith('/_next/static/') ||
-  url.pathname === '/manifest.json' ||
-  url.pathname === '/icon.svg';
+  url.pathname.startsWith('/_next/static/');
 
 const isRuntimeAsset = (url) =>
   /\.(woff2?|ttf|otf|png|jpg|jpeg|gif|svg|webp|ico)$/i.test(url.pathname);

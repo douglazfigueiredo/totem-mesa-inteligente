@@ -91,7 +91,8 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       if (order) {
         orders.set(orderId, { ...order, status: 'cancelado' });
       }
-      set({ orders });
+      // se o cancel veio enquanto o overlay "tá pronto" estava aberto, fecha
+      set({ orders, readyAlerts: cur.readyAlerts.filter((id) => id !== orderId) });
     } else if (event.type === 'order:delivered') {
       const { orderId } = event.payload;
       const orders = new Map(cur.orders);
@@ -99,7 +100,8 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       if (order) {
         orders.set(orderId, { ...order, status: 'entregue' });
       }
-      set({ orders });
+      // garçom entregou → o overlay "tá pronto!" perdeu o sentido, dispensa
+      set({ orders, readyAlerts: cur.readyAlerts.filter((id) => id !== orderId) });
     } else if (event.type === 'item:unavailable') {
       const { productId, suggestedSubstitutes } = event.payload;
       const already = cur.unavailableQueue.some((u) => u.productId === productId);

@@ -47,6 +47,8 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
     const cur = get();
     if (event.type === 'order:created') {
       const order = event.payload.order;
+      // Pedido garçom-only (ex: só bebida) não toca o KDS — vai direto pro waiter.
+      if (order.destino === 'garcom') return;
       const next = new Map(cur.orders);
       next.set(order.id, order);
       set({ orders: next, newOrderTick: cur.newOrderTick + 1 });

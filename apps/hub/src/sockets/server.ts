@@ -78,7 +78,13 @@ export const createSocketServer = (opts: CreateSocketServerOptions): SocketIOSer
         ) as TableId | undefined;
 
         if (device.role === 'kds' || device.role === 'admin') {
-          const activeOrders = repos.orders.listActiveByTenant(device.tenantId);
+          const allOrders = repos.orders.listActiveByTenant(device.tenantId);
+          // KDS só enxerga o que vai pra cozinha. Pedidos garçom-only
+          // (ex: só bebidas) ficam fora — vão direto pro waiter.
+          const activeOrders =
+            device.role === 'kds'
+              ? allOrders.filter((o) => o.destino === 'cozinha' || o.destino === 'ambos')
+              : allOrders;
           const activePreparos = activeOrders
             .map((o) => repos.preparos.getByOrderId(o.id))
             .filter((p): p is NonNullable<typeof p> => p !== null);

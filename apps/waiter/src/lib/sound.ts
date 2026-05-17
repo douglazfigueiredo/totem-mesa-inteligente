@@ -56,6 +56,14 @@ export const playWaiterCallChime = (): void => {
   playTone(660, 240, 200);
 };
 
+export const playOrderReadyChime = (): void => {
+  if (!useSoundStore.getState().enabled) return;
+  // tri-tap ascendente — distinguir do ding-dong do chamado de mesa
+  playTone(660, 130, 0);
+  playTone(880, 130, 150);
+  playTone(1100, 200, 300);
+};
+
 /**
  * Toca som quando `tick` muda. Ignora o primeiro render (pra não tocar
  * ao montar com snapshot inicial).

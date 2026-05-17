@@ -363,7 +363,14 @@ function ProductEditForm({
   categoryId: string;
 }) {
   return (
-    <ToastForm action={updateProductAction} className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2">
+    // key força remount após salvar — sem isso o React 19 reseta o form
+    // pros defaultValues antigos antes do parent re-renderizar com o produto
+    // atualizado, daí campos como destino voltam pro valor anterior.
+    <ToastForm
+      key={product.updatedAt?.getTime() ?? product.id}
+      action={updateProductAction}
+      className="grid grid-cols-1 gap-3 p-4 md:grid-cols-2"
+    >
       <input type="hidden" name="categoryId" value={categoryId} />
       <input type="hidden" name="id" value={product.id} />
       <Field label="nome">

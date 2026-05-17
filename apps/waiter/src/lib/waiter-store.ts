@@ -17,6 +17,7 @@ type WaiterState = {
   tablesById: Map<TableId, Table>;
   deliveredIds: Set<OrderId>;
   newCallTick: number;
+  newOrderReadyTick: number;
 
   setSnapshot: (input: { calls: WaiterCall[]; orders: Order[]; tables?: Table[] }) => void;
   applyEvent: (event: WSEvent) => void;
@@ -30,6 +31,7 @@ export const useWaiterStore = create<WaiterState>((set, get) => ({
   tablesById: new Map(),
   deliveredIds: new Set(),
   newCallTick: 0,
+  newOrderReadyTick: 0,
 
   setSnapshot({ calls, orders, tables }) {
     const callsMap = new Map<WaiterCallId, WaiterCall>();
@@ -109,7 +111,8 @@ export const useWaiterStore = create<WaiterState>((set, get) => ({
       if (!order) return;
       const next = new Map(cur.orders);
       next.set(orderId, { ...order, status: 'pronto' });
-      set({ orders: next });
+      // dispara chime do garçom — pedido pronto pra entregar
+      set({ orders: next, newOrderReadyTick: cur.newOrderReadyTick + 1 });
       return;
     }
 

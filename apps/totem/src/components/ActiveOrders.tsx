@@ -46,8 +46,12 @@ export const ActiveOrders = () => {
           const preparoId = byOrder.get(order.id);
           const preparo = preparoId ? preparosMap.get(preparoId) : null;
           const remaining = preparo ? computeRemainingSec(preparo, now) : null;
-          const label = STATUS_LABEL[order.status] ?? order.status;
           const isReady = order.status === 'pronto';
+          const isWaiterOnly = order.destino === 'garcom';
+          const label =
+            isReady && isWaiterOnly
+              ? 'aguardando garçom'
+              : (STATUS_LABEL[order.status] ?? order.status);
           return (
             <li key={order.id} className={`${styles.item} ${isReady ? styles.ready : ''}`}>
               <button onClick={() => router.push(`/track/${order.id}`)}>

@@ -1,15 +1,6 @@
 import { z } from 'zod';
 import type { FastifyPluginAsync } from 'fastify';
-import {
-  Bps,
-  EventId,
-  OrderId,
-  OrderItem,
-  TableId,
-  applyBps,
-  type ItemDestino,
-  type OrderDestino,
-} from '@app/schemas';
+import { Bps, EventId, OrderId, OrderItem, TableId, applyBps } from '@app/schemas';
 import { newEventId, newOrderItemId } from '../lib/ids.js';
 import { ValidationError } from '../lib/errors.js';
 
@@ -21,12 +12,6 @@ const CreateOrderRequest = z.object({
   taxaServicoBps: Bps.optional(),
   obs: z.string().max(500).optional(),
 });
-
-const computeDestino = (items: { destino: ItemDestino }[]): OrderDestino => {
-  const set = new Set(items.map((i) => i.destino));
-  if (set.size > 1) return 'ambos';
-  return [...set][0] === 'garcom' ? 'garcom' : 'cozinha';
-};
 
 const ordersRoutes: FastifyPluginAsync = async (app) => {
   app.post('/orders', { preHandler: app.requireRole(['totem']) }, async (request, reply) => {
@@ -51,33 +36,50 @@ const ordersRoutes: FastifyPluginAsync = async (app) => {
       return { ...it, id: newOrderItemId() };
     });
 
-    const subtotalCents = itemsWithIds.reduce((s, i) => s + i.totalPriceCents, 0);
     const taxaServicoBps = body.taxaServicoBps ?? 1000;
-    const taxaServicoCents = applyBps(subtotalCents, taxaServicoBps);
-    const totalCents = subtotalCents + taxaServicoCents;
 
-    const order = app.repos.orders.create({
-      tenantId: request.device!.tenantId,
-      tableId: body.tableId,
-      destino: computeDestino(itemsWithIds),
-      items: itemsWithIds,
-      subtotalCents,
-      taxaServicoBps,
-      taxaServicoCents,
-      totalCents,
-      obs: body.obs,
+    // Cada item carrega seu destino (cozinha/garcom). Pedidos mistos viram
+    // 2 sub-pedidos independentes: um cozinha (com timer/preparo) e outro
+    // garçom (nasce 'pronto', pode ser entregue imediatamente).
+    const buckets: { destino: 'cozinha' | 'garcom'; items: typeof itemsWithIds }[] = [];
+    const kitchenItems = itemsWithIds.filter((i) => i.destino === 'cozinha');
+    const garcomItems = itemsWithIds.filter((i) => i.destino === 'garcom');
+    if (kitchenItems.length > 0) buckets.push({ destino: 'cozinha', items: kitchenItems });
+    if (garcomItems.length > 0) buckets.push({ destino: 'garcom', items: garcomItems });
+
+    const created = buckets.map((bucket) => {
+      const subtotalCents = bucket.items.reduce((s, i) => s + i.totalPriceCents, 0);
+      const taxaServicoCents = applyBps(subtotalCents, taxaServicoBps);
+      const totalCents = subtotalCents + taxaServicoCents;
+      const order = app.repos.orders.create({
+        tenantId: request.device!.tenantId,
+        tableId: body.tableId,
+        destino: bucket.destino,
+        initialStatus: bucket.destino === 'garcom' ? 'pronto' : 'criado',
+        items: bucket.items,
+        subtotalCents,
+        taxaServicoBps,
+        taxaServicoCents,
+        totalCents,
+        obs: body.obs,
+      });
+      app.publishAndEnqueue('order:created', order.tenantId, { order });
+      return order;
     });
 
-    app.publishAndEnqueue('order:created', order.tenantId, { order });
+    // Primário pra resposta/track: cozinha quando existe (carrega timer),
+    // senão o de garçom. Cliente acompanha esse no /track; o outro aparece
+    // em ActiveOrders quando relevante.
+    const primary = created.find((o) => o.destino === 'cozinha') ?? created[0];
 
     app.repos.idempotency.record({
       eventId,
       type: 'order:create',
       deviceId: request.device!.id,
-      result: order,
+      result: primary,
     });
 
-    return reply.code(201).send(order);
+    return reply.code(201).send(primary);
   });
 
   app.get('/orders/:id', { preHandler: app.requireDevice }, async (request) => {

@@ -20,6 +20,8 @@ export type CreateOrderInput = {
   tableId: TableId;
   items: OrderItem[];
   destino: 'cozinha' | 'garcom' | 'ambos';
+  /** Default 'criado'. Sub-orders garçom-only nascem direto 'pronto' (não passam pela cozinha). */
+  initialStatus?: OrderStatus;
   subtotalCents: number;
   taxaServicoBps: number;
   taxaServicoCents: number;
@@ -37,7 +39,7 @@ export const makeOrderRepo = (db: DBClient, clock: Clock) => ({
       id,
       tenantId: input.tenantId,
       tableId: input.tableId,
-      status: 'criado' as const satisfies OrderStatus,
+      status: input.initialStatus ?? 'criado',
       destino: input.destino,
       items: input.items,
       subtotalCents: input.subtotalCents,

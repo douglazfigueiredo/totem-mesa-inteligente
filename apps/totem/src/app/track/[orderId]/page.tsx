@@ -30,10 +30,17 @@ export default function TrackPage({ params }: { params: Promise<{ orderId: strin
 
   const orderShort = orderId.slice(-4).toUpperCase();
 
+  const isWaiterOnly = order?.destino === 'garcom';
+
   const statusForCard = (s: string): { label: string; cls: string } => {
-    if (s === 'pronto') return { label: 'pronto ✓', cls: styles.dotReady };
+    if (s === 'pronto') {
+      return isWaiterOnly
+        ? { label: 'aguardando garçom', cls: styles.dotReady }
+        : { label: 'pronto ✓', cls: styles.dotReady };
+    }
     if (s === 'preparando') return { label: 'preparando', cls: styles.dotCooking };
     if (s === 'cancelado') return { label: 'cancelado', cls: styles.dotMuted };
+    if (s === 'entregue') return { label: 'entregue ✓', cls: styles.dotReady };
     return { label: 'na fila', cls: styles.dotQueue };
   };
 
@@ -41,7 +48,16 @@ export default function TrackPage({ params }: { params: Promise<{ orderId: strin
     <MenuLayout>
       <div className={styles.grid}>
         <section className={styles.left}>
-          {!preparo && (
+          {!preparo && isWaiterOnly && (
+            <div className={styles.waiting}>
+              <p className={styles.waitingTitle}>pedido feito! 🛎️</p>
+              <p className={styles.waitingHint}>
+                o garçom foi notificado e já está levando à mesa.
+              </p>
+            </div>
+          )}
+
+          {!preparo && !isWaiterOnly && (
             <div className={styles.waiting}>
               <p className={styles.waitingTitle}>aguardando cozinha aceitar...</p>
               <p className={styles.waitingHint}>

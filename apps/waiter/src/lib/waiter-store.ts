@@ -101,7 +101,15 @@ export const useWaiterStore = create<WaiterState>((set, get) => ({
       const o = event.payload.order;
       const next = new Map(cur.orders);
       next.set(o.id, o);
-      set({ orders: next });
+      // Pedido garçom-only nasce 'pronto' direto — dispara chime do garçom
+      // imediatamente (não passa pela cozinha, não tem prep:ready).
+      const justBecameReady = o.destino === 'garcom' && o.status === 'pronto';
+      set({
+        orders: next,
+        newOrderReadyTick: justBecameReady
+          ? cur.newOrderReadyTick + 1
+          : cur.newOrderReadyTick,
+      });
       return;
     }
 

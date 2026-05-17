@@ -4,7 +4,7 @@ Runbook pra migrar o hub piloto de HTTP→HTTPS sem reinstalar do zero. Resolve 
 
 ## Pré-requisitos
 
-- Acesso SSH ao mini-PC (`ssh hub@192.168.0.103` ou pelo monitor+teclado)
+- Acesso SSH ao mini-PC (`ssh tm@192.168.0.103` ou pelo monitor+teclado)
 - Commit com suporte a HTTPS já em `main` e imagem `stable` rebuildada no GHCR
 - Mac/Windows do operador na mesma LAN da loja (pra transferir o `rootCA.pem` pros tablets)
 
@@ -23,7 +23,7 @@ A action `hub-image.yml` faz build multi-arch e empurra como `:stable`. Aguarda 
 Caminho rápido — re-rodar o install.sh com `SKIP_*` pra pular o que já foi feito:
 
 ```bash
-ssh hub@192.168.0.103
+ssh tm@192.168.0.103
 SKIP_TIMEZONE=1 SKIP_AUTO_UPDATES=1 SKIP_DISK_CHECK=1 \
   curl -fsSL https://raw.githubusercontent.com/douglazfigueiredo/totem-mesa-inteligente/main/deploy/hub/install.sh \
   | bash
@@ -51,7 +51,7 @@ curl -k https://127.0.0.1:4000/health
 
 ```bash
 # Do seu Mac, na mesma rede:
-scp hub@192.168.0.103:/opt/totemmesa/certs/rootCA.pem ~/Downloads/totemmesa-rootCA.pem
+scp tm@192.168.0.103:/opt/totemmesa/certs/rootCA.pem ~/Downloads/totemmesa-rootCA.pem
 ```
 
 ## 4. Instalar a CA em cada tablet Android
@@ -93,7 +93,7 @@ O `hub-client.ts` atualiza `localStorage.hubUrl` no primeiro `?hub=`, então da 
 Em qualquer momento dá pra voltar pro HTTP:
 
 ```bash
-ssh hub@192.168.0.103
+ssh tm@192.168.0.103
 sed -i.bak -e 's|^HTTPS_CERT_PATH=.*|HTTPS_CERT_PATH=|' -e 's|^HTTPS_KEY_PATH=.*|HTTPS_KEY_PATH=|' /opt/totemmesa/.env
 docker compose -f /opt/totemmesa/docker-compose.yml restart hub
 ```

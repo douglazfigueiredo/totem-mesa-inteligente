@@ -17,6 +17,8 @@
 #   SKIP_AUTO_UPDATES=1  — não instalar unattended-upgrades
 #   SKIP_FIREWALL=1      — não tocar no ufw
 #   SKIP_DISK_CHECK=1    — não avisar de espaço baixo
+#   SKIP_HTTPS=1         — não instalar mkcert / gerar certs (hub sobe em HTTP)
+#   HUB_HOSTNAMES        — SANs extras no cert (default: hub.local + IP detectado)
 #   MIN_FREE_GB          — limiar do alerta de disco (default: 5)
 
 set -euo pipefail
@@ -186,6 +188,73 @@ setup_firewall
 ${SUDO} mkdir -p "${INSTALL_DIR}"
 ${SUDO} chown "$(id -u):$(id -g)" "${INSTALL_DIR}"
 
+# ─── HTTPS via mkcert ──────────────────────────────────────────────
+# Gera CA local + cert que cobre IP da LAN, hub.local e localhost.
+# Tablets precisam instalar a rootCA.pem uma vez pra confiar.
+setup_https() {
+  if [[ "${SKIP_HTTPS:-0}" -eq 1 ]]; then
+    yellow "==> SKIP_HTTPS=1 — pulando HTTPS, hub vai subir em HTTP plano."
+    return
+  fi
+
+  # libnss3-tools é dep do mkcert (atualiza NSS DB do sistema)
+  if [[ "${HAS_APT}" -eq 1 ]] && ! dpkg -s libnss3-tools >/dev/null 2>&1; then
+    cyan "==> Instalando libnss3-tools (dep do mkcert)..."
+    ${SUDO} apt-get install -y -qq libnss3-tools
+  fi
+
+  if ! command -v mkcert >/dev/null 2>&1; then
+    cyan "==> Baixando mkcert binário..."
+    local MKCERT_VER="v1.4.4"
+    local MKCERT_ARCH
+    case "${ARCH_LABEL}" in
+      amd64) MKCERT_ARCH="linux-amd64" ;;
+      arm64) MKCERT_ARCH="linux-arm64" ;;
+      armv7) MKCERT_ARCH="linux-arm" ;;
+      *) red "Arquitetura ${ARCH_LABEL} sem binário mkcert pré-compilado. Use SKIP_HTTPS=1 ou compile manual."; return 1 ;;
+    esac
+    local TMP_MKCERT
+    TMP_MKCERT="$(mktemp)"
+    curl -fsSL "https://github.com/FiloSottile/mkcert/releases/download/${MKCERT_VER}/mkcert-${MKCERT_VER}-${MKCERT_ARCH}" -o "${TMP_MKCERT}"
+    ${SUDO} install -m 0755 "${TMP_MKCERT}" /usr/local/bin/mkcert
+    rm -f "${TMP_MKCERT}"
+    green "==> mkcert instalado: $(mkcert -version 2>&1 | head -n1)"
+  else
+    green "==> mkcert já presente: $(mkcert -version 2>&1 | head -n1)"
+  fi
+
+  cyan "==> Inicializando CA local da mkcert (idempotente)..."
+  mkcert -install >/dev/null 2>&1 || true
+
+  local CAROOT
+  CAROOT="$(mkcert -CAROOT)"
+  if [[ -z "${CAROOT}" || ! -f "${CAROOT}/rootCA.pem" ]]; then
+    red "==> CAROOT não encontrado após mkcert -install. Abortando setup HTTPS."
+    return 1
+  fi
+
+  local LOCAL_IP_DETECT
+  LOCAL_IP_DETECT="$(hostname -I 2>/dev/null | awk '{print $1}')"
+  if [[ -z "${LOCAL_IP_DETECT}" ]]; then
+    LOCAL_IP_DETECT="127.0.0.1"
+    yellow "==> IP local não detectado — cert cobrirá só hub.local/localhost/127.0.0.1."
+  fi
+
+  local SANS="${HUB_HOSTNAMES:-hub.local localhost 127.0.0.1 ${LOCAL_IP_DETECT}}"
+  cyan "==> Gerando cert mkcert para: ${SANS}"
+
+  mkdir -p "${INSTALL_DIR}/certs"
+  # shellcheck disable=SC2086
+  mkcert -cert-file "${INSTALL_DIR}/certs/hub.pem" \
+         -key-file  "${INSTALL_DIR}/certs/hub-key.pem" \
+         ${SANS} >/dev/null
+  cp "${CAROOT}/rootCA.pem" "${INSTALL_DIR}/certs/rootCA.pem"
+  chmod 644 "${INSTALL_DIR}/certs/hub.pem" "${INSTALL_DIR}/certs/rootCA.pem"
+  chmod 600 "${INSTALL_DIR}/certs/hub-key.pem"
+  green "==> Certs gerados em ${INSTALL_DIR}/certs/"
+}
+setup_https
+
 cyan "==> Baixando docker-compose.yml..."
 curl -fsSL "${COMPOSE_URL}" -o "${INSTALL_DIR}/docker-compose.yml"
 
@@ -222,6 +291,23 @@ else
   yellow "==> .env ja existe em ${INSTALL_DIR}/.env — preservando."
 fi
 
+# Se setup_https gerou certs, popula HTTPS_CERT_PATH/KEY no .env (idempotente).
+if [[ -f "${INSTALL_DIR}/certs/hub.pem" && -f "${INSTALL_DIR}/certs/hub-key.pem" ]]; then
+  if grep -q '^HTTPS_CERT_PATH=' "${INSTALL_DIR}/.env"; then
+    sed -i.bak \
+      -e "s|^HTTPS_CERT_PATH=.*$|HTTPS_CERT_PATH=/certs/hub.pem|" \
+      -e "s|^HTTPS_KEY_PATH=.*$|HTTPS_KEY_PATH=/certs/hub-key.pem|" \
+      "${INSTALL_DIR}/.env"
+  else
+    printf '\nHTTPS_CERT_PATH=/certs/hub.pem\nHTTPS_KEY_PATH=/certs/hub-key.pem\n' >> "${INSTALL_DIR}/.env"
+  fi
+  rm -f "${INSTALL_DIR}/.env.bak"
+  green "==> HTTPS configurado no .env."
+  HUB_SCHEME="https"
+else
+  HUB_SCHEME="http"
+fi
+
 cyan "==> Baixando imagem mais recente..."
 cd "${INSTALL_DIR}"
 docker compose pull
@@ -230,9 +316,12 @@ cyan "==> Subindo servicos..."
 docker compose up -d
 
 cyan "==> Aguardando health-check..."
+# Em HTTPS, -k pula validação (cert é da CA mkcert local — o host pode até confiar
+# via -install, mas o curl fora do bundle do sistema reclama em alguns distros).
+HEALTH_URL="${HUB_SCHEME}://127.0.0.1:${ADMIN_HTTP_PORT}/health"
 for i in 1 2 3 4 5 6 7 8 9 10; do
-  if curl -fs "http://127.0.0.1:${ADMIN_HTTP_PORT}/health" >/dev/null 2>&1; then
-    green "==> Hub respondendo em http://127.0.0.1:${ADMIN_HTTP_PORT}/health"
+  if curl -fks "${HEALTH_URL}" >/dev/null 2>&1; then
+    green "==> Hub respondendo em ${HEALTH_URL}"
     break
   fi
   sleep 3
@@ -247,6 +336,26 @@ LOCAL_IP="$(hostname -I 2>/dev/null | awk '{print $1}' || echo '<ip-do-hub>')"
 ADMIN_SECRET_VAL="$(grep '^ADMIN_SECRET=' "${INSTALL_DIR}/.env" | cut -d= -f2-)"
 
 green "==> Instalacao concluida."
+
+HTTPS_BLOCK=""
+if [[ "${HUB_SCHEME}" == "https" ]]; then
+  HTTPS_BLOCK=$(cat <<EOF
+
+ ⚠ HTTPS está ativo — cada tablet precisa instalar a CA local UMA VEZ
+   pra confiar no cert do hub. Caminho:
+
+     CA gerada em: ${INSTALL_DIR}/certs/rootCA.pem
+
+   Copie esse arquivo pro seu Mac e envie pra cada tablet via AirDrop,
+   WhatsApp, Drive, e-mail, ou pen-drive. Depois, no tablet Android:
+     Configurações → Segurança → Credenciais → Instalar do dispositivo
+     → seleciona rootCA.pem → "CA certificate" → confirma o aviso.
+
+   (sem isso, o navegador acusa "Not Secure" e bloqueia a conexão)
+EOF
+)
+fi
+
 cat <<EOF
 
 ═══════════════════════════════════════════════════════════════════
@@ -254,16 +363,17 @@ cat <<EOF
 
   1. No painel cloud, vá em /admin/hubs e clique em "gerar código".
   2. Acesse a UI admin do hub:
-       http://${LOCAL_IP}:${ADMIN_HTTP_PORT}/admin/cloud/pair
+       ${HUB_SCHEME}://${LOCAL_IP}:${ADMIN_HTTP_PORT}/admin/cloud/pair
   3. Use ADMIN_SECRET pra autenticar:
        ${ADMIN_SECRET_VAL}
   4. Cole o código de 6 dígitos. O hub puxa cardápio, mesas e
      funcionários automaticamente em até 60s.
+${HTTPS_BLOCK}
 
  Apontar tablets (totem/KDS/garçom) pro hub:
-       https://totem.totemmesa.app/?hub=http://${LOCAL_IP}:${ADMIN_HTTP_PORT}
-       https://kds.totemmesa.app/?hub=http://${LOCAL_IP}:${ADMIN_HTTP_PORT}
-       https://waiter.totemmesa.app/?hub=http://${LOCAL_IP}:${ADMIN_HTTP_PORT}
+       https://totem-mesa-inteligente-totem.vercel.app/?hub=${HUB_SCHEME}://${LOCAL_IP}:${ADMIN_HTTP_PORT}
+       https://totem-mesa-inteligente-kds.vercel.app/?hub=${HUB_SCHEME}://${LOCAL_IP}:${ADMIN_HTTP_PORT}
+       https://totem-mesa-inteligente-waiter.vercel.app/?hub=${HUB_SCHEME}://${LOCAL_IP}:${ADMIN_HTTP_PORT}
    (a URL fica salva no localStorage do tablet — só precisa abrir
     com ?hub=... uma vez)
 

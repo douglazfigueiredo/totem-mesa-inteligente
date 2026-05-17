@@ -139,18 +139,36 @@ O script:
 4. Instala Docker (se faltar)
 5. Configura `ufw` liberando só `22/tcp` (SSH) e `4000/tcp` (hub)
 6. Verifica espaço em disco (alerta se < 5GB livre)
-7. Cria `/opt/totemmesa/{docker-compose.yml,update.sh,.env}`
-8. Gera `ADMIN_SECRET` aleatório (openssl ou fallback `/dev/urandom`)
-9. Sobe o hub e aguarda health-check
-10. Imprime URL de pareamento + ADMIN_SECRET
+7. **Instala mkcert + gera CA local + cert pro hub** (cobre IP da LAN, `hub.local`, `localhost`). Pula com `SKIP_HTTPS=1`.
+8. Cria `/opt/totemmesa/{docker-compose.yml,update.sh,.env,certs/}`
+9. Gera `ADMIN_SECRET` aleatório (openssl ou fallback `/dev/urandom`)
+10. Popula `HTTPS_CERT_PATH` / `HTTPS_KEY_PATH` no `.env`
+11. Sobe o hub (HTTPS na 4000) e aguarda health-check
+12. Imprime URL de pareamento + ADMIN_SECRET + caminho do `rootCA.pem` pra instalar nos tablets
 
 **Flags de override** (env vars, opcionais):
 - `SKIP_TIMEZONE=1` — não tocar em `timedatectl`
 - `SKIP_AUTO_UPDATES=1` — pular `unattended-upgrades`
 - `SKIP_FIREWALL=1` — não configurar `ufw` (use se a rede já tem firewall externo)
 - `SKIP_DISK_CHECK=1` — pular alerta de espaço
+- `SKIP_HTTPS=1` — não instalar mkcert / gerar certs (hub sobe em HTTP plano)
+- `HUB_HOSTNAMES="hub.local 192.168.1.10"` — sobrescreve SANs do cert (default detecta IP + `hub.local`)
 - `MIN_FREE_GB=10` — ajustar limiar do alerta de disco
 - `ADMIN_HTTP_PORT=4000` — trocar a porta exposta do hub
+
+### 4.2.1. Instalar CA nos tablets (uma vez por device)
+
+Com HTTPS ativo, cada tablet precisa confiar na CA local da mkcert pra abrir o hub sem erro de segurança e pra que o PWA (Vercel HTTPS) consiga falar com o hub sem mixed content. Sem isso, o Chrome bloqueia a comunicação e mostra a barra de "Not Secure" em cima do app.
+
+1. Copia o `rootCA.pem` do mini-PC pra um lugar acessível:
+   ```bash
+   scp hub@<ip-do-mini-pc>:/opt/totemmesa/certs/rootCA.pem ~/Downloads/
+   ```
+2. Compartilha o arquivo com cada tablet (AirDrop, WhatsApp, Drive, e-mail).
+3. **Android**: Configurações → Segurança e privacidade → Mais → Criptografia e credenciais → Instalar certificado → CA certificate → seleciona `rootCA.pem` → confirma o aviso ("Sua rede pode ser monitorada" — é esperado, é uma CA sua mesmo).
+4. **iOS** (se aplicável): instala perfil pelo Safari → Configurações → Geral → VPN e gerenciamento de dispositivo → confia no perfil → Configurações → Geral → Sobre → Configurações de Confiança de Certificado → habilita confiança total.
+
+Depois disso, o Chrome do tablet abre `https://<ip-do-hub>:4000` normalmente, e o PWA na Vercel consegue fazer `fetch`/WebSocket sem mixed content.
 
 ### 4.3. Pareamento com cloud
 
@@ -179,19 +197,19 @@ E no cloud, em `/admin/hubs`, o hub aparece **online** com "último evento" rece
 
 ### Totem (uma vez por mesa)
 
-1. No tablet, abrir Chrome em `https://totem.totemmesa.app/?hub=http://192.168.1.10:4000` (substituir IP).
+1. No tablet, abrir Chrome em `https://totem-mesa-inteligente-totem.vercel.app/?hub=https://192.168.1.10:4000` (substituir IP; se rodando hub em HTTP, usar `http://`).
 2. "Adicionar à tela inicial" pra virar PWA.
 3. Service worker da fase 8.5 cacheia shell — funciona offline depois da 1ª carga.
 4. Pareamento: usuário abre o totem, escolhe a mesa, recebe código no totem cloud → digita... (já implementado em fase 3).
 
 ### KDS (cozinha)
 
-1. `https://kds.totemmesa.app/?hub=http://192.168.1.10:4000`
+1. `https://totem-mesa-inteligente-kds.vercel.app/?hub=https://192.168.1.10:4000`
 2. PIN do funcionário (gerado em `/admin/funcionarios`).
 
 ### Waiter (garçom)
 
-1. `https://waiter.totemmesa.app/?hub=http://192.168.1.10:4000`
+1. `https://totem-mesa-inteligente-waiter.vercel.app/?hub=https://192.168.1.10:4000`
 2. PIN do funcionário.
 
 ## 6. Operação contínua

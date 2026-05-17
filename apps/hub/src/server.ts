@@ -2,7 +2,7 @@ import { config as loadEnv } from 'dotenv';
 loadEnv({ path: '.env.local' });
 loadEnv({ path: '.env' });
 
-import { mkdirSync } from 'node:fs';
+import { mkdirSync, readFileSync, existsSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { buildApp } from './app.js';
 import { bootstrap } from './bootstrap.js';
@@ -19,6 +19,22 @@ import { startBackupWorker } from './workers/backup.js';
 const HOST = process.env.HOST ?? '0.0.0.0';
 const PORT = Number(process.env.PORT ?? 4000);
 const DATABASE_PATH = process.env.DATABASE_PATH ?? './data/hub.db';
+const HTTPS_CERT_PATH = process.env.HTTPS_CERT_PATH;
+const HTTPS_KEY_PATH = process.env.HTTPS_KEY_PATH;
+
+const loadHttps = () => {
+  if (!HTTPS_CERT_PATH || !HTTPS_KEY_PATH) return undefined;
+  if (!existsSync(HTTPS_CERT_PATH) || !existsSync(HTTPS_KEY_PATH)) {
+    console.warn(
+      `[hub] HTTPS_CERT_PATH/HTTPS_KEY_PATH apontam pra arquivos inexistentes (${HTTPS_CERT_PATH}, ${HTTPS_KEY_PATH}). Fallback HTTP.`,
+    );
+    return undefined;
+  }
+  return {
+    cert: readFileSync(HTTPS_CERT_PATH),
+    key: readFileSync(HTTPS_KEY_PATH),
+  };
+};
 
 async function main() {
   mkdirSync(dirname(DATABASE_PATH), { recursive: true });
@@ -39,6 +55,7 @@ async function main() {
 
   const tempBroadcaster = makeMemoryBroadcaster();
 
+  const httpsOptions = loadHttps();
   const app = await buildApp({
     repos,
     tenantId,
@@ -51,6 +68,7 @@ async function main() {
           ? { target: 'pino-pretty', options: { colorize: true } }
           : undefined,
     },
+    https: httpsOptions,
   });
 
   let timerWorkerStop: (() => Promise<void>) | null = null;
@@ -128,6 +146,7 @@ async function main() {
       dbPath: DATABASE_PATH,
       bootstrapped: created,
       cloudPush: cloudLinkAtBoot ? cloudLinkAtBoot.cloudBaseUrl : 'unpaired',
+      protocol: httpsOptions ? 'https' : 'http',
     },
     'hub ready',
   );

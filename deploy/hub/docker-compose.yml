@@ -19,10 +19,20 @@ services:
       DATABASE_PATH: /data/hub.db
       ADMIN_SECRET: ${ADMIN_SECRET:?ADMIN_SECRET nao definido — rode install.sh ou edite .env}
       CATALOG_POLL_INTERVAL_MS: ${CATALOG_POLL_INTERVAL_MS:-60000}
+      # HTTPS opt-in: setado pelo install.sh quando os certs mkcert existem.
+      # Sem essas envs, o hub sobe em HTTP (compat dev).
+      HTTPS_CERT_PATH: ${HTTPS_CERT_PATH:-}
+      HTTPS_KEY_PATH: ${HTTPS_KEY_PATH:-}
     volumes:
       - hub-data:/data
+      # Certs mkcert (read-only). Volume montado mesmo sem HTTPS — vazio é OK.
+      - ./certs:/certs:ro
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/health || exit 1"]
+      # Se HTTPS_CERT_PATH estiver setado, bate em https://; senão http://.
+      # --no-check-certificate porque o cert é da mkcert CA, que o wget
+      # do container não conhece (sem instalar a CA dentro da imagem).
+      # $$ escapa do parser do compose pra interpolar no shell do container.
+      test: ["CMD-SHELL", "if [ -n \"$$HTTPS_CERT_PATH\" ]; then wget -qO- --no-check-certificate https://127.0.0.1:4000/health; else wget -qO- http://127.0.0.1:4000/health; fi || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3

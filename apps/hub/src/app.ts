@@ -39,6 +39,7 @@ export type BuildAppOptions = {
   broadcaster: Broadcaster;
   adminSecret?: string;
   logger?: boolean | object;
+  https?: { cert: Buffer | string; key: Buffer | string };
 };
 
 export const buildApp = async (opts: BuildAppOptions): Promise<FastifyInstance> => {
@@ -46,6 +47,7 @@ export const buildApp = async (opts: BuildAppOptions): Promise<FastifyInstance> 
     logger: opts.logger ?? false,
     genReqId: () => crypto.randomUUID(),
     disableRequestLogging: false,
+    ...(opts.https ? { https: opts.https } : {}),
   });
 
   app.decorate('repos', opts.repos);
